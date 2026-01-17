@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets Internos Seguro - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="check-permissions.js"></script>
+    <script type="module" src="tickets-badge.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.min.js"></script>
+    <style>
+        .nuevo-ticket-btn {
+            background: #0b7835 !important;
+            border: none !important;
+            border-radius: 12px !important;
+            padding: 1rem 1.5rem !important;
+            font-weight: 600 !important;
+            font-size: 1rem !important;
+            color: white !important;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 
+                        inset 0 2px 0 rgba(255, 255, 255, 0.25), 
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+            transition: all 0.2s ease !important;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+        }
+        
+        .nuevo-ticket-btn:hover {
+            background: #0b7835 !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3), 
+                        inset 0 2px 0 rgba(255, 255, 255, 0.25), 
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+            color: white !important;
+        }
+        
+        .nuevo-ticket-btn:active {
+            transform: translateY(0) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 
+                        inset 0 2px 0 rgba(255, 255, 255, 0.25), 
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+        }
+        
+        .nuevo-ticket-btn:focus {
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 
+                        inset 0 2px 0 rgba(255, 255, 255, 0.25), 
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+                        0 0 0 3px rgba(11, 120, 53, 0.3) !important;
+        }
+        
+        .nuevo-ticket-btn i {
+            color: white !important;
+        }
+        
+        @media (max-width: 768px) {
+            .nuevo-ticket-btn {
+                font-size: 0.95rem !important;
+                padding: 1rem 1.5rem !important;
+            }
+        }
+        
+        /* Botón Crear Tickets en Masa - Estilo según guía de línea gráfica */
+        .crear-tickets-masa-btn {
+            background: #fbdc02 !important;
+            border: none !important;
+            border-radius: 12px !important;
+            padding: 1rem 1.5rem !important;
+            font-weight: 600 !important;
+            font-size: 1rem !important;
+            color: #000000 !important;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 
+                        inset 0 2px 0 rgba(255, 255, 255, 0.25), 
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+            transition: all 0.2s ease !important;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+        }
+        
+        .crear-tickets-masa-btn:hover {
+            background: #fbdc02 !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3), 
+                        inset 0 2px 0 rgba(255, 255, 255, 0.25), 
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+            color: #000000 !important;
+        }
+        
+        .crear-tickets-masa-btn:active {
+            transform: translateY(0) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 
+                        inset 0 2px 0 rgba(255, 255, 255, 0.25), 
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+        }
+        
+        .crear-tickets-masa-btn:focus {
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 
+                        inset 0 2px 0 rgba(255, 255, 255, 0.25), 
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+                        0 0 0 3px rgba(251, 220, 2, 0.3) !important;
+        }
+        
+        .crear-tickets-masa-btn i {
+            color: #000000 !important;
+        }
+        
+        @media (max-width: 768px) {
+            .crear-tickets-masa-btn {
+                font-size: 0.95rem !important;
+                padding: 1rem 1.5rem !important;
+            }
+        }
+        
+        /* Animación para el chevron del filtro */
+        [data-bs-toggle="collapse"] .fa-chevron-down {
+            transition: transform 0.3s ease;
+        }
+        
+        [data-bs-toggle="collapse"][aria-expanded="true"] .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+        
+        /* Ocultar el chevron por defecto de Bootstrap en el botón de "Tickets de Otros Empleados" */
+        #accordionOtrosTickets .accordion-button::after {
+            display: none !important;
+        }
+        
+        /* Animación para el chevron de "Tickets de Otros Empleados" */
+        #accordionOtrosTickets [data-bs-toggle="collapse"] .fa-chevron-down {
+            transition: transform 0.3s ease;
+        }
+        
+        #accordionOtrosTickets [data-bs-toggle="collapse"][aria-expanded="true"] .fa-chevron-down {
+            transform: rotate(180deg);
+            animation: none; /* Detener animación cuando está expandido */
+        }
+        
+        #accordionOtrosTickets [data-bs-toggle="collapse"].collapsed .fa-chevron-down {
+            animation: pulse-down 1.5s ease-in-out infinite; /* Aplicar animación cuando está colapsado */
+        }
+
+        /* Ocultar chevron por defecto de Bootstrap en botones de acordeón */
+        button[data-bs-target="#collapseMisCreados"]::after,
+        button[data-bs-target="#collapseTareasPendientes"]::after {
+            display: none !important;
+        }
+        
+        /* Estilos para tarjetas de tickets compactas */
+        .mobile-ticket-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .mobile-ticket-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border-color: #17a2b8;
+        }
+        
+        .mobile-ticket-card.completada {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-color: #28a745;
+            opacity: 0.9;
+        }
+        
+        .mobile-ticket-card.vencida {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+            animation: pulse-danger 2s infinite;
+        }
+        
+        .mobile-ticket-card.urgente {
+            border-color: #ff6b6b;
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.3);
+        }
+        
+        @keyframes pulse-danger {
+            0%, 100% { box-shadow: 0 4px 20px rgba(220, 53, 69, 0.2); }
+            50% { box-shadow: 0 4px 25px rgba(220, 53, 69, 0.4); }
+        }
+        
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f3f4;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
+        
+        .ticket-titulo h6 {
+            margin: 0 0 8px 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1.3;
+        }
+        
+        .ticket-badges {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        
+        .ticket-badges .badge {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: none;
+            letter-spacing: 0.2px;
+        }
+        
+        .ticket-acciones {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        
+        .ticket-acciones .btn {
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .ticket-acciones .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .ticket-acciones .btn-outline-warning {
+            color: #6c757d;
+            border-color: #6c757d;
+        }
+        
+        .ticket-acciones .btn-outline-warning:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+        
+        /* Estilos para reporte de eficiencia horizontal */
+        .eficiencia-empleados-horizontal {
+            margin-bottom: 20px;
+        }
+        
+        .empleado-eficiencia-card {
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            height: 100%;
+        }
+        
+        .empleado-eficiencia-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .progress {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 3px;
+        }
+        
+        .progress-bar {
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+        
+        /* Estilos para tabla de tickets */
+        .table-responsive {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 700;
+            text-transform: capitalize;
+            letter-spacing: 0.5px;
+            color: #2c3e50;
+            font-size: 0.75rem;
+        }
+        
+        /* Alinear columnas entre tablas de diferentes empleados */
+        .table th:nth-child(1) { width: 25%; }
+        .table th:nth-child(2) { width: 15%; }
+        .table th:nth-child(3) { width: 12%; }
+        .table th:nth-child(4) { width: 12%; }
+        .table th:nth-child(5) { width: 12%; }
+        .table th:nth-child(6) { width: 12%; }
+        .table th:nth-child(7) { width: 12%; }
+        
+        .table td {
+            vertical-align: middle;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(44,62,80,0.05);
+        }
+        
+        .table-success {
+            background-color: rgba(40,167,69,0.1);
+        }
+        
+        .table-danger {
+            background-color: rgba(220,53,69,0.1);
+        }
+        
+        .btn-group-sm .btn {
+            border-radius: 8px;
+            margin-right: 4px;
+            font-weight: 500;
+        }
+        
+        .btn-group-sm .btn:last-child {
+            margin-right: 0;
+        }
+        
+        .ticket-content {
+            padding: 16px 20px;
+        }
+        
+        .ticket-descripcion {
+            color: #6c757d;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            height: auto;
+            min-height: auto;
+        }
+        
+        /* Estilos para preview de fotos */
+        .foto-preview-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #dee2e6;
+            background: #f8f9fa;
+        }
+        
+        .foto-preview-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .foto-preview-container .btn-remove-foto {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        
+        .foto-preview-container .btn-remove-foto:hover {
+            background: rgba(220, 53, 69, 1);
+            transform: scale(1.1);
+        }
+        
+        /* Estilos para fotos en vista de ticket */
+        .ticket-fotos-container {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .ticket-fotos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .ticket-foto-item {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .ticket-foto-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .ticket-foto-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .ticket-fotos-container h6 {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+        
+        .ticket-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #6c757d;
+            padding: 4px 0;
+        }
+        
+        .info-item i {
+            width: 16px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+        
+        .info-item.text-danger {
+            color: #dc3545 !important;
+        }
+        
+        /* Estilos para tablas modernas */
+        .table-modern {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #f1f3f4;
+        }
+        
+        .table-header-modern {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+        }
+        
+        .table-header-modern th {
+            background: none;
+            border: none;
+            color: white;
+            font-weight: 600;
+            text-transform: none;
+            letter-spacing: 0.3px;
+            font-size: 0.75rem;
+            padding: 8px 12px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .table-modern tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .table-modern tbody tr:hover {
+            background-color: rgba(44,62,80,0.05);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .table-modern tbody td {
+            padding: 8px 12px;
+            vertical-align: middle;
+            border: none;
+            font-size: 0.8rem;
+        }
+        
+        .table-modern .badge {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        .table-modern .btn-group-sm .btn {
+            border-radius: 6px;
+            margin-right: 2px;
+            font-weight: 500;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+        }
+        
+        .info-item.text-danger i {
+            color: #dc3545;
+        }
+        
+        /* Estados especiales */
+        .mobile-ticket-card.completada .ticket-header {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+        
+        .mobile-ticket-card.vencida .ticket-header {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        }
+        
+        /* Animaciones */
+        .mobile-ticket-card {
+            animation: slideInUp 0.2s ease-out;
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .ticket-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .ticket-acciones {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .ticket-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animaciones para iconos de despliegue - Guía de línea gráfica */
+        @keyframes pulse-down {
+            0%, 100% {
+                opacity: 0.7;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.3);
+            }
+        }
+
+        .icon-expand-pulse {
+            animation: pulse-down 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-2 px-3">
+        <div class="mobile-card">
+            <div class="mobile-card-header">
+                <h5 class="mb-0"><i class="fas fa-ticket-alt"></i> Tickets Internos</h5>
+            </div>
+            <div class="mobile-card-body">
+
+                <!-- Botón de Crear Ticket (siempre visible) -->
+                <div class="mb-3">
+                    <button class="nuevo-ticket-btn w-100" data-bs-toggle="modal" data-bs-target="#modalNuevoTicket" style="background: #0b7835; color: white; border: none; border-radius: 12px; padding: 1rem 1.5rem; font-weight: 600; font-size: 1rem; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2);">
+                        <i class="fas fa-plus me-2"></i>
+                        <span>Crear Nuevo Ticket</span>
+                    </button>
+                </div>
+
+                <!-- Botón de Crear Tickets en Masa (solo para usuarios con permisos) -->
+                <div class="mb-3" id="btnCrearTicketsMasaContainer" style="display: none;">
+                    <button class="crear-tickets-masa-btn w-100" data-bs-toggle="modal" data-bs-target="#modalCrearTicketsMasa" style="background: #fbdc02; color: #000000; border: none; border-radius: 12px; padding: 1rem 1.5rem; font-weight: 600; font-size: 1rem; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2);">
+                        <i class="fas fa-users me-2"></i>
+                        <span>Crear Tickets en Masa</span>
+                    </button>
+                </div>
+
+                <!-- Sub-sección: Filtros (colapsado) -->
+                <div id="subseccion-filtros-acciones" class="mobile-card mb-3">
+                    <div class="mobile-card-header" style="padding: 8px 12px; cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapseFiltros" aria-expanded="false" aria-controls="collapseFiltros">
+                        <h6 class="mb-0" style="font-size: 0.9rem;">
+                            <i class="fas fa-filter me-2"></i>Filtros
+                            <i class="fas fa-chevron-down float-end" style="font-size: 0.8rem; transition: transform 0.3s;"></i>
+                        </h6>
+                    </div>
+                    <div class="collapse" id="collapseFiltros">
+                        <div class="mobile-card-body" style="padding: 12px;">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-3 col-6">
+                                    <label class="form-label" style="font-size: 0.75rem; margin-bottom: 2px;">Estado</label>
+                                    <select class="form-select form-select-sm" id="filtroEstado" style="font-size: 0.8rem; padding: 4px 6px;">
+                                        <option value="">Todos</option>
+                                        <option value="pendiente">Pendientes</option>
+                                        <option value="completada">Completadas</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <label class="form-label" style="font-size: 0.75rem; margin-bottom: 2px;">Prioridad</label>
+                                    <select class="form-select form-select-sm" id="filtroPrioridad" style="font-size: 0.8rem; padding: 4px 6px;">
+                                        <option value="">Todas</option>
+                                        <option value="urgente">Urgente</option>
+                                        <option value="normal">Normal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <label class="form-label" style="font-size: 0.75rem; margin-bottom: 2px;">Asignado</label>
+                                    <select class="form-select form-select-sm" id="filtroAsignado" style="font-size: 0.8rem; padding: 4px 6px;">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <label class="form-label" style="font-size: 0.75rem; margin-bottom: 2px;">Creador</label>
+                                    <select class="form-select form-select-sm" id="filtroCreador" style="font-size: 0.8rem; padding: 4px 6px;">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-sección: Reporte de Eficiencia por Empleado (colapsado) -->
+                <div id="subseccion-reporte-eficiencia" class="mobile-card mb-3">
+                    <div class="mobile-card-header" style="padding: 8px 12px; cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#collapseReporteEficiencia" aria-expanded="false" aria-controls="collapseReporteEficiencia">
+                        <h6 class="mb-0" style="font-size: 0.9rem;">
+                            <i class="fas fa-chart-bar me-2"></i>Reporte de Eficiencia por Empleado
+                            <i class="fas fa-chevron-down float-end" style="font-size: 0.8rem; transition: transform 0.3s;"></i>
+                        </h6>
+                    </div>
+                    <div class="collapse" id="collapseReporteEficiencia">
+                        <div class="mobile-card-body" style="padding: 12px;">
+                            <div id="estadisticasTickets"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sub-sección: Lista de Tickets -->
+                <div id="subseccion-lista-tickets" class="mobile-card mb-3">
+                    <div class="mobile-card-header" style="padding: 8px 12px;">
+                        <h6 class="mb-0" style="font-size: 0.9rem;"><i class="fas fa-list"></i> Lista de Tickets</h6>
+                    </div>
+                    <div class="mobile-card-body" style="padding: 12px;">
+                        <div class="mobile-list" id="listaTickets">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo Ticket -->
+    <div class="modal fade" id="modalNuevoTicket" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus"></i> Nuevo Ticket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formNuevoTicket">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label" style="font-size: 1rem; font-weight: 600;"><i class="fas fa-heading me-2"></i>Título *</label>
+                                <input type="text" class="form-control form-control-lg" id="tituloTicket" required placeholder="Escribe un título corto y claro" style="font-size: 1rem;">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" style="font-size: 1rem; font-weight: 600;"><i class="fas fa-align-left me-2"></i>Descripción *</label>
+                                <textarea class="form-control" id="descripcionTicket" rows="4" required placeholder="Describe el problema o tarea a realizar..." style="font-size: 1rem;"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" style="font-size: 1rem; font-weight: 600;"><i class="fas fa-user me-2"></i>Asignar a *</label>
+                                <select class="form-select form-select-lg" id="asignadoTicket" required style="font-size: 1rem;">
+                                    <option value="">Selecciona una persona</option>
+                                </select>
+                            </div>
+                            <!-- Campo para usuarios de administración: crear ticket a nombre de gerencia -->
+                            <div class="col-12" id="campoCrearPorGerencia" style="display: none;">
+                                <label class="form-label" style="font-size: 1rem; font-weight: 600;"><i class="fas fa-user-tie me-2"></i>Crear a nombre de (Gerencia) <span class="text-muted" style="font-size: 0.85rem;">(Opcional)</span></label>
+                                <select class="form-select form-select-lg" id="creadoPorGerencia" style="font-size: 1rem;">
+                                    <option value="">Crear a mi nombre (por defecto)</option>
+                                </select>
+                                <div class="form-text mt-1" style="font-size: 0.85rem; color: #6c757d;">
+                                    <i class="fas fa-info-circle me-1"></i>Si seleccionas un usuario de gerencia, el ticket aparecerá como creado por esa persona.
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" style="font-size: 1rem; font-weight: 600;"><i class="fas fa-exclamation-circle me-2"></i>Prioridad *</label>
+                                <select class="form-select form-select-lg" id="prioridadTicket" required style="font-size: 1rem;">
+                                    <option value="normal">Normal</option>
+                                    <option value="urgente">Urgente</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" style="font-size: 1rem; font-weight: 600;"><i class="fas fa-calendar me-2"></i>Fecha de Vencimiento <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control form-control-lg" id="vencimientoTicket" required style="font-size: 1rem; padding: 12px;">
+                                <div class="mt-2">
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="seleccionarFechaVencimiento(1)" style="font-size: 0.9rem;">
+                                            <i class="fas fa-calendar-day me-1"></i>Mañana
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="seleccionarFechaVencimiento(3)" style="font-size: 0.9rem;">
+                                            <i class="fas fa-calendar-week me-1"></i>En 3 días
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="seleccionarFechaVencimiento(7)" style="font-size: 0.9rem;">
+                                            <i class="fas fa-calendar-alt me-1"></i>En 1 semana
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="limpiarFechaVencimiento()" style="font-size: 0.9rem;">
+                                            <i class="fas fa-times me-1"></i>Sin fecha
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-text mt-2" style="font-size: 0.9rem;">El ticket vencerá a las 11:59 PM del día seleccionado</div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" style="font-size: 1rem; font-weight: 600;"><i class="fas fa-camera me-2"></i>Fotos (Opcional)</label>
+                                <div class="mb-2">
+                                    <input type="file" class="form-control form-control-lg" id="fotosTicket" accept="image/*" capture="environment" multiple style="font-size: 1rem; padding: 12px;" onchange="previewFotosTicket()">
+                                    <div class="form-text" style="font-size: 0.85rem;">
+                                        <i class="fas fa-info-circle me-1"></i>Puedes tomar foto con la cámara o seleccionar archivos. Se comprimirán automáticamente.
+                                    </div>
+                                </div>
+                                <div id="previewFotosTicket" class="d-flex flex-wrap gap-2 mt-2" style="min-height: 50px;"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="crearTicket()">Crear Ticket</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver/Resolver Ticket -->
+    <div class="modal fade" id="modalVerTicket" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-ticket-alt"></i> Detalle del Ticket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="contenidoTicket">
+                    <!-- Se llena dinámicamente -->
+                </div>
+                <div class="modal-footer" id="botonesTicket">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Resolver Ticket -->
+    <div class="modal fade" id="modalResolverTicket" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-check-circle me-2"></i>Marcar como Completada</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formResolverTicket">
+                        <div class="mb-3">
+                            <label class="form-label">Comentario de Resolución *</label>
+                            <textarea class="form-control" id="comentarioResolucion" rows="3" required placeholder="Describe cómo se resolvió el ticket..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size: 1rem; font-weight: 600;"><i class="fas fa-camera me-2"></i>Fotos de Resolución (Opcional)</label>
+                            <div class="mb-2">
+                                <input type="file" class="form-control form-control-lg" id="fotosResolucion" accept="image/*" capture="environment" multiple style="font-size: 1rem; padding: 12px;" onchange="previewFotosResolucion()">
+                                <div class="form-text" style="font-size: 0.85rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomar foto con la cámara o seleccionar archivos. Se comprimirán automáticamente.
+                                </div>
+                            </div>
+                            <div id="previewFotosResolucion" class="d-flex flex-wrap gap-2 mt-2" style="min-height: 50px;"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success btn-lg" onclick="resolverTicket()" style="font-weight: 700; padding: 12px 24px;">
+                        <i class="fas fa-check-circle me-2"></i>Marcar como Completada
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ver foto en grande -->
+    <div class="modal fade" id="modalFotoGrande" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-image me-2"></i>Foto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center" style="background: #000; padding: 20px;">
+                    <img id="fotoGrandeImg" src="" alt="Foto" style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Ticket -->
+    <div class="modal fade" id="modalEditarTicket" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit"></i> Editar Ticket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formEditarTicket">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Título *</label>
+                                <input type="text" class="form-control" id="editTituloTicket" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Descripción *</label>
+                                <textarea class="form-control" id="editDescripcionTicket" rows="3" required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Asignado a *</label>
+                                <select class="form-select" id="editAsignadoTicket" required>
+                                    <option value="">Seleccionar empleado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Prioridad *</label>
+                                <select class="form-select" id="editPrioridadTicket" required>
+                                    <option value="normal">Normal</option>
+                                    <option value="urgente">Urgente</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Estado</label>
+                                <select class="form-select" id="editEstadoTicket">
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="completada">Completada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Fecha de Vencimiento <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="editVencimientoTicket" required>
+                                <div class="form-text">El ticket vencerá automáticamente a las 23:59 del día seleccionado</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" onclick="guardarEdicionTicket()">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Crear Tickets en Masa -->
+    <div class="modal fade" id="modalCrearTicketsMasa" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-users me-2"></i>
+                        <i class="fas fa-ticket-alt me-2"></i>
+                        Crear Tickets en Masa
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Instrucciones:</strong> Selecciona los empleados a los que deseas crear un ticket. Todos los tickets tendrán el mismo título, descripción, prioridad y fecha de vencimiento.
+                    </div>
+                    
+                    <form id="formCrearTicketsMasa">
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-heading me-2"></i>Título del Ticket *</label>
+                            <input type="text" class="form-control form-control-lg" id="tituloTicketsMasa" required placeholder="Ej: Revisión de inventario mensual">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-align-left me-2"></i>Descripción *</label>
+                            <textarea class="form-control form-control-lg" id="descripcionTicketsMasa" rows="4" required placeholder="Describe la tarea que deben realizar los empleados..."></textarea>
+                        </div>
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="fas fa-exclamation-triangle me-2"></i>Prioridad *</label>
+                                <select class="form-select form-select-lg" id="prioridadTicketsMasa" required>
+                                    <option value="normal">Normal</option>
+                                    <option value="urgente">Urgente</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="fas fa-calendar me-2"></i>Fecha de Vencimiento <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control form-control-lg" id="vencimientoTicketsMasa" required>
+                                <div class="form-text">El ticket vencerá a las 23:59 del día seleccionado</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Campo para usuarios de administración: crear tickets a nombre de gerencia -->
+                        <div class="mb-3" id="campoCrearPorGerenciaMasa" style="display: none;">
+                            <label class="form-label"><i class="fas fa-user-tie me-2"></i>Crear a nombre de (Gerencia) <span class="text-muted" style="font-size: 0.85rem;">(Opcional)</span></label>
+                            <select class="form-select form-select-lg" id="creadoPorGerenciaMasa">
+                                <option value="">Crear a mi nombre (por defecto)</option>
+                            </select>
+                            <div class="form-text mt-1" style="font-size: 0.85rem; color: #6c757d;">
+                                <i class="fas fa-info-circle me-1"></i>Si seleccionas un usuario de gerencia, los tickets aparecerán como creados por esa persona.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0"><i class="fas fa-user-check me-2"></i>Seleccionar Empleados *</label>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="seleccionarTodosEmpleadosMasa(true)">
+                                        <i class="fas fa-check-double me-1"></i>Seleccionar Todos
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="seleccionarTodosEmpleadosMasa(false)">
+                                        <i class="fas fa-times me-1"></i>Deseleccionar Todos
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto; background: #f8f9fa;">
+                                <div id="listaEmpleadosTicketsMasa">
+                                    <div class="text-center text-muted py-3">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Cargando empleados...
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <span id="contadorEmpleadosSeleccionadosMasa">0</span> empleado(s) seleccionado(s)
+                                </small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmarCrearMasa" onclick="confirmarCrearTicketsMasa()" disabled>
+                        <i class="fas fa-check me-1"></i>Confirmar y Crear Tickets
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="cache-buster.js"></script>
+    <script src="utils.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        // Guardar auth en window para uso global
+        window.firebaseAuth = auth;
+        
+        // VERIFICACIÓN INMEDIATA DE AUTENTICACIÓN - Redirigir antes de cargar contenido
+        (async function() {
+            // Prevenir múltiples ejecuciones
+            if (window.authCheckInProgress) {
+                return;
+            }
+            window.authCheckInProgress = true;
+            
+            // Ocultar body inmediatamente
+            if (document.body) {
+                document.body.style.display = 'none';
+            }
+            
+            // Esperar a que auth-secure.js se cargue completamente
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Verificar si ya estamos en iniciar_sesion.html (evitar loop)
+            if (window.location.pathname.includes('iniciar_sesion.html')) {
+                window.authCheckInProgress = false;
+                return;
+            }
+            
+            // Verificar autenticación de manera simple
+            let retries = 0;
+            const maxRetries = 100; // 10 segundos
+            
+            while (retries < maxRetries) {
+                // Verificar Firebase Auth directamente
+                if (auth.currentUser) {
+                    console.log('✅ [TICKETS_SECURE] Usuario autenticado:', auth.currentUser.email);
+                    
+                    // Esperar a secureAuthManager
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        // Esperar un poco más
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    // Mostrar body
+                    if (document.body) {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+                    
+                    // Disparar evento para que el header se actualice
+                    setTimeout(() => {
+                        document.dispatchEvent(new Event('secure-auth-ready'));
+                    }, 500);
+                    
+                    window.authCheckInProgress = false;
+                    return; // Usuario autenticado, continuar
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            // Si llegamos aquí, no hay autenticación
+            console.log('❌ [TICKETS_SECURE] No autenticado después de esperar');
+            if (document.body) {
+                document.body.style.display = 'none';
+            }
+            
+            // Solo redirigir si no estamos ya en loginsecure
+            if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                try {
+                    sessionStorage.setItem('postLoginRedirect', window.location.href);
+                } catch (e) { console.error('Error saving redirect:', e); }
+                window.location.replace('iniciar_sesion.html');
+            }
+            
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        /* Ocultar contenido hasta verificar autenticación */
+        body {
+            display: none !important;
+        }
+        body.authenticated {
+            display: block !important;
+        }
+    </style>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <script type="module" src="ticketssecure.js"></script>
+    
+    <script>
+        // Version check - Cambio implementado: Agregar username a datos procesados
+        console.log('🚀 ECOPLAGAS TICKETS v1.4.8 - Agregar username a datos procesados');
+    </script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revisar Gastos - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        window.firebaseAuth = auth;
+        
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            if (document.body) document.body.style.display = 'none';
+
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken && document.body) {
+                document.body.style.display = 'block';
+                document.body.classList.add('authenticated');
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            let retries = 0;
+            while (retries < 40) {
+                if (auth.currentUser) {
+                    if (window.secureAuthManager) window.authManager = window.secureAuthManager;
+                    else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) window.authManager = window.secureAuthManager;
+                    }
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', {
+                        detail: { page: 'admin_inventario_revisar_gastos', timestamp: Date.now() }
+                    }));
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            if (!hasSessionToken) window.location.replace('iniciar_sesion.html');
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-2 px-3">
+        <!-- Header Principal -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-clipboard-check inventory-icon"></i> Revisar Gastos Reportados</h1>
+            <a href="administrador_bodega.html" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+            </a>
+        </div>
+
+        <!-- Contenido Principal: Revisar Gastos -->
+        <div class="section-content">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class="fas fa-tasks"></i> Auditoría de Gastos</h3>
+                    <div class="section-badge">
+                        <span class="badge bg-warning text-dark">Pendientes</span>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <!-- Estadísticas rápidas de gastos -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary" id="totalGastosCount">0</h3>
+                                    <p class="text-muted mb-0">Total Gastos</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h3 class="text-warning" id="gastosPendientesCount">0</h3>
+                                    <p class="text-muted mb-0">Pendientes</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h3 class="text-success" id="gastosRevisadosCount">0</h3>
+                                    <p class="text-muted mb-0">Revisados</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Estado</label>
+                            <select class="form-select" id="filtroEstadoGasto" onchange="filtrarGastos()">
+                                <option value="">Todos</option>
+                                <option value="pendiente" selected>Pendientes de Revisión</option>
+                                <option value="revisado">Revisados</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Operario</label>
+                            <select class="form-select" id="filtroOperarioGasto" onchange="filtrarGastos()">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-modern table-hover">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-calendar me-2"></i>Fecha</th>
+                                    <th><i class="fas fa-box me-2"></i>Producto</th>
+                                    <th><i class="fas fa-hashtag me-2"></i>Cant.</th>
+                                    <th><i class="fas fa-user me-2"></i>Operario</th>
+                                    <th><i class="fas fa-warehouse me-2"></i>Bodega</th>
+                                    <th><i class="fas fa-tag me-2"></i>Tipo Gasto</th>
+                                    <th><i class="fas fa-comment me-2"></i>Motivo</th>
+                                    <th><i class="fas fa-check-circle me-2"></i>Estado</th>
+                                    <th><i class="fas fa-cogs me-2"></i>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaGastosReportados">
+                                <!-- Se llena dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="text-center py-3" id="loadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Cargando gastos...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="admin_inventario_revisar_gastos.js"></script>
+</body>
+</html>

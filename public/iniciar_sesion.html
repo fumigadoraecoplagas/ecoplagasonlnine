@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Login Seguro - Eco Plagas</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔒%3C/text%3E%3C/svg%3E">
+    <link rel="shortcut icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🔒%3C/text%3E%3C/svg%3E">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #0b7835 0%, #fbdc02 50%, #ea0e2a 100%);
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(11, 120, 53, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 50px 35px;
+            width: 100%;
+            max-width: 450px;
+            margin: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 3px solid rgba(11, 120, 53, 0.1);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header img {
+            max-width: 160px;
+            height: auto;
+            margin-bottom: 0;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 2.4rem;
+            font-weight: 700;
+            margin-bottom: 0;
+            letter-spacing: -0.5px;
+        }
+
+        .login-header .badge {
+            background: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            margin-left: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .form-label {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .form-label i {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+
+        .form-control {
+            border: 3px solid #e9ecef;
+            border-radius: 15px;
+            padding: 18px 20px;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+            height: auto;
+            font-weight: 500;
+            background: white;
+        }
+
+        .form-control:focus {
+            border-color: #0b7835;
+            box-shadow: 0 0 0 0.3rem rgba(11, 120, 53, 0.25);
+            transform: scale(1.02);
+        }
+
+        .form-control::placeholder {
+            font-size: 1.2rem;
+            color: #adb5bd;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #0b7835 0%, #fbdc02 100%);
+            border: none;
+            border-radius: 15px;
+            padding: 20px 30px;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(11, 120, 53, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(11, 120, 53, 0.5);
+            background: linear-gradient(135deg, #fbdc02 0%, #0b7835 100%);
+        }
+
+        .btn-login:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            border-radius: 15px;
+            margin-top: 20px;
+            padding: 18px 20px;
+            font-size: 1.1rem;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.15em;
+        }
+
+        .security-badge {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 8px;
+            color: #28a745;
+            font-size: 0.85rem;
+        }
+
+        .security-badge i {
+            margin-right: 5px;
+        }
+
+        .btn-link {
+            transition: all 0.3s ease;
+        }
+
+        .btn-link:hover {
+            transform: translateY(-1px);
+            text-decoration: underline !important;
+        }
+
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #0b7835 0%, #fbdc02 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            border: none;
+        }
+
+        .modal-header .btn-close {
+            filter: invert(1);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #0b7835 0%, #fbdc02 100%);
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(11, 120, 53, 0.4);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <img src="Logo Eco Plagas.png" alt="EcoPlagas Logo" style="max-width: 160px; height: auto;">
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="off">
+            <!-- Campos ocultos falsos para confundir al navegador y evitar guardado de contraseñas -->
+            <input type="text" name="fake-username" autocomplete="username" style="position: absolute; left: -9999px; opacity: 0; pointer-events: none; tabindex: -1;" tabindex="-1" aria-hidden="true">
+            <input type="password" name="fake-password" autocomplete="current-password" style="position: absolute; left: -9999px; opacity: 0; pointer-events: none; tabindex: -1;" tabindex="-1" aria-hidden="true">
+            
+            <div class="mb-4">
+                <label for="username" class="form-label">
+                    <i class="fas fa-user"></i> Usuario
+                </label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="username" 
+                    name="username"
+                    placeholder="nombre.apellido" 
+                    autocomplete="off"
+                    autocapitalize="none"
+                    autocorrect="off"
+                    spellcheck="false"
+                    required
+                    autofocus
+                    style="text-transform: lowercase;"
+                >
+            </div>
+
+            <div class="mb-5">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock"></i> Contraseña
+                </label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="password" 
+                    name="password"
+                    placeholder="Contraseña" 
+                    autocomplete="off"
+                    autocapitalize="none"
+                    autocorrect="off"
+                    spellcheck="false"
+                    required
+                    style="font-family: 'Courier New', monospace; letter-spacing: 3px; text-transform: lowercase;"
+                >
+            </div>
+
+            <button type="submit" class="btn btn-login" id="loginButton">
+                <i class="fas fa-sign-in-alt me-2"></i> Iniciar Sesión
+            </button>
+
+            <div id="loginError" class="mt-3"></div>
+        </form>
+
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            onAuthStateChanged,
+            signOut
+        } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs,
+            doc,
+            getDoc
+        } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+        // Configuración de Firebase
+        // NOTA: Las API keys de Firebase son públicas por diseño.
+        // La seguridad real está en las Firestore Security Rules.
+        const firebaseConfig = {
+            projectId: "cursorwebapp-f376d",
+            appId: "1:719990096116:web:07c1ff697e7655b2cd9ea1",
+            databaseURL: "https://cursorwebapp-f376d-default-rtdb.firebaseio.com",
+            storageBucket: "cursorwebapp-f376d.firebasestorage.app",
+            apiKey: "AIzaSyC-IQj0yHR8cELr-mw-v2xlnw6LlJYFUyk",
+            authDomain: "cursorwebapp-f376d.firebaseapp.com",
+            messagingSenderId: "719990096116",
+            measurementId: "G-DJXLKFR7CD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Inicializar sistemas de seguridad
+        let rateLimiter = null;
+        let inputValidator = null;
+        let securityLogger = null;
+
+        // Función removida - el usuario escribirá el username manualmente en el campo de texto
+
+        // Esperar a que los módulos se carguen
+        function initializeSecuritySystems() {
+            if (window.RateLimiter) {
+                rateLimiter = new window.RateLimiter();
+            }
+            if (window.InputValidator) {
+                inputValidator = new window.InputValidator();
+            }
+            if (window.SecurityLogger) {
+                securityLogger = new window.SecurityLogger();
+            }
+        }
+
+        // Intentar inicializar inmediatamente y con retry
+        initializeSecuritySystems();
+        setTimeout(initializeSecuritySystems, 500);
+        setTimeout(initializeSecuritySystems, 1000);
+
+        // Normalizar username (sin acentos, minúsculas)
+        function normalizeUsername(str) {
+            if (!str) return '';
+            return str.toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+        }
+
+        // Función updateEmailPreview eliminada - ya no se necesita el preview de email
+
+        // Cargar datos del usuario desde Firestore
+        async function loadUserFromFirestore(firebaseUser) {
+            try {
+                const email = firebaseUser.email.toLowerCase().trim();
+                const username = email.replace('@ecoplagascr.com', '').replace(/^rh\+/, '');
+                const usernameNormalized = normalizeUsername(username);
+                
+                console.groupCollapsed('🔍 [LOGIN-SECURE] Buscando empleado en Firestore');
+                if (window.safeLogger) {
+                    window.safeLogger.info('👉 Email Firebase: [REDACTED]');
+                    window.safeLogger.info('👉 UID Firebase: [REDACTED]');
+                    window.safeLogger.info('👉 Username normalizado: [REDACTED]');
+                } else {
+                    console.log('👉 Buscando empleado en Firestore...');
+                }
+
+                // Buscar empleado en Firestore
+                // NOTA: Esto requiere que las Firestore Rules permitan lectura
+                // para usuarios autenticados. Ver firestore-secure.rules
+                const empleadosRef = collection(db, 'empleados');
+                let empleadosSnapshot;
+                try {
+                    empleadosSnapshot = await getDocs(empleadosRef);
+                } catch (firestoreError) {
+                    console.error('❌ Error conectando a Firestore:', firestoreError);
+                    if (firestoreError.code === 'unavailable' || firestoreError.message?.includes('ERR_NAME_NOT_RESOLVED') || firestoreError.message?.includes('network')) {
+                        throw new Error('No se puede conectar a los servidores. Verifica tu conexión a internet.');
+                    }
+                    throw firestoreError;
+                }
+                console.log('📄 Total documentos empleados:', empleadosSnapshot.size);
+                
+                let empleadoEncontrado = null;
+                empleadosSnapshot.forEach(doc => {
+                    const emp = { id: doc.id, ...doc.data() };
+                    const empFirebaseEmail = (emp.firebaseAuthEmail || '').toLowerCase().trim();
+                    const empUsernameNormalized = normalizeUsername(emp.username || '');
+                    
+                    const matchFlags = {
+                        emailCoincide: empFirebaseEmail === email,
+                        uidCoincide: emp.firebaseAuthUID === firebaseUser.uid,
+                        usernameCoincide: empUsernameNormalized === usernameNormalized,
+                        emailNormalizadoCoincide: normalizeUsername(empFirebaseEmail.replace('@ecoplagascr.com', '').replace(/^rh\+/, '')) === usernameNormalized
+                    };
+                    
+                    // Buscar por: firebaseAuthEmail, firebaseAuthUID, o username (normalizado)
+                    if (empFirebaseEmail === email ||
+                        emp.firebaseAuthUID === firebaseUser.uid ||
+                        empUsernameNormalized === usernameNormalized ||
+                        normalizeUsername(empFirebaseEmail.replace('@ecoplagascr.com', '').replace(/^rh\+/, '')) === usernameNormalized) {
+                        console.log('✅ Match encontrado en doc:', doc.id, matchFlags);
+                        empleadoEncontrado = emp;
+                    } else {
+                        console.log('⏭️ Doc sin coincidencia:', doc.id, matchFlags);
+                    }
+                });
+
+                if (!empleadoEncontrado) {
+                    console.warn('⚠️ Ningún empleado coincide con el email/UID/username proporcionado');
+                    console.log('🔍 Detalles de búsqueda:', {
+                        emailBuscado: email,
+                        uidBuscado: firebaseUser.uid,
+                        usernameNormalizadoBuscado: usernameNormalized,
+                        totalEmpleados: empleadosSnapshot.size
+                    });
+                    
+                    // Si hay empleados pero ninguno coincide, mostrar más información de debug
+                    if (empleadosSnapshot.size > 0) {
+                        console.log('📋 Primeros 3 empleados para comparación:');
+                        let count = 0;
+                        empleadosSnapshot.forEach(doc => {
+                            if (count < 3) {
+                                const emp = doc.data();
+                                console.log(`  - Doc ${doc.id}:`, {
+                                    username: emp.username,
+                                    firebaseAuthEmail: emp.firebaseAuthEmail,
+                                    firebaseAuthUID: emp.firebaseAuthUID,
+                                    emailNormalizado: normalizeUsername((emp.firebaseAuthEmail || '').replace('@ecoplagascr.com', '').replace(/^rh\+/, ''))
+                                });
+                                count++;
+                            }
+                        });
+                    }
+                    
+                    console.groupEnd();
+                    throw new Error('Usuario no encontrado en la base de datos. Verifica que el empleado esté registrado en el sistema.');
+                }
+                
+                if (window.safeLogger) {
+                    window.safeLogger.success('Empleado seleccionado correctamente');
+                } else {
+                    console.log('✅ Empleado seleccionado');
+                }
+
+                // Verificar que el empleado esté activo
+                const estadoEmpleado = empleadoEncontrado.estado || empleadoEncontrado.activo;
+                if (estadoEmpleado !== 'Activo' && estadoEmpleado !== 'activo' && estadoEmpleado !== true) {
+                    console.warn('⚠️ Empleado encontrado pero no está activo:', estadoEmpleado);
+                    console.groupEnd();
+                    throw new Error('Usuario desactivado. Contacta al administrador.');
+                }
+
+                // Crear objeto de usuario seguro (sin datos sensibles)
+                const userData = {
+                    id: empleadoEncontrado.username,
+                    username: empleadoEncontrado.username,
+                    nombre: `${empleadoEncontrado.primerNombre} ${empleadoEncontrado.primerApellido}`,
+                    cedula: empleadoEncontrado.cedula,
+                    tipoContrato: empleadoEncontrado.tipoContrato || 'Mensual',
+                    permisos: empleadoEncontrado.permisos || {},
+                    firebaseUID: firebaseUser.uid,
+                    firebaseEmail: email,
+                    loginTime: new Date().toISOString()
+                };
+
+                // Guardar en sessionStorage (más seguro que localStorage, se limpia al cerrar)
+                sessionStorage.setItem('currentUser', JSON.stringify(userData));
+                sessionStorage.setItem('firebaseAuthToken', 'authenticated');
+                console.log('💾 Datos almacenados en sessionStorage');
+                console.groupEnd();
+                
+                // Marcar como completado para evitar que el listener interfiera
+                authStateCheckDone = true;
+                
+                return userData;
+            } catch (error) {
+                console.error('❌ Error cargando usuario de Firestore:', error);
+                throw error;
+            }
+        }
+
+        // Función para limpiar completamente la sesión
+        window.limpiarSesionCompleta = async function() {
+            try {
+                console.log('🧹 Limpiando sesión completa...');
+                
+                // Limpiar almacenamiento
+                sessionStorage.clear();
+                localStorage.clear();
+                
+                // Cerrar sesión en Firebase
+                try {
+                    await Promise.race([
+                        signOut(auth),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+                    ]);
+                    console.log('✅ Sesión de Firebase cerrada');
+                } catch (signOutError) {
+                    console.warn('⚠️ No se pudo cerrar sesión en Firebase (puede ser por falta de red):', signOutError);
+                }
+                
+                // Recargar la página
+                window.location.reload();
+            } catch (error) {
+                console.error('❌ Error limpiando sesión:', error);
+                // Intentar recargar de todas formas
+                window.location.reload();
+            }
+        };
+        
+        function getPostLoginRedirectUrl() {
+            const fallback = 'inicio.html';
+            try {
+                const stored = sessionStorage.getItem('postLoginRedirect');
+                if (stored) {
+                    sessionStorage.removeItem('postLoginRedirect');
+                    const targetUrl = new URL(stored, window.location.origin);
+                    if (targetUrl.origin === window.location.origin && !targetUrl.pathname.includes('iniciar_sesion.html')) {
+                        return targetUrl.pathname + targetUrl.search + targetUrl.hash;
+                    }
+                }
+            } catch (error) {
+                console.warn('No se pudo obtener el redirect post-login:', error);
+            }
+            return fallback;
+        }
+
+        // Obtener identificador único (username o IP)
+        function getIdentifier(username) {
+            // Usar username si está disponible, sino intentar obtener IP
+            return username || 'unknown';
+        }
+
+        // Manejar login
+        window.handleLogin = async function(event) {
+            event.preventDefault();
+            
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const loginButton = document.getElementById('loginButton');
+            const loginError = document.getElementById('loginError');
+
+            let username = usernameInput ? usernameInput.value.trim().toLowerCase() : '';
+            // Obtener la contraseña real del campo oculto y convertir a minúsculas
+            const realPasswordField = document.getElementById('realPassword');
+            const password = (realPasswordField ? realPasswordField.value : passwordInput.value).toLowerCase();
+
+            // Limpiar errores anteriores
+            loginError.innerHTML = '';
+
+            // Validación básica
+            if (!username || !password) {
+                loginError.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Por favor completa todos los campos</div>';
+                return;
+            }
+
+            // Validación de input con InputValidator
+            if (inputValidator) {
+                try {
+                    const usernameValidation = inputValidator.validateUsername(username);
+                    username = usernameValidation.sanitized;
+                    if (!usernameValidation.valid) {
+                        loginError.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ${usernameValidation.message}</div>`;
+                        if (securityLogger) {
+                            securityLogger.logLoginAttempt(username, false, 'INVALID_USERNAME');
+                        }
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error validando input:', error);
+                }
+            }
+
+            // Rate Limiting
+            if (rateLimiter) {
+                const identifier = getIdentifier(username);
+                const canAttempt = rateLimiter.canAttempt(identifier, 'user');
+                
+                if (!canAttempt.allowed) {
+                    const remainingMinutes = canAttempt.remainingMinutes || 15;
+                    loginError.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-ban"></i> 
+                            Demasiados intentos fallidos. 
+                            Intenta nuevamente en ${remainingMinutes} minutos.
+                        </div>
+                    `;
+                    if (securityLogger) {
+                        securityLogger.logLoginAttempt(username, false, 'RATE_LIMITED', {
+                            attempts: canAttempt.attempts,
+                            remainingMinutes: remainingMinutes
+                        });
+                    }
+                    return;
+                }
+            }
+
+            // Log de intento de login
+            if (securityLogger) {
+                securityLogger.logLoginAttempt(username, false, 'ATTEMPTING');
+            }
+
+            // Marcar que es un login manual para evitar redirección automática
+            isManualLogin = true;
+
+            // Deshabilitar botón y mostrar loading
+            loginButton.disabled = true;
+            loginButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Iniciando sesión...';
+
+            try {
+                const email = `rh+${username}@ecoplagascr.com`.toLowerCase().trim();
+                console.groupCollapsed('🔐 [LOGIN-SECURE] Intento de login');
+                if (window.safeLogger) {
+                    window.safeLogger.info('👉 Intento de login iniciado');
+                } else {
+                    console.log('👉 Intento de login iniciado');
+                }
+                
+                // Autenticar con Firebase Auth
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                if (window.safeLogger) {
+                    window.safeLogger.success('✅ Firebase Auth OK');
+                } else {
+                    console.log('✅ Firebase Auth OK');
+                }
+                
+                // Registrar intento exitoso en rate limiter
+                if (rateLimiter) {
+                    const identifier = getIdentifier(username);
+                    rateLimiter.recordAttempt(identifier, 'user', true);
+                }
+                
+                // Cargar datos del usuario desde Firestore
+                const userData = await loadUserFromFirestore(userCredential.user);
+                console.log('✅ Usuario en Firestore:', userData);
+
+                // Log de login exitoso
+                if (securityLogger) {
+                    securityLogger.logLoginAttempt(username, true, 'SUCCESS', {
+                        uid: userCredential.user.uid,
+                        email: email
+                    });
+                }
+
+                // Esperar un momento para asegurar que todo esté guardado
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // Redirigir al index seguro
+                window.location.href = getPostLoginRedirectUrl();
+                console.groupEnd();
+            } catch (error) {
+                console.error('❌ Error en login:', error);
+                
+                // Manejar errores de red específicamente
+                if (error.message?.includes('ERR_NAME_NOT_RESOLVED') || 
+                    error.message?.includes('No se puede conectar') ||
+                    error.code === 'unavailable' ||
+                    error.message?.includes('network')) {
+                    alert('⚠️ Error de conexión: No se puede conectar a los servidores.\n\nPor favor verifica:\n- Tu conexión a internet\n- Que no haya bloqueos de firewall\n- Intenta recargar la página');
+                    return;
+                }
+                
+                // Registrar intento fallido en rate limiter
+                if (rateLimiter) {
+                    const identifier = getIdentifier(username);
+                    rateLimiter.recordAttempt(identifier, 'user', false);
+                }
+                
+                // Log de login fallido
+                if (securityLogger) {
+                    securityLogger.logLoginAttempt(username, false, 'FAILED', {
+                        errorCode: error.code,
+                        errorMessage: error.message
+                    });
+                }
+                
+                let errorMessage = 'Error al iniciar sesión';
+                
+                // Manejar errores de red primero
+                if (error.message?.includes('ERR_NAME_NOT_RESOLVED') || 
+                    error.message?.includes('No se puede conectar') ||
+                    error.code === 'unavailable' ||
+                    error.message?.includes('network') ||
+                    error.message?.includes('Failed to fetch')) {
+                    errorMessage = '⚠️ Error de conexión: No se puede conectar a los servidores.\n\nPor favor verifica:\n- Tu conexión a internet\n- Que no haya bloqueos de firewall\n- Intenta recargar la página';
+                }
+                // Mensajes de error específicos
+                else switch(error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'Usuario no encontrado. Verifica tu usuario.';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'Contraseña incorrecta.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Email inválido.';
+                        break;
+                    case 'auth/user-disabled':
+                        errorMessage = 'Usuario deshabilitado. Contacta al administrador.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Demasiados intentos fallidos. Intenta más tarde.';
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMessage = 'Error de conexión. Verifica tu internet.';
+                        break;
+                    default:
+                        if (error.message) {
+                            errorMessage = error.message;
+                        }
+                }
+
+                loginError.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ${errorMessage}</div>`;
+                
+                // Rehabilitar botón
+                loginButton.disabled = false;
+                loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
+                console.groupEnd();
+            }
+        };
+
+        // Listener de cambios de autenticación
+        // Solo redirigir si NO estamos en el proceso de login manual
+        let isManualLogin = false;
+        let authStateCheckDone = false;
+        let authStateListenerUnsubscribe = null;
+        
+        // Función para manejar el estado de autenticación
+        const handleAuthState = async (firebaseUser) => {
+            // Si ya se procesó, no hacer nada más
+            if (authStateCheckDone) {
+                console.log('⏭️ Auth state check ya completado, ignorando...');
+                return;
+            }
+            
+            // Si estamos en proceso de login manual, no procesar
+            if (isManualLogin) {
+                console.log('⏭️ Login manual en progreso, ignorando auth state change...');
+                return;
+            }
+            
+            if (firebaseUser) {
+                console.log('🔍 [AUTH-STATE] Usuario detectado en Firebase, verificando en Firestore...');
+                
+                // Usuario ya autenticado (sesión previa), intentar cargar
+                try {
+                    await loadUserFromFirestore(firebaseUser);
+                    authStateCheckDone = true;
+                    
+                    // Solo redirigir si estamos en la página de login
+                    if (window.location.pathname.includes('iniciar_sesion.html')) {
+                        console.log('✅ Usuario válido encontrado, redirigiendo...');
+                        // Esperar un momento antes de redirigir
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        window.location.href = getPostLoginRedirectUrl();
+                    }
+                } catch (error) {
+                    console.error('❌ Error cargando usuario autenticado:', error);
+                    
+                    // Si el usuario no se encuentra en Firestore, limpiar sesión de Firebase
+                    if (error.message && error.message.includes('no encontrado')) {
+                        console.warn('⚠️ Usuario autenticado en Firebase pero no encontrado en empleados. Limpiando sesión...');
+                        
+                        // Limpiar todo el almacenamiento
+                        sessionStorage.clear();
+                        localStorage.removeItem('firebase:authUser');
+                        
+                        // Cerrar sesión en Firebase (sin bloquear)
+                        signOut(auth).then(() => {
+                            console.log('✅ Sesión de Firebase cerrada');
+                        }).catch((signOutError) => {
+                            console.warn('⚠️ No se pudo cerrar sesión en Firebase (puede ser problema de red):', signOutError);
+                        });
+                        
+                        // Marcar como completado para permitir login manual
+                        authStateCheckDone = true;
+                        
+                        // Si estamos en la página de login, no hacer nada más - permitir login manual
+                        if (window.location.pathname.includes('iniciar_sesion.html')) {
+                            console.log('ℹ️ Sesión limpiada. Puedes iniciar sesión manualmente.');
+                            // Mostrar mensaje al usuario si hay un elemento para ello
+                            const loginError = document.getElementById('loginError');
+                            if (loginError) {
+                                loginError.innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle"></i> Sesión anterior limpiada. Por favor, inicia sesión nuevamente.</div>';
+                            }
+                        } else {
+                            // Si estamos en otra página, redirigir a login
+                            window.location.href = 'iniciar_sesion.html';
+                        }
+                    } else {
+                        // Otro tipo de error
+                        authStateCheckDone = true;
+                        if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                            sessionStorage.removeItem('currentUser');
+                            sessionStorage.removeItem('firebaseAuthToken');
+                            window.location.href = 'iniciar_sesion.html';
+                        }
+                    }
+                }
+            } else {
+                // No hay usuario autenticado, limpiar datos locales
+                console.log('ℹ️ [AUTH-STATE] No hay usuario autenticado');
+                authStateCheckDone = true;
+                sessionStorage.removeItem('currentUser');
+                sessionStorage.removeItem('firebaseAuthToken');
+            }
+        };
+        
+        // Configurar listener con timeout para evitar bloqueos
+        authStateListenerUnsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            // Ejecutar con timeout para no bloquear
+            setTimeout(() => {
+                handleAuthState(firebaseUser);
+            }, 100);
+        });
+
+
+        // Convertir campo de contraseña a tipo text para evitar autocompletado
+        // y ocultar el texto manualmente
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) {
+            // Variable para almacenar el valor real de la contraseña
+            let passwordValue = '';
+            
+            // Guardar el valor real en un atributo data cuando se escribe
+            passwordInput.addEventListener('input', function(e) {
+                const input = e.target;
+                const cursorPos = input.selectionStart || 0;
+                const oldLength = passwordValue.length;
+                const newValue = input.value;
+                
+                // Calcular qué cambió
+                if (newValue.length > oldLength) {
+                    // Se agregó un carácter - convertir a minúsculas
+                    const addedChar = newValue.charAt(cursorPos - 1).toLowerCase();
+                    passwordValue = passwordValue.slice(0, cursorPos - 1) + addedChar + passwordValue.slice(cursorPos - 1);
+                } else if (newValue.length < oldLength) {
+                    // Se eliminó un carácter
+                    passwordValue = newValue.replace(/•/g, '').length < passwordValue.length 
+                        ? passwordValue.slice(0, cursorPos) + passwordValue.slice(cursorPos + 1)
+                        : passwordValue;
+                }
+                
+                // Mostrar puntos en lugar del texto real
+                input.value = '•'.repeat(passwordValue.length);
+                
+                // Restaurar posición del cursor
+                setTimeout(() => {
+                    const newPos = Math.min(cursorPos, passwordValue.length);
+                    input.setSelectionRange(newPos, newPos);
+                }, 0);
+            });
+            
+            // Manejar teclas especiales
+            passwordInput.addEventListener('keydown', function(e) {
+                const input = e.target;
+                const cursorPos = input.selectionStart || 0;
+                
+                if (e.key === 'Backspace') {
+                    if (cursorPos > 0) {
+                        passwordValue = passwordValue.slice(0, cursorPos - 1) + passwordValue.slice(cursorPos);
+                        input.value = '•'.repeat(passwordValue.length);
+                        setTimeout(() => {
+                            input.setSelectionRange(cursorPos - 1, cursorPos - 1);
+                        }, 0);
+                        e.preventDefault();
+                    }
+                } else if (e.key === 'Delete') {
+                    if (cursorPos < passwordValue.length) {
+                        passwordValue = passwordValue.slice(0, cursorPos) + passwordValue.slice(cursorPos + 1);
+                        input.value = '•'.repeat(passwordValue.length);
+                        setTimeout(() => {
+                            input.setSelectionRange(cursorPos, cursorPos);
+                        }, 0);
+                        e.preventDefault();
+                    }
+                }
+            });
+            
+            // Guardar valor real antes de enviar el formulario usando un campo oculto
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                // Crear un campo oculto para almacenar la contraseña real
+                const hiddenPasswordField = document.createElement('input');
+                hiddenPasswordField.type = 'hidden';
+                hiddenPasswordField.id = 'realPassword';
+                hiddenPasswordField.name = 'realPassword';
+                loginForm.appendChild(hiddenPasswordField);
+                
+                // Actualizar el campo oculto cuando cambie la contraseña
+                passwordInput.addEventListener('input', function() {
+                    hiddenPasswordField.value = passwordValue;
+                });
+                
+                loginForm.addEventListener('submit', function(e) {
+                    // Actualizar el campo oculto con el valor real
+                    hiddenPasswordField.value = passwordValue;
+                    // Mantener los puntos en el campo visible
+                    passwordInput.value = '•'.repeat(passwordValue.length);
+                }, true); // Usar capture phase para ejecutar antes del handleLogin
+            }
+        }
+
+        // Event listeners
+        // Convertir username a minúsculas automáticamente
+        const usernameInput = document.getElementById('username');
+        if (usernameInput) {
+            usernameInput.addEventListener('input', function(e) {
+                const input = e.target;
+                const cursorPos = input.selectionStart || 0;
+                const currentValue = input.value;
+                const lowerValue = currentValue.toLowerCase();
+                
+                if (currentValue !== lowerValue) {
+                    input.value = lowerValue;
+                    // Restaurar posición del cursor
+                    setTimeout(() => {
+                        input.setSelectionRange(cursorPos, cursorPos);
+                    }, 0);
+                }
+            });
+        }
+        
+
+        // Precargar username desde parámetro de URL
+        function precargarUsernameDesdeURL() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const usernameParam = urlParams.get('username');
+                
+                if (usernameParam && usernameInput) {
+                    // Decodificar y limpiar el username
+                    const usernameLimpio = decodeURIComponent(usernameParam).trim();
+                    
+                    // Validar formato de username (solo letras, números, puntos, guiones, guiones bajos)
+                    const usernameRegex = /^[a-zA-Z0-9._-]+$/;
+                    if (usernameLimpio && usernameRegex.test(usernameLimpio) && usernameLimpio.length <= 50) {
+                        usernameInput.value = usernameLimpio;
+                        
+                        // Enfocar el campo de contraseña si el username está precargado
+                        const passwordInput = document.getElementById('password');
+                        if (passwordInput) {
+                            setTimeout(() => {
+                                passwordInput.focus();
+                            }, 300);
+                        }
+                        
+                        // Limpiar el parámetro de la URL para mantenerla limpia
+                        const newUrl = window.location.pathname;
+                        window.history.replaceState({}, document.title, newUrl);
+                        
+                        if (window.safeLogger) {
+                            window.safeLogger.info('✅ Username precargado desde URL');
+                        } else {
+                            console.log('✅ Username precargado desde URL');
+                        }
+                    } else {
+                        // Username inválido - ignorar silenciosamente
+                        if (window.safeLogger) {
+                            window.safeLogger.warn('⚠️ Parámetro username inválido en URL');
+                        }
+                    }
+                }
+            } catch (error) {
+                if (window.safeLogger) {
+                    window.safeLogger.error('Error precargando username desde URL', error);
+                } else {
+                    console.error('Error precargando username desde URL:', error);
+                }
+            }
+        }
+        
+        // Precargar username cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', precargarUsernameDesdeURL);
+        } else {
+            // DOM ya está listo
+            setTimeout(precargarUsernameDesdeURL, 100);
+        }
+    </script>
+    
+    <!-- Bootstrap JS para modales -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+</body>
+</html>
+

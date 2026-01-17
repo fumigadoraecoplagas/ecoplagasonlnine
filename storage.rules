@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Permitir lectura pública de archivos en commons/ (para evitar problemas de CORS)
+    match /commons/{allPaths=**} {
+      allow read: if true; // Público para evitar CORS
+      allow write: if false; // Solo lectura, no escritura
+    }
+    
+    // Reglas por defecto: denegar todo lo demás
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+

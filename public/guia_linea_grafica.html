@@ -1,0 +1,2657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Línea Gráfica - Eco Plagas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Fuente Inter para todo excepto iconos */
+        body, p, h1, h2, h3, h4, h5, h6, span, div, a, button, input, select, textarea, label, li, td, th {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        }
+        
+        /* Excepción para iconos de Font Awesome - DEBE estar después de la regla general */
+        i[class*="fa-"], i[class^="fa-"], .fas, .far, .fab, .fal, .fad, [class*=" fa-"], [class^="fa-"] {
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "FontAwesome" !important;
+            font-weight: 900 !important;
+            font-style: normal !important;
+            font-variant: normal !important;
+            text-transform: none !important;
+            line-height: 1 !important;
+            display: inline-block !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            speak: none;
+            text-rendering: auto;
+        }
+        
+        /* Asegurar que los elementos i con clases fa- usen Font Awesome */
+        i.fas, i.far, i.fab, i.fal, i.fad {
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Pro", "FontAwesome" !important;
+        }
+
+        body {
+            background: #f5f5f5;
+            color: #000000;
+            line-height: 1.6;
+            padding: 0.5rem;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #000000;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f5f5f5;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #000000;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 1rem;
+            color: #000000;
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        li {
+            font-size: 1rem;
+            color: #000000;
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .color-box {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            margin: 0.5rem;
+            border: 2px solid #f5f5f5;
+            vertical-align: middle;
+        }
+
+        .color-info {
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 0.5rem;
+        }
+
+        .color-name {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #000000;
+            margin-bottom: 0.25rem;
+        }
+
+        .color-code {
+            font-size: 0.9rem;
+            color: #000000;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 600;
+        }
+
+        .example-section {
+            background: #ffffff;
+            border: 1px solid #f5f5f5;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .example-button {
+            display: inline-block;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            border: 2px solid rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+            margin: 0.5rem;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .example-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+            border-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary {
+            background: #0b7835;
+        }
+
+        .btn-secondary {
+            background: #ea0e2a;
+        }
+
+        .btn-warning {
+            background: #fbdc02;
+            color: #000000;
+        }
+
+        .btn-info {
+            background: #2196F3;
+        }
+
+        .example-card {
+            background: #ffffff;
+            border: 1px solid #f5f5f5;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+
+        .example-card h4 {
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 0.5rem;
+        }
+
+        .example-card p {
+            color: #000000;
+            margin-bottom: 0.25rem;
+        }
+
+        .bad-example {
+            background: #f5f5f5;
+            border: 2px dashed #ea0e2a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+
+        .bad-example::before {
+            content: "NO HACER: ";
+            font-weight: 700;
+            color: #ea0e2a;
+        }
+
+        .good-example {
+            background: #ffffff;
+            border: 2px solid #0b7835;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+
+        .good-example::before {
+            content: "HACER: ";
+            font-weight: 700;
+            color: #0b7835;
+        }
+
+        .icon-example {
+            font-size: 1.2rem;
+            color: #000000;
+            opacity: 0.7;
+            margin: 0.5rem;
+        }
+        
+        /* Animaciones para iconos de despliegue */
+        @keyframes bounce-down {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(12px);
+            }
+        }
+
+        @keyframes pulse-down {
+            0%, 100% {
+                opacity: 0.7;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.3);
+            }
+        }
+
+        @keyframes slide-down {
+            0% {
+                transform: translateY(-8px);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(8px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-8px);
+                opacity: 0.5;
+            }
+        }
+
+        .icon-expand-bounce {
+            animation: bounce-down 1.5s ease-in-out infinite;
+        }
+
+        .icon-expand-pulse {
+            animation: pulse-down 1.5s ease-in-out infinite;
+        }
+
+        .icon-expand-slide {
+            animation: slide-down 1.5s ease-in-out infinite;
+        }
+
+        .icon-expand-container {
+            display: inline-block;
+            position: relative;
+        }
+
+        .icon-expand-double {
+            display: inline-block;
+        }
+
+        .icon-expand-double i:first-child {
+            animation: slide-down 1.5s ease-in-out infinite;
+        }
+
+        .icon-expand-double i:last-child {
+            animation: slide-down 1.5s ease-in-out infinite 0.3s;
+        }
+        
+
+        .section-container {
+            background: #f5f5f5;
+            padding: 0.75rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+
+        .section-content {
+            background: #ffffff;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .section-content h3 {
+            color: #000000;
+            font-weight: 700;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 0.9rem;
+            color: #000000;
+            font-weight: 600;
+        }
+
+        .spacing-example {
+            background: #0b7835;
+            color: white;
+            padding: 0.5rem;
+            margin: 0.25rem;
+            display: inline-block;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #f5f5f5;
+            color: #000000;
+        }
+
+        th {
+            font-weight: 700;
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Guía de Línea Gráfica - Eco Plagas</h1>
+        <p style="text-align: center; margin-bottom: 2rem; font-weight: 500;">Sistema de Diseño Unificado - Manual de Entrenamiento</p>
+
+        <section>
+            <h2>1. Colores Primarios</h2>
+            <p>El sistema utiliza únicamente <strong>4 colores primarios</strong> para mantener la consistencia visual:</p>
+            
+            <div class="example-section">
+                <div style="margin: 1rem 0;">
+                    <div class="color-box" style="background: #0b7835;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Verde Primario</div>
+                        <div class="color-code">#0b7835</div>
+                        <div style="font-size: 0.9rem; margin-top: 0.25rem;">Uso: Botones de acción positiva, confirmación, inicio de turno, gestión de horas y personal</div>
+                    </div>
+                </div>
+
+                <div style="margin: 1rem 0;">
+                    <div class="color-box" style="background: #fbdc02;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Amarillo Primario</div>
+                        <div class="color-code">#fbdc02</div>
+                        <div style="font-size: 0.9rem; margin-top: 0.25rem;">Uso: Botones de gestión de citas, inventario, acciones destacadas</div>
+                    </div>
+                </div>
+
+                <div style="margin: 1rem 0;">
+                    <div class="color-box" style="background: #ea0e2a;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Rojo Primario</div>
+                        <div class="color-code">#ea0e2a</div>
+                        <div style="font-size: 0.9rem; margin-top: 0.25rem;">Uso: Botones de acción negativa, cancelación, finalización de turno</div>
+                    </div>
+                </div>
+
+                <div style="margin: 1rem 0;">
+                    <div class="color-box" style="background: #2196F3;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Azul Primario</div>
+                        <div class="color-code">#2196F3</div>
+                        <div style="font-size: 0.9rem; margin-top: 0.25rem;">Uso: Botones de información, navegación, enlaces, acciones secundarias</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>2. Fondos y Textos</h2>
+            
+            <h3>Fondos Blancos</h3>
+            <p>Todos los contenedores de contenido deben tener fondo blanco (<code>#ffffff</code>) para maximizar la legibilidad y mantener un aspecto limpio.</p>
+            
+            <div class="example-section">
+                <div class="example-card">
+                    <h4>Ejemplo de Contenedor</h4>
+                    <p>Este es un ejemplo de contenido sobre fondo blanco con texto negro.</p>
+                </div>
+            </div>
+
+            <h3>Textos Negros</h3>
+            <p>Todos los textos deben ser negros (<code>#000000</code>) o muy oscuros para garantizar el máximo contraste y legibilidad sobre fondos blancos.</p>
+            
+            <div class="good-example">
+                <p style="color: #000000; font-weight: 700;">Título en Negrito</p>
+                <p style="color: #000000;">Texto normal en negro sobre fondo blanco - Excelente legibilidad</p>
+            </div>
+
+            <div class="bad-example">
+                <p style="color: #000000; opacity: 0.5;">Texto gris sobre fondo blanco - Dificulta la lectura (ejemplo de lo que NO hacer)</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>3. Tipografía</h2>
+            
+            <h3>Fuente: Inter</h3>
+            <p>La fuente unificada para todo el sistema es <strong>Inter</strong>, una tipografía moderna, redondeada y de fácil lectura.</p>
+            
+            <div class="example-section">
+                <p style="font-size: 1.5rem; font-weight: 700;">Título en Inter Bold</p>
+                <p style="font-size: 1.2rem; font-weight: 600;">Subtítulo en Inter Semi-Bold</p>
+                <p style="font-size: 1rem; font-weight: 400;">Texto normal en Inter Regular</p>
+            </div>
+
+            <h3>Pesos de Fuente</h3>
+            <table>
+                <tr>
+                    <th>Peso</th>
+                    <th>Valor</th>
+                    <th>Uso</th>
+                </tr>
+                <tr>
+                    <td>Bold</td>
+                    <td><code>700</code></td>
+                    <td>Títulos principales, etiquetas importantes</td>
+                </tr>
+                <tr>
+                    <td>Semi-Bold</td>
+                    <td><code>600</code></td>
+                    <td>Subtítulos, botones, elementos destacados</td>
+                </tr>
+                <tr>
+                    <td>Regular</td>
+                    <td><code>400</code></td>
+                    <td>Texto normal, párrafos, contenido general</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>4. Márgenes y Espaciado</h2>
+            
+            <h3>Márgenes Estrechos</h3>
+            <p>Los márgenes deben ser <strong>mínimos</strong> para aprovechar al máximo el área disponible en pantalla. Esto mejora la densidad de información y reduce el desplazamiento innecesario.</p>
+            
+            <div class="good-example">
+                <p><strong>Espaciado Recomendado:</strong></p>
+                <ul>
+                    <li>Padding de contenedores: <code>0.5rem - 1rem</code> (8px - 16px)</li>
+                    <li>Márgenes entre secciones: <code>0.75rem - 1rem</code> (12px - 16px)</li>
+                    <li>Gap entre elementos: <code>0.5rem</code> (8px)</li>
+                    <li>Padding de botones: <code>1rem 1.5rem</code> (16px vertical, 24px horizontal)</li>
+                </ul>
+            </div>
+
+            <div class="bad-example">
+                <p>Evitar márgenes excesivos como <code>2rem</code> o <code>3rem</code> que desperdician espacio valioso en pantalla.</p>
+            </div>
+
+            <h3>Ejemplo de Espaciado Compacto</h3>
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Sección con Espaciado Óptimo</h3>
+                    <p>Este contenedor utiliza márgenes mínimos para maximizar el contenido visible.</p>
+                    <div class="spacing-example">Elemento 1</div>
+                    <div class="spacing-example">Elemento 2</div>
+                    <div class="spacing-example">Elemento 3</div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>5. Iconos</h2>
+            
+            <h3>Minimizar el Uso</h3>
+            <p>Los iconos deben usarse <strong>con moderación</strong>. Solo cuando aporten valor real a la comprensión del contenido.</p>
+            
+            <h3>Iconos que NO Parecen Botones</h3>
+            <p>Los iconos que <strong>NO son clickeables</strong> deben tener un estilo plano, sin fondo, sin borde, sin padding, y con opacidad reducida para que no parezcan botones.</p>
+            
+            <div class="good-example">
+                <p><strong>Iconos Planos (Correcto):</strong></p>
+                <div>
+                    <i class="fas fa-clock" style="font-size: 1.2rem; color: #000000; opacity: 0.7; margin: 0.5rem;"></i>
+                    <i class="fas fa-calendar" style="font-size: 1.2rem; color: #000000; opacity: 0.7; margin: 0.5rem;"></i>
+                    <i class="fas fa-chart-bar" style="font-size: 1.2rem; color: #000000; opacity: 0.7; margin: 0.5rem;"></i>
+                </div>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem;">Estos iconos son informativos, no clickeables. No tienen fondo ni borde.</p>
+            </div>
+
+            <div class="bad-example">
+                <p><strong>Iconos que Parecen Botones (Incorrecto):</strong></p>
+                <div style="margin: 0.5rem 0;">
+                    <span style="background: #0b7835; color: white; padding: 0.75rem; border-radius: 8px; display: inline-block; margin: 0.25rem;"><i class="fas fa-clock"></i></span>
+                    <span style="background: #0b7835; color: white; padding: 0.75rem; border-radius: 8px; display: inline-block; margin: 0.25rem;"><i class="fas fa-calendar"></i></span>
+                </div>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem;">Estos iconos tienen fondo y padding, lo que los hace parecer botones clickeables cuando no lo son.</p>
+            </div>
+
+            <h3>Reglas para Iconos</h3>
+            <ul>
+                <li><strong>Iconos informativos:</strong> Sin fondo, sin borde, sin padding, opacidad 0.7, tamaño 1.2rem, color negro o blanco según el fondo</li>
+                <li><strong>Iconos en botones:</strong> Color blanco, pueden tener fondo semitransparente solo dentro de botones reales</li>
+                <li><strong>Usar Font Awesome:</strong> Siempre usar iconos de Font Awesome, nunca emojis</li>
+            </ul>
+
+            <h3>Indicadores y Badges</h3>
+            <p>Los indicadores de estado (badges, etiquetas, estados) deben usar <strong>tonos pastel</strong> de los colores primarios, sin efecto bevel/relieve ni bordes pronunciados, para que no parezcan botones.</p>
+            
+            <div class="good-example">
+                <p><strong>Indicadores con Colores Pastel (Correcto):</strong></p>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 0.5rem 0;">
+                    <span style="background: #c8e6c9; color: #000000; padding: 0.5rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; display: inline-block;">Completo</span>
+                    <span style="background: #fff9c4; color: #000000; padding: 0.5rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; display: inline-block;">Parcial</span>
+                    <span style="background: #ffcdd2; color: #000000; padding: 0.5rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; display: inline-block;">Pendiente</span>
+                </div>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 0.5rem 0;">
+                    <span style="background: #c8e6c9; color: #000000; padding: 0.5rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem;"><i class="fas fa-check-circle"></i> Activo</span>
+                    <span style="background: #fff9c4; color: #000000; padding: 0.5rem 0.75rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem;"><i class="fas fa-clock"></i> En Proceso</span>
+                </div>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem;">Estos indicadores usan tonos pastel sin box-shadow ni bordes, combinados con texto o iconos.</p>
+            </div>
+
+            <div class="bad-example">
+                <p><strong>Indicadores que Parecen Botones (Incorrecto):</strong></p>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 0.5rem 0;">
+                    <span style="background: #0b7835; color: white; padding: 0.5rem 0.75rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: inline-block; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25);">Completo</span>
+                </div>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem;">Este indicador tiene color primario intenso y efecto bevel, lo que lo hace parecer un botón clickeable.</p>
+            </div>
+
+            <h3>Colores Pastel para Indicadores</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0;">
+                <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem;">
+                    <div style="width: 100%; height: 60px; background: #c8e6c9; border-radius: 6px; margin-bottom: 0.5rem;"></div>
+                    <div style="font-weight: 600; color: #000000; margin-bottom: 0.25rem;">Verde Pastel</div>
+                    <div style="font-size: 0.85rem; color: #000000; font-family: 'Inter', monospace;">#c8e6c9</div>
+                    <p style="font-size: 0.85rem; color: #000000; margin-top: 0.5rem;">Para estados positivos, completados, activos</p>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem;">
+                    <div style="width: 100%; height: 60px; background: #fff9c4; border-radius: 6px; margin-bottom: 0.5rem;"></div>
+                    <div style="font-weight: 600; color: #000000; margin-bottom: 0.25rem;">Amarillo Pastel</div>
+                    <div style="font-size: 0.85rem; color: #000000; font-family: 'Inter', monospace;">#fff9c4</div>
+                    <p style="font-size: 0.85rem; color: #000000; margin-top: 0.5rem;">Para estados parciales, en proceso, advertencias</p>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem;">
+                    <div style="width: 100%; height: 60px; background: #ffcdd2; border-radius: 6px; margin-bottom: 0.5rem;"></div>
+                    <div style="font-weight: 600; color: #000000; margin-bottom: 0.25rem;">Rojo Pastel</div>
+                    <div style="font-size: 0.85rem; color: #000000; font-family: 'Inter', monospace;">#ffcdd2</div>
+                    <p style="font-size: 0.85rem; color: #000000; margin-top: 0.5rem;">Para estados pendientes, errores, atención requerida</p>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem;">
+                    <div style="width: 100%; height: 60px; background: #BBDEFB; border-radius: 6px; margin-bottom: 0.5rem;"></div>
+                    <div style="font-weight: 600; color: #000000; margin-bottom: 0.25rem;">Azul Pastel</div>
+                    <div style="font-size: 0.85rem; color: #000000; font-family: 'Inter', monospace;">#BBDEFB</div>
+                    <p style="font-size: 0.85rem; color: #000000; margin-top: 0.5rem;">Para estados informativos, en proceso, navegación</p>
+                </div>
+            </div>
+
+            <h3>Reglas para Indicadores</h3>
+            <ul>
+                <li><strong>Fondo pastel:</strong> Usar tonos pastel (#c8e6c9, #fff9c4, #ffcdd2, #BBDEFB) en lugar de colores primarios intensos</li>
+                <li><strong>Sin bevel/relieve:</strong> No usar box-shadow ni efectos 3D</li>
+                <li><strong>Sin bordes pronunciados:</strong> Solo border-radius suave (6px), sin bordes visibles</li>
+                <li><strong>Texto negro:</strong> Siempre texto negro (#000000) sobre fondos pastel para legibilidad</li>
+                <li><strong>Combinar con iconos:</strong> Los indicadores pueden incluir iconos de Font Awesome junto al texto</li>
+                <li><strong>Padding moderado:</strong> Padding de 0.5rem 0.75rem para mantener proporción sin parecer botón</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>5.1. Catálogo de Iconos</h2>
+            <p>Este catálogo muestra los iconos de Font Awesome más utilizados en el sistema, organizados por categorías. Todos los iconos deben seguir las reglas establecidas en la sección 5.</p>
+            
+            <h3>Iconos de Tiempo y Fechas</h3>
+            <div class="example-section">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-clock" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-clock</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Reloj, tiempo</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-calendar" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-calendar</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Calendario, fechas</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-calendar-alt" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-calendar-alt</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Calendario alternativo</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-calendar-check" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-calendar-check</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Fecha confirmada</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Iconos de Usuarios y Personal</h3>
+            <div class="example-section">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-user" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-user</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Usuario, persona</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-users" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-users</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Usuarios, grupo</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-user-edit" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-user-edit</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Editar usuario</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-user-clock" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-user-clock</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Usuario con tiempo</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Iconos de Acciones y Estados</h3>
+            <div class="example-section">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-check-circle" style="font-size: 2rem; color: #0b7835; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-check-circle</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Completado, éxito</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-exclamation-circle" style="font-size: 2rem; color: #ea0e2a; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-exclamation-circle</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Atención, alerta</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #fbdc02; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-exclamation-triangle</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Advertencia</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-times-circle" style="font-size: 2rem; color: #ea0e2a; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-times-circle</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Error, cancelar</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-plus-circle" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-plus-circle</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Agregar, crear</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-edit" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-edit</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Editar, modificar</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-trash" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-trash</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Eliminar, borrar</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-save" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-save</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Guardar</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Iconos de Inventario y Productos</h3>
+            <div class="example-section">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-box" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-box</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Caja, producto</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-warehouse" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-warehouse</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Bodega, almacén</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-clipboard-list" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-clipboard-list</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Lista, inventario</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-shopping-cart" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-shopping-cart</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Carrito, compras</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-tools" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-tools</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Herramientas</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Iconos de Reportes y Gráficos</h3>
+            <div class="example-section">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-chart-bar" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-chart-bar</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Gráfico de barras</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-chart-line" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-chart-line</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Gráfico de líneas</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-file-alt" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-file-alt</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Documento, reporte</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-search" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-search</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Buscar, auditoría</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Iconos de Navegación y Ubicación</h3>
+            <div class="example-section">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-map-marker-alt" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-map-marker-alt</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Ubicación, GPS</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-home" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-home</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Inicio, principal</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-arrow-left" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-arrow-left</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Volver, retroceder</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-arrow-right" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-arrow-right</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Siguiente, avanzar</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Iconos de Comunicación</h3>
+            <div class="example-section">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-comment" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-comment</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Comentario, mensaje</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-envelope" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-envelope</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Correo, email</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <i class="fas fa-bell" style="font-size: 2rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">fa-bell</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Notificación, alerta</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Notas de Uso</h3>
+            <div class="good-example">
+                <ul>
+                    <li><strong>Tamaño estándar:</strong> Para iconos informativos usar <code>1.2rem</code>, para iconos en catálogos usar <code>2rem</code></li>
+                    <li><strong>Color:</strong> Iconos informativos en negro con opacidad 0.7. Iconos de estado pueden usar colores primarios (#0b7835, #fbdc02, #ea0e2a)</li>
+                    <li><strong>En botones:</strong> Iconos dentro de botones deben ser blancos (o negros si el botón es amarillo)</li>
+                    <li><strong>Clase Font Awesome:</strong> Siempre usar <code>fas</code> (Font Awesome Solid) para consistencia</li>
+                    <li><strong>Sin fondo:</strong> Los iconos informativos nunca deben tener fondo, borde o padding</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>5.2. Iconos Animados de Despliegue</h2>
+            <p>Estos iconos animados indican que un elemento se puede desplegar o abrir hacia abajo. Úsalos en acordeones, menús desplegables y secciones colapsables.</p>
+            
+            <h3>Estilos de Animación Disponibles</h3>
+            <div class="example-section">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                    <!-- Animación Bounce -->
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1.5rem; text-align: center;">
+                        <div style="position: relative;">
+                            <div style="position: absolute; top: -0.5rem; left: -0.5rem; background: #0b7835; color: white; width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">1</div>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <i class="fas fa-chevron-down icon-expand-bounce" style="font-size: 4rem; color: #000000; opacity: 0.7;"></i>
+                        </div>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">1. Bounce (Rebote)</div>
+                        <div style="font-size: 0.8rem; color: #000000; margin-bottom: 0.5rem;">Clase: <code>icon-expand-bounce</code></div>
+                        <div style="font-size: 0.75rem; color: #000000; font-style: italic;">Movimiento suave hacia abajo</div>
+                    </div>
+
+                    <!-- Animación Pulse -->
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1.5rem; text-align: center;">
+                        <div style="position: relative;">
+                            <div style="position: absolute; top: -0.5rem; left: -0.5rem; background: #0b7835; color: white; width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">2</div>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <i class="fas fa-chevron-down icon-expand-pulse" style="font-size: 4rem; color: #000000; opacity: 0.7;"></i>
+                        </div>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">2. Pulse (Pulso)</div>
+                        <div style="font-size: 0.8rem; color: #000000; margin-bottom: 0.5rem;">Clase: <code>icon-expand-pulse</code></div>
+                        <div style="font-size: 0.75rem; color: #000000; font-style: italic;">Escala y opacidad variable</div>
+                    </div>
+
+                    <!-- Animación Slide -->
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1.5rem; text-align: center;">
+                        <div style="position: relative;">
+                            <div style="position: absolute; top: -0.5rem; left: -0.5rem; background: #0b7835; color: white; width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">3</div>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <i class="fas fa-chevron-down icon-expand-slide" style="font-size: 4rem; color: #000000; opacity: 0.7;"></i>
+                        </div>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">3. Slide (Deslizamiento)</div>
+                        <div style="font-size: 0.8rem; color: #000000; margin-bottom: 0.5rem;">Clase: <code>icon-expand-slide</code></div>
+                        <div style="font-size: 0.75rem; color: #000000; font-style: italic;">Deslizamiento vertical continuo</div>
+                    </div>
+
+                    <!-- Animación Double -->
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1.5rem; text-align: center;">
+                        <div style="position: relative;">
+                            <div style="position: absolute; top: -0.5rem; left: -0.5rem; background: #0b7835; color: white; width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">4</div>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <div class="icon-expand-double" style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-chevron-down" style="font-size: 2.5rem; color: #000000; opacity: 0.7;"></i>
+                                <i class="fas fa-chevron-down" style="font-size: 2.5rem; color: #000000; opacity: 0.5;"></i>
+                            </div>
+                        </div>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">4. Double (Doble)</div>
+                        <div style="font-size: 0.8rem; color: #000000; margin-bottom: 0.5rem;">Clase: <code>icon-expand-double</code></div>
+                        <div style="font-size: 0.75rem; color: #000000; font-style: italic;">Dos chevrons con delay</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Iconos Disponibles para Animación</h3>
+            <div class="example-section">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center; position: relative;">
+                        <div style="position: absolute; top: -0.5rem; left: -0.5rem; background: #fbdc02; color: #000000; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">1</div>
+                        <i class="fas fa-chevron-down icon-expand-bounce" style="font-size: 3rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">1. fa-chevron-down</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Recomendado</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center; position: relative;">
+                        <div style="position: absolute; top: -0.5rem; left: -0.5rem; background: #fbdc02; color: #000000; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">2</div>
+                        <i class="fas fa-angle-down icon-expand-bounce" style="font-size: 3rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">2. fa-angle-down</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Alternativa</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center; position: relative;">
+                        <div style="position: absolute; top: -0.5rem; left: -0.5rem; background: #fbdc02; color: #000000; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">3</div>
+                        <i class="fas fa-arrow-down icon-expand-bounce" style="font-size: 3rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">3. fa-arrow-down</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Alternativa</div>
+                    </div>
+                    <div style="background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; text-align: center; position: relative;">
+                        <div style="position: absolute; top: -0.5rem; left: -0.5rem; background: #fbdc02; color: #000000; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">4</div>
+                        <i class="fas fa-caret-down icon-expand-bounce" style="font-size: 3rem; color: #000000; opacity: 0.7; margin-bottom: 0.5rem; display: block;"></i>
+                        <div style="font-weight: 600; color: #000000; font-size: 0.9rem; margin-bottom: 0.25rem;">4. fa-caret-down</div>
+                        <div style="font-size: 0.8rem; color: #000000; font-family: monospace;">Alternativa</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Ejemplos de Uso</h3>
+            <div class="good-example">
+                <p><strong>Ejemplo 1: Acordeón con animación 1 (Bounce)</strong></p>
+                <div style="background: #f5f5f5; padding: 0.75rem; border-radius: 8px; margin: 0.5rem 0;">
+                    <button style="width: 100%; display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid #f5f5f5; border-radius: 8px; padding: 1rem; cursor: pointer;">
+                        <span style="font-weight: 600; color: #000000;">Sección Desplegable</span>
+                        <i class="fas fa-chevron-down icon-expand-bounce" style="font-size: 1.8rem; color: #000000; opacity: 0.7;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="good-example" style="margin-top: 1rem;">
+                <p><strong>Ejemplo 2: Botón con animación 2 (Pulse)</strong></p>
+                <div style="background: #f5f5f5; padding: 0.75rem; border-radius: 8px; margin: 0.5rem 0;">
+                    <button style="width: 100%; display: flex; align-items: center; justify-content: space-between; background: #0b7835; color: white; border: none; border-radius: 12px; padding: 1rem 1.5rem; cursor: pointer; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2);">
+                        <span style="font-weight: 600;">Ver Más Detalles</span>
+                        <i class="fas fa-chevron-down icon-expand-pulse" style="font-size: 1.8rem; color: white;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <h3>Código de Implementación</h3>
+            <div class="example-section">
+                <pre style="background: #f5f5f5; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.9rem;"><code>&lt;!-- Ejemplo con animación 1 (Bounce) --&gt;
+&lt;i class="fas fa-chevron-down icon-expand-bounce" style="font-size: 1.8rem; color: #000000; opacity: 0.7;"&gt;&lt;/i&gt;
+
+&lt;!-- Ejemplo con animación 2 (Pulse) --&gt;
+&lt;i class="fas fa-chevron-down icon-expand-pulse" style="font-size: 1.8rem; color: #000000; opacity: 0.7;"&gt;&lt;/i&gt;
+
+&lt;!-- Ejemplo con animación 3 (Slide) --&gt;
+&lt;i class="fas fa-chevron-down icon-expand-slide" style="font-size: 1.8rem; color: #000000; opacity: 0.7;"&gt;&lt;/i&gt;
+
+&lt;!-- Ejemplo con animación 4 (Double) --&gt;
+&lt;div class="icon-expand-double"&gt;
+    &lt;i class="fas fa-chevron-down" style="font-size: 1.2rem; color: #000000; opacity: 0.7;"&gt;&lt;/i&gt;
+    &lt;i class="fas fa-chevron-down" style="font-size: 1.2rem; color: #000000; opacity: 0.5;"&gt;&lt;/i&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+
+            <h3>Recomendaciones</h3>
+            <div class="good-example">
+                <ul>
+                    <li><strong>Uso moderado:</strong> Solo usar animaciones cuando sea necesario indicar interacción. No sobrecargar la interfaz</li>
+                    <li><strong>Icono recomendado:</strong> <strong>1. fa-chevron-down</strong> es el más común y reconocible para despliegue</li>
+                    <li><strong>Animación recomendada:</strong> <strong>1. icon-expand-bounce</strong> es sutil y efectiva</li>
+                    <li><strong>Tamaño:</strong> Usar <code>1.8rem</code> o más para iconos en botones y acordeones (más notorio)</li>
+                    <li><strong>Color:</strong> Mantener opacidad 0.7 en fondos blancos, blanco en botones de color</li>
+                    <li><strong>Desactivar al abrir:</strong> Cuando el elemento esté desplegado, quitar la animación y rotar el icono 180°</li>
+                    <li><strong>Identificación:</strong> Las animaciones están numeradas del 1 al 4, y los iconos del 1 al 4 para fácil referencia</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>6. Botones</h2>
+            
+            <h3>Estilo de Botones</h3>
+            <p>Los botones deben tener un efecto de <strong>bevel/relieve</strong> pronunciado para que sea obvio que son clickeables.</p>
+            
+            <div class="example-section">
+                <button class="example-button btn-primary">Iniciar Turno</button>
+                <button class="example-button btn-secondary">Finalizar Turno</button>
+                <button class="example-button btn-warning" style="background: #fbdc02; color: #000000;">Amarillo</button>
+            </div>
+
+            <h3>Características de los Botones</h3>
+            <ul>
+                <li><strong>Fondo sólido:</strong> Sin gradientes, usar colores planos (#0b7835, #fbdc02, #ea0e2a)</li>
+                <li><strong>Texto blanco:</strong> Siempre texto blanco sobre fondos de color</li>
+                <li><strong>Bevel/Relieve:</strong> Box-shadow con sombras internas y externas</li>
+                <li><strong>Padding:</strong> <code>1rem 1.5rem</code> (16px vertical, 24px horizontal)</li>
+                <li><strong>Border-radius:</strong> <code>12px</code></li>
+                <li><strong>Font-weight:</strong> <code>600</code> (Semi-Bold)</li>
+            </ul>
+
+            <h3>Código CSS para Botones</h3>
+            <div class="example-section">
+                <pre style="background: #f5f5f5; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.9rem;"><code>.button {
+    background: #0b7835;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    border: none;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 
+                inset 0 2px 0 rgba(255, 255, 255, 0.25), 
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}</code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>7. Estructura de Secciones</h2>
+            
+            <h3>Contenedores de Sección</h3>
+            <p>Las secciones principales deben tener:</p>
+            <ul>
+                <li><strong>Fondo gris claro:</strong> <code>#f5f5f5</code> para el contenedor externo</li>
+                <li><strong>Fondo blanco:</strong> <code>#ffffff</code> para el contenido interno</li>
+                <li><strong>Márgenes mínimos:</strong> Entre secciones para aprovechar el espacio</li>
+            </ul>
+
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Control de Turno</h3>
+                    <p>Esta es una sección con fondo gris claro externo y fondo blanco interno.</p>
+                </div>
+            </div>
+
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Reportes del Mes</h3>
+                    <p>Otra sección independiente con el mismo estilo.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>8. Resumen de Reglas</h2>
+            
+            <div class="example-section">
+                <h3>HACER</h3>
+                <ul>
+                    <li>Usar solo 3 colores primarios: Verde (#0b7835), Amarillo (#fbdc02), Rojo (#ea0e2a)</li>
+                    <li>Fondos blancos (#ffffff) para contenedores de contenido</li>
+                    <li>Textos negros (#000000) para máximo contraste</li>
+                    <li>Fuente Inter en todos los elementos</li>
+                    <li>Márgenes estrechos (0.5rem - 1rem) para aprovechar el área</li>
+                    <li>Iconos planos sin fondo para elementos no clickeables</li>
+                    <li>Indicadores con colores pastel (#c8e6c9, #fff9c4, #ffcdd2) sin bevel ni bordes</li>
+                    <li>Botones con efecto bevel/relieve pronunciado</li>
+                    <li>Secciones con fondo gris claro (#f5f5f5) y contenido blanco</li>
+                </ul>
+
+                <h3 style="margin-top: 1.5rem;">NO HACER</h3>
+                <ul>
+                    <li>Usar gradientes en fondos o botones</li>
+                    <li>Textos grises sobre fondos blancos</li>
+                    <li>Márgenes excesivos que desperdician espacio</li>
+                    <li>Iconos con fondo que parezcan botones cuando no lo son</li>
+                    <li>Indicadores con colores primarios intensos o efectos bevel/relieve</li>
+                    <li>Usar emojis (solo iconos de Font Awesome)</li>
+                    <li>Botones sin efecto bevel/relieve</li>
+                    <li>Fondos de diferentes tonos de gris</li>
+                </ul>
+            </div>
+        </section>
+
+        <section style="margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #f5f5f5;">
+            <p style="text-align: center; color: #000000; font-weight: 500;">
+                Esta guía debe ser consultada antes de realizar cualquier cambio visual en el sistema.
+            </p>
+        </section>
+
+        <section>
+            <h2>9. Plantillas y Ejemplos con Datos Dummy</h2>
+            <p>Las siguientes plantillas muestran el diseño aplicado en todos los casos de uso posibles con datos ficticios que simulan un sitio real.</p>
+
+            <!-- Ejemplo 1: Página de Dashboard/Resumen -->
+            <div class="section-container" style="margin-top: 2rem;">
+                <div class="section-content">
+                    <h3>Ejemplo 1: Dashboard de Resumen</h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                        <div class="example-card">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; color: #000000; margin-bottom: 0.5rem;">Horas Trabajadas</h4>
+                            <p style="font-size: 1.8rem; font-weight: 700; color: #000000; margin: 0;">42.5h</p>
+                            <p style="font-size: 0.85rem; color: #000000; margin-top: 0.25rem;">Esta semana</p>
+                        </div>
+                        <div class="example-card">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; color: #000000; margin-bottom: 0.5rem;">Días Trabajados</h4>
+                            <p style="font-size: 1.8rem; font-weight: 700; color: #000000; margin: 0;">5</p>
+                            <p style="font-size: 0.85rem; color: #000000; margin-top: 0.25rem;">Esta semana</p>
+                        </div>
+                        <div class="example-card">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; color: #000000; margin-bottom: 0.5rem;">Saldo Pendiente</h4>
+                            <p style="font-size: 1.8rem; font-weight: 700; color: #000000; margin: 0;">-2.3h</p>
+                            <p style="font-size: 0.85rem; color: #000000; margin-top: 0.25rem;">Por compensar</p>
+                        </div>
+                    </div>
+
+                    <div style="margin: 1rem 0;">
+                        <button class="example-button btn-primary" style="border: 2px solid rgba(0, 0, 0, 0.25);">Iniciar Turno</button>
+                        <button class="example-button btn-secondary" style="border: 2px solid rgba(0, 0, 0, 0.25);">Finalizar Turno</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 2: Lista de Registros -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 2: Lista de Registros Semanales</h3>
+                    
+                    <div style="margin: 1rem 0;">
+                        <div class="example-card" style="margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.25rem;">Lunes, 6 de Enero 2026</h4>
+                                    <p style="font-size: 0.9rem; color: #000000; margin: 0;">08:00 - 17:00 | 9.0 horas</p>
+                                </div>
+                                <span style="background: #c8e6c9; color: #000000; font-weight: 600; font-size: 0.9rem; padding: 0.5rem 0.75rem; border-radius: 6px; display: inline-block;">Completo</span>
+                            </div>
+                        </div>
+
+                        <div class="example-card" style="margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.25rem;">Martes, 7 de Enero 2026</h4>
+                                    <p style="font-size: 0.9rem; color: #000000; margin: 0;">08:15 - 16:45 | 8.5 horas</p>
+                                </div>
+                                <span style="background: #c8e6c9; color: #000000; font-weight: 600; font-size: 0.9rem; padding: 0.5rem 0.75rem; border-radius: 6px; display: inline-block;">Completo</span>
+                            </div>
+                        </div>
+
+                        <div class="example-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.25rem;">Miércoles, 8 de Enero 2026</h4>
+                                    <p style="font-size: 0.9rem; color: #000000; margin: 0;">08:00 - 12:00 | 4.0 horas</p>
+                                </div>
+                                <span style="background: #fff9c4; color: #000000; font-weight: 600; font-size: 0.9rem; padding: 0.5rem 0.75rem; border-radius: 6px; display: inline-block;">Parcial</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 3: Formulario -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 3: Formulario de Registro</h3>
+                    
+                    <div style="margin: 1rem 0;">
+                        <label style="display: block; font-weight: 600; color: #000000; margin-bottom: 0.5rem;">Nombre del Empleado</label>
+                        <input type="text" value="Juan Carlos Pérez" style="width: 100%; padding: 0.75rem; border: 1px solid #f5f5f5; border-radius: 8px; font-size: 1rem; color: #000000; background: #ffffff; margin-bottom: 1rem;" readonly>
+                        
+                        <label style="display: block; font-weight: 600; color: #000000; margin-bottom: 0.5rem;">Fecha</label>
+                        <input type="date" value="2026-01-09" style="width: 100%; padding: 0.75rem; border: 1px solid #f5f5f5; border-radius: 8px; font-size: 1rem; color: #000000; background: #ffffff; margin-bottom: 1rem;" readonly>
+                        
+                        <label style="display: block; font-weight: 600; color: #000000; margin-bottom: 0.5rem;">Hora de Inicio</label>
+                        <input type="time" value="08:00" style="width: 100%; padding: 0.75rem; border: 1px solid #f5f5f5; border-radius: 8px; font-size: 1rem; color: #000000; background: #ffffff; margin-bottom: 1rem;" readonly>
+                        
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="example-button btn-primary" style="flex: 1;">Guardar</button>
+                            <button class="example-button" style="flex: 1; background: #f5f5f5; color: #000000; box-shadow: none;">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 4: Tabla de Datos -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 4: Tabla de Empleados</h3>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Departamento</th>
+                                <th>Horas Semanales</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>María González</td>
+                                <td>Fumigación</td>
+                                <td>42.5h</td>
+                                <td><span style="background: #c8e6c9; color: #000000; font-weight: 600; font-size: 0.85rem; padding: 0.5rem 0.75rem; border-radius: 6px; display: inline-block;">Activo</span></td>
+                            </tr>
+                            <tr>
+                                <td>Carlos Rodríguez</td>
+                                <td>Administración</td>
+                                <td>40.0h</td>
+                                <td><span style="background: #c8e6c9; color: #000000; font-weight: 600; font-size: 0.85rem; padding: 0.5rem 0.75rem; border-radius: 6px; display: inline-block;">Activo</span></td>
+                            </tr>
+                            <tr>
+                                <td>Ana Martínez</td>
+                                <td>Ventas</td>
+                                <td>38.5h</td>
+                                <td><span style="background: #fff9c4; color: #000000; font-weight: 600; font-size: 0.85rem; padding: 0.5rem 0.75rem; border-radius: 6px; display: inline-block;">Parcial</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Ejemplo 5: Tarjetas de Información con Iconos -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 5: Tarjetas de Estadísticas</h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                        <div class="example-card">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <i class="fas fa-clock" style="font-size: 2rem; color: #000000; opacity: 0.7;"></i>
+                                <div>
+                                    <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.25rem;">Total Horas</h4>
+                                    <p style="font-size: 1.5rem; font-weight: 700; color: #000000; margin: 0;">168.5h</p>
+                                    <p style="font-size: 0.85rem; color: #000000; margin-top: 0.25rem;">Este mes</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-card">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <i class="fas fa-calendar" style="font-size: 2rem; color: #000000; opacity: 0.7;"></i>
+                                <div>
+                                    <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.25rem;">Citas Programadas</h4>
+                                    <p style="font-size: 1.5rem; font-weight: 700; color: #000000; margin: 0;">24</p>
+                                    <p style="font-size: 0.85rem; color: #000000; margin-top: 0.25rem;">Esta semana</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="example-card">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <i class="fas fa-chart-bar" style="font-size: 2rem; color: #000000; opacity: 0.7;"></i>
+                                <div>
+                                    <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.25rem;">Reportes Generados</h4>
+                                    <p style="font-size: 1.5rem; font-weight: 700; color: #000000; margin: 0;">12</p>
+                                    <p style="font-size: 0.85rem; color: #000000; margin-top: 0.25rem;">Este mes</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 6: Botones de Acción Múltiples -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 6: Panel de Acciones Rápidas</h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                        <button class="example-button btn-primary" style="width: 100%; padding: 1.25rem 1rem; font-size: 0.95rem; border: 2px solid rgba(0, 0, 0, 0.25);">
+                            <div style="font-weight: 700; margin-bottom: 0.25rem;">Solicitar</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Vacaciones</div>
+                        </button>
+                        <button class="example-button" style="width: 100%; padding: 1.25rem 1rem; font-size: 0.95rem; background: #0b7835; color: white; border: 2px solid rgba(0, 0, 0, 0.25);">
+                            <div style="font-weight: 700; margin-bottom: 0.25rem;">Ver</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Procedimientos</div>
+                        </button>
+                        <button class="example-button btn-warning" style="width: 100%; padding: 1.25rem 1rem; font-size: 0.95rem; border: 2px solid rgba(0, 0, 0, 0.25);">
+                            <div style="font-weight: 700; margin-bottom: 0.25rem;">Reportar</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Problema</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 7: Resumen Semanal -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 7: Resumen Semanal</h3>
+                    
+                    <div class="example-card" style="background: #ffffff; border: 1px solid #f5f5f5; padding: 1.5rem; margin: 1rem 0;">
+                        <h4 style="font-weight: 700; color: #000000; margin-bottom: 1rem;">Semana del 6 al 12 de Enero 2026</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                            <div>
+                                <p style="font-size: 0.9rem; color: #000000; margin-bottom: 0.25rem;">Días Trabajados</p>
+                                <p style="font-size: 1.8rem; font-weight: 700; color: #000000; margin: 0;">5</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.9rem; color: #000000; margin-bottom: 0.25rem;">Horas Laboradas</p>
+                                <p style="font-size: 1.8rem; font-weight: 700; color: #000000; margin: 0;">42.5h</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.9rem; color: #000000; margin-bottom: 0.25rem;">Horas Jornada</p>
+                                <p style="font-size: 1.8rem; font-weight: 700; color: #000000; margin: 0;">40.0h</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.9rem; color: #000000; margin-bottom: 0.25rem;">Resultado</p>
+                                <p style="font-size: 1.8rem; font-weight: 700; color: #000000; margin: 0;">+2.5h</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 8: Filtros y Búsqueda -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 8: Panel de Filtros</h3>
+                    
+                    <div style="margin: 1rem 0;">
+                        <label style="display: block; font-weight: 600; color: #000000; margin-bottom: 0.5rem;">Filtrar por Mes</label>
+                        <select style="width: 100%; padding: 0.75rem; border: 1px solid #f5f5f5; border-radius: 8px; font-size: 1rem; color: #000000; background: #ffffff; margin-bottom: 1rem;">
+                            <option>Enero 2026</option>
+                            <option>Diciembre 2025</option>
+                        </select>
+                        
+                        <label style="display: block; font-weight: 600; color: #000000; margin-bottom: 0.5rem;">Buscar Empleado</label>
+                        <input type="text" placeholder="Escribe el nombre..." style="width: 100%; padding: 0.75rem; border: 1px solid #f5f5f5; border-radius: 8px; font-size: 1rem; color: #000000; background: #ffffff; margin-bottom: 1rem;">
+                        
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="example-button btn-primary" style="flex: 1;">Aplicar Filtros</button>
+                            <button class="example-button" style="flex: 1; background: #f5f5f5; color: #000000; box-shadow: none;">Limpiar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 9: Estado de Información -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 9: Indicadores de Estado</h3>
+                    
+                    <div style="margin: 1rem 0;">
+                        <div class="example-card" style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                            <div style="width: 12px; height: 12px; background: #0b7835; border-radius: 50%;"></div>
+                            <div style="flex: 1;">
+                                <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.25rem;">App Encendida</h4>
+                                <p style="font-size: 0.9rem; color: #000000; margin: 0;">Sistema operativo normalmente</p>
+                            </div>
+                        </div>
+
+                        <div class="example-card" style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                            <div style="width: 12px; height: 12px; background: #fbdc02; border-radius: 50%;"></div>
+                            <div style="flex: 1;">
+                                <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.25rem;">Sincronización Pendiente</h4>
+                                <p style="font-size: 0.9rem; color: #000000; margin: 0;">3 registros pendientes de sincronizar</p>
+                            </div>
+                        </div>
+
+                        <div class="example-card" style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 12px; height: 12px; background: #ea0e2a; border-radius: 50%;"></div>
+                            <div style="flex: 1;">
+                                <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.25rem;">Atención Requerida</h4>
+                                <p style="font-size: 0.9rem; color: #000000; margin: 0;">Revisar horas pendientes de aprobación</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 10: Vista Completa de Página -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 10: Vista Completa de Página (Registro de Horas)</h3>
+                    <p style="font-size: 0.9rem; color: #000000; margin-bottom: 1rem;">Esta es una simulación completa de cómo se vería una página real aplicando todos los principios de diseño.</p>
+                    
+                    <!-- Sección Control de Turno -->
+                    <div style="background: #f5f5f5; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.75rem;">
+                        <div style="background: #ffffff; padding: 1rem; border-radius: 8px;">
+                            <h3 style="font-weight: 700; color: #000000; margin-bottom: 0.75rem;">Control de Turno</h3>
+                            
+                            <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                                <button class="example-button btn-primary" style="flex: 1;">Iniciar Turno</button>
+                                <button class="example-button btn-secondary" style="flex: 1;">Finalizar Turno</button>
+                            </div>
+                            
+                            <div class="example-card" style="margin: 0;">
+                                <p style="font-weight: 600; color: #000000; margin-bottom: 0.5rem;">Estado Actual</p>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="width: 10px; height: 10px; background: #0b7835; border-radius: 50%;"></div>
+                                    <span style="color: #000000;">Turno activo desde las 08:00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección Reportes del Mes -->
+                    <div style="background: #f5f5f5; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.75rem;">
+                        <div style="background: #ffffff; padding: 1rem; border-radius: 8px;">
+                            <h3 style="font-weight: 700; color: #000000; margin-bottom: 0.75rem;">Reportes del Mes</h3>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 1rem;">
+                                <div class="example-card" style="margin: 0;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <i class="fas fa-clock" style="font-size: 1.5rem; color: #000000; opacity: 0.7;"></i>
+                                        <div>
+                                            <p style="font-size: 0.85rem; font-weight: 600; color: #000000; margin: 0;">Total Horas</p>
+                                            <p style="font-size: 1.3rem; font-weight: 700; color: #000000; margin: 0;">168.5h</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="example-card" style="margin: 0;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <i class="fas fa-calendar" style="font-size: 1.5rem; color: #000000; opacity: 0.7;"></i>
+                                        <div>
+                                            <p style="font-size: 0.85rem; font-weight: 600; color: #000000; margin: 0;">Días Trabajados</p>
+                                            <p style="font-size: 1.3rem; font-weight: 700; color: #000000; margin: 0;">22</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 1rem;">
+                                <label style="display: block; font-weight: 600; color: #000000; margin-bottom: 0.5rem;">Filtrar por Mes</label>
+                                <select style="width: 100%; padding: 0.75rem; border: 1px solid #f5f5f5; border-radius: 8px; font-size: 1rem; color: #000000; background: #ffffff;">
+                                    <option>Enero 2026</option>
+                                    <option>Diciembre 2025</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección Enlaces de Interés -->
+                    <div style="background: #f5f5f5; padding: 0.75rem; border-radius: 8px;">
+                        <div style="background: #ffffff; padding: 1rem; border-radius: 8px;">
+                            <h3 style="font-weight: 700; color: #000000; margin-bottom: 0.75rem;">Enlaces de Interés</h3>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem;">
+                                <button class="example-button btn-primary" style="width: 100%; border: 2px solid rgba(0, 0, 0, 0.25);">Solicitar Vacaciones</button>
+                                <button class="example-button" style="width: 100%; background: #0b7835; color: white; border: 2px solid rgba(0, 0, 0, 0.25);">Procedimientos</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #f5f5f5;">
+                <p style="text-align: center; color: #000000; font-weight: 500; font-size: 0.9rem;">
+                    Estos ejemplos ilustran cómo aplicar los principios de diseño en diferentes contextos y casos de uso.
+                </p>
+            </div>
+        </section>
+
+        <section>
+            <h2>10. Gráficos y Reportes</h2>
+            <p>Los gráficos deben aprovechar al máximo el área disponible, con mínimas líneas de cuadrícula, etiquetas claras en los ejes y valores fuera de las barras.</p>
+
+            <!-- Ejemplo 1: Gráfico de Barras Verticales -->
+            <div class="section-container" style="margin-top: 2rem;">
+                <div class="section-content">
+                    <h3>Ejemplo 1: Gráfico de Barras Verticales - Horas por Semana</h3>
+                    <div style="position: relative; height: 300px; width: 100%; margin: 1rem 0;">
+                        <canvas id="chart1"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 2: Gráfico de Barras Horizontales -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 2: Gráfico de Barras Horizontales - Empleados por Departamento</h3>
+                    <div style="position: relative; height: 250px; width: 100%; margin: 1rem 0;">
+                        <canvas id="chart2"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 3: Gráfico de Líneas -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 3: Gráfico de Líneas - Tendencia Mensual</h3>
+                    <div style="position: relative; height: 300px; width: 100%; margin: 1rem 0;">
+                        <canvas id="chart3"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 4: Gráfico de Barras Agrupadas -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 4: Gráfico de Barras Agrupadas - Comparación Semanal</h3>
+                    <div style="position: relative; height: 300px; width: 100%; margin: 1rem 0;">
+                        <canvas id="chart4"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplo 5: Reporte Completo con Múltiples Gráficos -->
+            <div class="section-container">
+                <div class="section-content">
+                    <h3>Ejemplo 5: Reporte Completo - Dashboard de Métricas</h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem; margin: 1rem 0;">
+                        <div class="example-card">
+                            <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.75rem; font-size: 1rem;">Total Horas del Mes</h4>
+                            <div style="position: relative; height: 200px;">
+                                <canvas id="chart5"></canvas>
+                            </div>
+                        </div>
+                        <div class="example-card">
+                            <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.75rem; font-size: 1rem;">Distribución por Día</h4>
+                            <div style="position: relative; height: 200px;">
+                                <canvas id="chart6"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1rem;">
+                        <div class="example-card">
+                            <h4 style="font-weight: 700; color: #000000; margin-bottom: 0.75rem;">Evolución Semanal</h4>
+                            <div style="position: relative; height: 250px;">
+                                <canvas id="chart7"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #f5f5f5;">
+                <h3>Características de los Gráficos</h3>
+                <ul>
+                    <li><strong>Sin líneas de cuadrícula:</strong> Los gráficos no deben mostrar gridlines, solo los datos y etiquetas</li>
+                    <li><strong>Etiquetas en ejes:</strong> Nombres claros en eje X (horizontal) y eje Y (vertical)</li>
+                    <li><strong>Data labels fuera:</strong> Valores numéricos mostrados fuera de las barras para mejor legibilidad</li>
+                    <li><strong>Máximo aprovechamiento:</strong> Gráficos ocupan todo el ancho disponible con padding mínimo</li>
+                    <li><strong>Colores primarios:</strong> Usar solo los 3 colores primarios (#0b7835, #fbdc02, #ea0e2a)</li>
+                    <li><strong>Texto negro:</strong> Todas las etiquetas y valores en negro (#000000) para máximo contraste</li>
+                    <li><strong>Fuente Inter:</strong> Todos los textos del gráfico usan la fuente Inter</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>11. Diseño de Página con Secciones y Botones</h2>
+            <p>Ejemplo de cómo diseñar una página tipo "Panel de Administración" con múltiples secciones agrupadas y botones clickeables, siguiendo la línea gráfica establecida.</p>
+
+            <!-- Ejemplo: Panel de Administración -->
+            <div class="section-container" style="margin-top: 2rem;">
+                <div class="section-content">
+                    <h3>Ejemplo: Panel de Administración de Bodega</h3>
+                    <p style="font-size: 0.9rem; color: #000000; margin-bottom: 1rem;">Esta es una simulación completa de cómo debería verse un panel administrativo aplicando todos los principios de diseño.</p>
+                    
+                    <!-- Título Principal -->
+                    <div style="text-align: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #f5f5f5;">
+                        <h2 style="font-weight: 700; color: #000000; margin-bottom: 0.25rem; font-size: 1.5rem;">Panel de Inventario</h2>
+                        <p style="font-size: 0.9rem; color: #000000; margin: 0;">Selecciona un módulo para gestionar</p>
+                    </div>
+
+                    <!-- Grid de Secciones -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
+                        
+                        <!-- Grupo 1: Movimientos y Operaciones -->
+                        <div style="grid-column: 1 / -1; margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                            <h4 style="font-weight: 700; color: #000000; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Movimientos y Operaciones</h4>
+                        </div>
+
+                        <!-- Botón 1 -->
+                        <a href="#" class="example-button" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; text-decoration: none; background: #0b7835; color: white; border-radius: 12px; border: 2px solid rgba(0, 0, 0, 0.25); box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                            <div style="width: 40px; height: 40px; min-width: 40px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                <i class="fas fa-box" style="color: white;"></i>
+                            </div>
+                            <div style="flex: 1; text-align: left;">
+                                <div style="font-weight: 700; font-size: 0.95rem; color: white; margin-bottom: 0.25rem;">Movimientos Productos</div>
+                                <div style="font-size: 0.8rem; color: white; opacity: 0.9;">Compras, transferencias y gastos</div>
+                            </div>
+                        </a>
+
+                        <!-- Botón 2 -->
+                        <a href="#" class="example-button" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; text-decoration: none; background: #0b7835; color: white; border-radius: 12px; border: 2px solid rgba(0, 0, 0, 0.25); box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                            <div style="width: 40px; height: 40px; min-width: 40px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                <i class="fas fa-tools" style="color: white;"></i>
+                            </div>
+                            <div style="flex: 1; text-align: left;">
+                                <div style="font-weight: 700; font-size: 0.95rem; color: white; margin-bottom: 0.25rem;">Movimientos Herramientas</div>
+                                <div style="font-size: 0.8rem; color: white; opacity: 0.9;">Compras, transferencias y gastos</div>
+                            </div>
+                        </a>
+
+                        <!-- Botón 3 -->
+                        <a href="#" class="example-button" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; text-decoration: none; background: #0b7835; color: white; border-radius: 12px; border: 2px solid rgba(0, 0, 0, 0.25); box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                            <div style="width: 40px; height: 40px; min-width: 40px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                <i class="fas fa-shopping-cart" style="color: white;"></i>
+                            </div>
+                            <div style="flex: 1; text-align: left;">
+                                <div style="font-weight: 700; font-size: 0.95rem; color: white; margin-bottom: 0.25rem;">Pedidos Especiales</div>
+                                <div style="font-size: 0.8rem; color: white; opacity: 0.9;">Armar pedidos a bodegas especiales</div>
+                            </div>
+                        </a>
+
+                        <!-- Grupo 2: Catálogos y Configuración -->
+                        <div style="grid-column: 1 / -1; margin-top: 1rem; margin-bottom: 0.5rem;">
+                            <h4 style="font-weight: 700; color: #000000; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Catálogos y Configuración</h4>
+                        </div>
+
+                        <!-- Botón 4 -->
+                        <a href="#" class="example-button" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; text-decoration: none; background: #fbdc02; color: #000000; border-radius: 12px; border: 2px solid rgba(0, 0, 0, 0.25); box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                            <div style="width: 40px; height: 40px; min-width: 40px; background: rgba(0, 0, 0, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                <i class="fas fa-clipboard-list" style="color: #000000;"></i>
+                            </div>
+                            <div style="flex: 1; text-align: left;">
+                                <div style="font-weight: 700; font-size: 0.95rem; color: #000000; margin-bottom: 0.25rem;">Catálogo Inventario</div>
+                                <div style="font-size: 0.8rem; color: #000000;">Crear y editar productos y herramientas</div>
+                            </div>
+                        </a>
+
+                        <!-- Botón 5 -->
+                        <a href="#" class="example-button" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; text-decoration: none; background: #fbdc02; color: #000000; border-radius: 12px; border: 2px solid rgba(0, 0, 0, 0.25); box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                            <div style="width: 40px; height: 40px; min-width: 40px; background: rgba(0, 0, 0, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                <i class="fas fa-warehouse" style="color: #000000;"></i>
+                            </div>
+                            <div style="flex: 1; text-align: left;">
+                                <div style="font-weight: 700; font-size: 0.95rem; color: #000000; margin-bottom: 0.25rem;">Bodegas</div>
+                                <div style="font-size: 0.8rem; color: #000000;">Crear y administrar ubicaciones</div>
+                            </div>
+                        </a>
+
+                        <!-- Botón 6 -->
+                        <a href="#" class="example-button" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; text-decoration: none; background: #fbdc02; color: #000000; border-radius: 12px; border: 2px solid rgba(0, 0, 0, 0.25); box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                            <div style="width: 40px; height: 40px; min-width: 40px; background: rgba(0, 0, 0, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                <i class="fas fa-users" style="color: #000000;"></i>
+                            </div>
+                            <div style="flex: 1; text-align: left;">
+                                <div style="font-weight: 700; font-size: 0.95rem; color: #000000; margin-bottom: 0.25rem;">Proveedores</div>
+                                <div style="font-size: 0.8rem; color: #000000;">Crear y administrar proveedores</div>
+                            </div>
+                        </a>
+
+                        <!-- Grupo 3: Reportes y Análisis -->
+                        <div style="grid-column: 1 / -1; margin-top: 1rem; margin-bottom: 0.5rem;">
+                            <h4 style="font-weight: 700; color: #000000; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Reportes y Análisis</h4>
+                        </div>
+
+                        <!-- Botón 7 -->
+                        <a href="#" class="example-button" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; text-decoration: none; background: #0b7835; color: white; border-radius: 12px; border: 2px solid rgba(0, 0, 0, 0.25); box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                            <div style="width: 40px; height: 40px; min-width: 40px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                <i class="fas fa-chart-bar" style="color: white;"></i>
+                            </div>
+                            <div style="flex: 1; text-align: left;">
+                                <div style="font-weight: 700; font-size: 0.95rem; color: white; margin-bottom: 0.25rem;">Dashboard</div>
+                                <div style="font-size: 0.8rem; color: white; opacity: 0.9;">Vista general de inventario</div>
+                            </div>
+                        </a>
+
+                        <!-- Botón 8 -->
+                        <a href="#" class="example-button" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; text-decoration: none; background: #0b7835; color: white; border-radius: 12px; border: 2px solid rgba(0, 0, 0, 0.25); box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2); transition: all 0.3s ease;">
+                            <div style="width: 40px; height: 40px; min-width: 40px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                                <i class="fas fa-search" style="color: white;"></i>
+                            </div>
+                            <div style="flex: 1; text-align: left;">
+                                <div style="font-weight: 700; font-size: 0.95rem; color: white; margin-bottom: 0.25rem;">Auditoría</div>
+                                <div style="font-size: 0.8rem; color: white; opacity: 0.9;">Historial de transacciones</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #f5f5f5;">
+                <h3>Características del Diseño de Panel</h3>
+                <ul>
+                    <li><strong>Título principal:</strong> Centrado, fuente Inter Bold, texto negro, con subtítulo opcional</li>
+                    <li><strong>Grupos de secciones:</strong> Labels en mayúsculas, fuente Inter Bold, texto negro, márgenes mínimos</li>
+                    <li><strong>Botones clickeables:</strong> Fondo sólido (verde #0b7835 o amarillo #fbdc02), texto blanco o negro según contraste, efecto bevel/relieve</li>
+                    <li><strong>Iconos:</strong> Dentro de un contenedor con fondo semitransparente, solo dentro de botones clickeables</li>
+                    <li><strong>Layout:</strong> Grid responsivo con gap mínimo (0.75rem), máximo aprovechamiento del área</li>
+                    <li><strong>Espaciado:</strong> Padding de 1rem en botones, márgenes estrechos entre grupos (0.5rem - 1rem)</li>
+                    <li><strong>Hover:</strong> Transformación sutil (translateY) y sombra aumentada para feedback visual</li>
+                    <li><strong>Colores:</strong> Solo usar los 3 colores primarios para agrupar funcionalidades relacionadas</li>
+                </ul>
+
+                <h3 style="margin-top: 1.5rem;">Estructura HTML Recomendada</h3>
+                <div class="example-section">
+                    <pre style="background: #f5f5f5; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; color: #000000;"><code>&lt;div style="background: #f5f5f5; padding: 0.75rem; border-radius: 8px;"&gt;
+    &lt;div style="background: #ffffff; padding: 1rem; border-radius: 8px;"&gt;
+        &lt;h2 style="font-weight: 700; color: #000000;"&gt;Título Principal&lt;/h2&gt;
+        
+        &lt;div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem;"&gt;
+            &lt;!-- Grupo --&gt;
+            &lt;div style="grid-column: 1 / -1;"&gt;
+                &lt;h4 style="font-weight: 700; color: #000000; font-size: 0.75rem; text-transform: uppercase;"&gt;Grupo&lt;/h4&gt;
+            &lt;/div&gt;
+            
+            &lt;!-- Botón --&gt;
+            &lt;a href="#" style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem; 
+               background: #0b7835; color: white; border-radius: 12px; 
+               box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 
+                          inset 0 2px 0 rgba(255, 255, 255, 0.25), 
+                          inset 0 -1px 0 rgba(0, 0, 0, 0.2);"&gt;
+                &lt;div style="width: 40px; height: 40px; background: rgba(255, 255, 255, 0.2); 
+                           border-radius: 8px; display: flex; align-items: center; justify-content: center;"&gt;
+                    &lt;i class="fas fa-box" style="color: white;"&gt;&lt;/i&gt;
+                &lt;/div&gt;
+                &lt;div style="flex: 1;"&gt;
+                    &lt;div style="font-weight: 700; color: white;"&gt;Título&lt;/div&gt;
+                    &lt;div style="font-size: 0.8rem; color: white; opacity: 0.9;"&gt;Descripción&lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/a&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Configuración común para todos los gráficos
+        Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.color = '#000000';
+        
+        // Configurar leyenda si existe
+        if (Chart.defaults.plugins && Chart.defaults.plugins.legend && Chart.defaults.plugins.legend.labels) {
+            Chart.defaults.plugins.legend.labels.color = '#000000';
+            Chart.defaults.plugins.legend.labels.padding = 15;
+            Chart.defaults.plugins.legend.labels.usePointStyle = true;
+            Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+        }
+
+        // Ejemplo 1: Gráfico de Barras Verticales
+        const ctx1 = document.getElementById('chart1');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+                datasets: [{
+                    label: 'Horas Trabajadas',
+                    data: [42.5, 38.0, 45.2, 40.8],
+                    backgroundColor: '#0b7835',
+                    borderColor: '#0b7835',
+                    borderWidth: 0,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#000000',
+                        bodyColor: '#000000',
+                        borderColor: '#f5f5f5',
+                        borderWidth: 1,
+                        padding: 12,
+                        titleFont: { weight: '700', size: 14 },
+                        bodyFont: { weight: '600', size: 13 }
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#000000',
+                        font: {
+                            weight: '700',
+                            size: 12
+                        },
+                        formatter: (value) => value + 'h'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600' },
+                            padding: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Horas',
+                            color: '#000000',
+                            font: { weight: '700', size: 14 },
+                            padding: { bottom: 10 }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600' },
+                            padding: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Semanas',
+                            color: '#000000',
+                            font: { weight: '700', size: 14 },
+                            padding: { top: 10 }
+                        }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'datalabels',
+                afterDatasetsDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    chart.data.datasets.forEach((dataset, i) => {
+                        const meta = chart.getDatasetMeta(i);
+                        meta.data.forEach((bar, index) => {
+                            const value = dataset.data[index];
+                            ctx.save();
+                            ctx.fillStyle = '#000000';
+                            ctx.font = '700 12px Inter';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            ctx.fillText(value + 'h', bar.x, bar.y - 5);
+                            ctx.restore();
+                        });
+                    });
+                }
+            }]
+        });
+
+        // Ejemplo 2: Gráfico de Barras Horizontales
+        const ctx2 = document.getElementById('chart2');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['Fumigación', 'Administración', 'Ventas', 'Logística'],
+                datasets: [{
+                    label: 'Empleados',
+                    data: [15, 8, 12, 6],
+                    backgroundColor: '#fbdc02',
+                    borderColor: '#fbdc02',
+                    borderWidth: 0,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#000000',
+                        bodyColor: '#000000',
+                        borderColor: '#f5f5f5',
+                        borderWidth: 1,
+                        padding: 12
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600' },
+                            padding: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Número de Empleados',
+                            color: '#000000',
+                            font: { weight: '700', size: 14 },
+                            padding: { bottom: 10 }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600' },
+                            padding: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Departamentos',
+                            color: '#000000',
+                            font: { weight: '700', size: 14 },
+                            padding: { top: 10 }
+                        }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'datalabels',
+                afterDatasetsDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    chart.data.datasets.forEach((dataset, i) => {
+                        const meta = chart.getDatasetMeta(i);
+                        meta.data.forEach((bar, index) => {
+                            const value = dataset.data[index];
+                            ctx.save();
+                            ctx.fillStyle = '#000000';
+                            ctx.font = '700 12px Inter';
+                            ctx.textAlign = 'left';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(value, bar.x + bar.width + 8, bar.y);
+                            ctx.restore();
+                        });
+                    });
+                }
+            }]
+        });
+
+        // Ejemplo 3: Gráfico de Líneas
+        const ctx3 = document.getElementById('chart3');
+        new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Horas Totales',
+                    data: [680, 720, 650, 750, 690, 780],
+                    borderColor: '#0b7835',
+                    backgroundColor: 'rgba(11, 120, 53, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#0b7835',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#000000',
+                        bodyColor: '#000000',
+                        borderColor: '#f5f5f5',
+                        borderWidth: 1,
+                        padding: 12
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600' },
+                            padding: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Horas',
+                            color: '#000000',
+                            font: { weight: '700', size: 14 },
+                            padding: { bottom: 10 }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600' },
+                            padding: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Meses',
+                            color: '#000000',
+                            font: { weight: '700', size: 14 },
+                            padding: { top: 10 }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Ejemplo 4: Gráfico de Barras Agrupadas
+        const ctx4 = document.getElementById('chart4');
+        new Chart(ctx4, {
+            type: 'bar',
+            data: {
+                labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+                datasets: [
+                    {
+                        label: 'Horas Planificadas',
+                        data: [40, 40, 40, 40],
+                        backgroundColor: '#fbdc02',
+                        borderColor: '#fbdc02',
+                        borderWidth: 0,
+                        borderRadius: 8
+                    },
+                    {
+                        label: 'Horas Reales',
+                        data: [42.5, 38.0, 45.2, 40.8],
+                        backgroundColor: '#0b7835',
+                        borderColor: '#0b7835',
+                        borderWidth: 0,
+                        borderRadius: 8
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#000000',
+                        bodyColor: '#000000',
+                        borderColor: '#f5f5f5',
+                        borderWidth: 1,
+                        padding: 12
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600' },
+                            padding: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Horas',
+                            color: '#000000',
+                            font: { weight: '700', size: 14 },
+                            padding: { bottom: 10 }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600' },
+                            padding: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Semanas',
+                            color: '#000000',
+                            font: { weight: '700', size: 14 },
+                            padding: { top: 10 }
+                        }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'datalabels',
+                afterDatasetsDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    chart.data.datasets.forEach((dataset, i) => {
+                        const meta = chart.getDatasetMeta(i);
+                        meta.data.forEach((bar, index) => {
+                            const value = dataset.data[index];
+                            ctx.save();
+                            ctx.fillStyle = '#000000';
+                            ctx.font = '700 11px Inter';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            ctx.fillText(value + 'h', bar.x, bar.y - 5);
+                            ctx.restore();
+                        });
+                    });
+                }
+            }]
+        });
+
+        // Ejemplo 5: Gráfico Circular Pequeño
+        const ctx5 = document.getElementById('chart5');
+        new Chart(ctx5, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completadas', 'Pendientes'],
+                datasets: [{
+                    data: [680, 120],
+                    backgroundColor: ['#0b7835', '#f5f5f5'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#000000',
+                        bodyColor: '#000000',
+                        borderColor: '#f5f5f5',
+                        borderWidth: 1,
+                        padding: 12
+                    }
+                }
+            }
+        });
+
+        // Ejemplo 6: Gráfico de Barras Pequeño
+        const ctx6 = document.getElementById('chart6');
+        new Chart(ctx6, {
+            type: 'bar',
+            data: {
+                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'],
+                datasets: [{
+                    label: 'Horas',
+                    data: [8.5, 9.0, 8.0, 8.5, 7.5],
+                    backgroundColor: '#0b7835',
+                    borderColor: '#0b7835',
+                    borderWidth: 0,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#000000',
+                        bodyColor: '#000000',
+                        borderColor: '#f5f5f5',
+                        borderWidth: 1,
+                        padding: 12
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600', size: 10 },
+                            padding: 5
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600', size: 10 },
+                            padding: 5
+                        }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'datalabels',
+                afterDatasetsDraw: (chart) => {
+                    const ctx = chart.ctx;
+                    chart.data.datasets.forEach((dataset, i) => {
+                        const meta = chart.getDatasetMeta(i);
+                        meta.data.forEach((bar, index) => {
+                            const value = dataset.data[index];
+                            ctx.save();
+                            ctx.fillStyle = '#000000';
+                            ctx.font = '700 10px Inter';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'bottom';
+                            ctx.fillText(value + 'h', bar.x, bar.y - 3);
+                            ctx.restore();
+                        });
+                    });
+                }
+            }]
+        });
+
+        // Ejemplo 7: Gráfico de Líneas Completo
+        const ctx7 = document.getElementById('chart7');
+        new Chart(ctx7, {
+            type: 'line',
+            data: {
+                labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5'],
+                datasets: [
+                    {
+                        label: 'Horas Planificadas',
+                        data: [40, 40, 40, 40, 40],
+                        borderColor: '#fbdc02',
+                        backgroundColor: 'rgba(251, 220, 2, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#fbdc02',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Horas Reales',
+                        data: [42.5, 38.0, 45.2, 40.8, 43.0],
+                        borderColor: '#0b7835',
+                        backgroundColor: 'rgba(11, 120, 53, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#0b7835',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#000000',
+                        bodyColor: '#000000',
+                        borderColor: '#f5f5f5',
+                        borderWidth: 1,
+                        padding: 12
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600' },
+                            padding: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Horas',
+                            color: '#000000',
+                            font: { weight: '700', size: 14 },
+                            padding: { bottom: 10 }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#000000',
+                            font: { weight: '600' },
+                            padding: 8
+                        },
+                        title: {
+                            display: true,
+                            text: 'Semanas',
+                            color: '#000000',
+                            font: { weight: '700', size: 14 },
+                            padding: { top: 10 }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <!-- Sección 12: Formularios -->
+    <div class="container" style="margin-top: 1rem;">
+        <section>
+            <h2>12. Formularios</h2>
+            
+            <p>Los formularios deben ser claros, accesibles y seguir la línea gráfica establecida. Todos los campos deben tener etiquetas visibles, validación clara y feedback visual apropiado.</p>
+
+            <h3>Tipos de Campos</h3>
+            <p>El sistema soporta los siguientes tipos de campos de formulario:</p>
+            <ul>
+                <li><strong>Campo de texto:</strong> Para entrada de texto libre</li>
+                <li><strong>Selección única:</strong> Radio buttons para opciones mutuamente excluyentes</li>
+                <li><strong>Selección múltiple:</strong> Checkboxes para seleccionar múltiples opciones</li>
+                <li><strong>Dropdown con buscador:</strong> Select con búsqueda dinámica y orden alfabético</li>
+                <li><strong>Rango de fechas:</strong> Selector de fecha inicio y fin</li>
+                <li><strong>Monto en dinero:</strong> Campo numérico con formato de moneda</li>
+                <li><strong>Detalles/Descripción:</strong> Textarea para texto largo</li>
+            </ul>
+
+            <h3>Ejemplo Completo de Formulario</h3>
+            <div class="example-section" style="background: #ffffff; padding: 1rem; border-radius: 8px; margin-top: 0.75rem;">
+                <form id="exampleForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Campo de Texto -->
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="nombre" style="font-weight: 600; color: #000000; font-size: 0.9rem;">
+                            Nombre Completo <span style="color: #ea0e2a;">*</span>
+                        </label>
+                        <input type="text" id="nombre" name="nombre" required
+                               style="padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 8px; 
+                                      font-family: 'Inter', sans-serif; font-size: 1rem; color: #000000;
+                                      background: #ffffff; width: 100%;"
+                               placeholder="Ingrese el nombre completo">
+                    </div>
+
+                    <!-- Dropdown con Buscador -->
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="departamento" style="font-weight: 600; color: #000000; font-size: 0.9rem;">
+                            Departamento <span style="color: #ea0e2a;">*</span>
+                        </label>
+                        <div style="position: relative;">
+                            <input type="text" id="departamentoSearch" 
+                                   style="padding: 0.75rem 2.5rem 0.75rem 0.75rem; border: 1px solid #e0e0e0; border-radius: 8px; 
+                                          font-family: 'Inter', sans-serif; font-size: 1rem; color: #000000;
+                                          background: #ffffff; width: 100%;"
+                                   placeholder="Buscar o seleccionar departamento..."
+                                   autocomplete="off">
+                            <i class="fas fa-chevron-down" style="position: absolute; right: 0.75rem; top: 50%; 
+                                                                    transform: translateY(-50%); color: #666; pointer-events: none;"></i>
+                            <div id="departamentoDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; 
+                                                                    background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; 
+                                                                    margin-top: 0.25rem; max-height: 200px; overflow-y: auto; z-index: 1000;
+                                                                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                                <!-- Opciones se llenan dinámicamente -->
+                            </div>
+                            <input type="hidden" id="departamento" name="departamento" required>
+                        </div>
+                    </div>
+
+                    <!-- Selección Única (Radio Buttons) -->
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="font-weight: 600; color: #000000; font-size: 0.9rem;">
+                            Tipo de Contrato <span style="color: #ea0e2a;">*</span>
+                        </label>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; 
+                                          padding: 0.5rem; border-radius: 6px; transition: background 0.2s;"
+                                   onmouseover="this.style.background='#f5f5f5'" 
+                                   onmouseout="this.style.background='transparent'">
+                                <input type="radio" name="tipoContrato" value="tiempo-completo" required
+                                       style="width: 18px; height: 18px; cursor: pointer; accent-color: #0b7835;">
+                                <span style="color: #000000; font-weight: 400;">Tiempo Completo</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; 
+                                          padding: 0.5rem; border-radius: 6px; transition: background 0.2s;"
+                                   onmouseover="this.style.background='#f5f5f5'" 
+                                   onmouseout="this.style.background='transparent'">
+                                <input type="radio" name="tipoContrato" value="medio-tiempo" required
+                                       style="width: 18px; height: 18px; cursor: pointer; accent-color: #0b7835;">
+                                <span style="color: #000000; font-weight: 400;">Medio Tiempo</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; 
+                                          padding: 0.5rem; border-radius: 6px; transition: background 0.2s;"
+                                   onmouseover="this.style.background='#f5f5f5'" 
+                                   onmouseout="this.style.background='transparent'">
+                                <input type="radio" name="tipoContrato" value="por-proyecto" required
+                                       style="width: 18px; height: 18px; cursor: pointer; accent-color: #0b7835;">
+                                <span style="color: #000000; font-weight: 400;">Por Proyecto</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Selección Múltiple (Checkboxes) -->
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="font-weight: 600; color: #000000; font-size: 0.9rem;">
+                            Permisos de Acceso
+                        </label>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; 
+                                          padding: 0.5rem; border-radius: 6px; transition: background 0.2s;"
+                                   onmouseover="this.style.background='#f5f5f5'" 
+                                   onmouseout="this.style.background='transparent'">
+                                <input type="checkbox" name="permisos" value="calendario"
+                                       style="width: 18px; height: 18px; cursor: pointer; accent-color: #0b7835;">
+                                <span style="color: #000000; font-weight: 400;">Calendario</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; 
+                                          padding: 0.5rem; border-radius: 6px; transition: background 0.2s;"
+                                   onmouseover="this.style.background='#f5f5f5'" 
+                                   onmouseout="this.style.background='transparent'">
+                                <input type="checkbox" name="permisos" value="empleados"
+                                       style="width: 18px; height: 18px; cursor: pointer; accent-color: #0b7835;">
+                                <span style="color: #000000; font-weight: 400;">Empleados</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; 
+                                          padding: 0.5rem; border-radius: 6px; transition: background 0.2s;"
+                                   onmouseover="this.style.background='#f5f5f5'" 
+                                   onmouseout="this.style.background='transparent'">
+                                <input type="checkbox" name="permisos" value="reportes"
+                                       style="width: 18px; height: 18px; cursor: pointer; accent-color: #0b7835;">
+                                <span style="color: #000000; font-weight: 400;">Reportes Gerenciales</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; 
+                                          padding: 0.5rem; border-radius: 6px; transition: background 0.2s;"
+                                   onmouseover="this.style.background='#f5f5f5'" 
+                                   onmouseout="this.style.background='transparent'">
+                                <input type="checkbox" name="permisos" value="bodega"
+                                       style="width: 18px; height: 18px; cursor: pointer; accent-color: #0b7835;">
+                                <span style="color: #000000; font-weight: 400;">Administrador de Bodega</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Rango de Fechas -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label for="fechaInicio" style="font-weight: 600; color: #000000; font-size: 0.9rem;">
+                                Fecha de Inicio <span style="color: #ea0e2a;">*</span>
+                            </label>
+                            <input type="date" id="fechaInicio" name="fechaInicio" required
+                                   style="padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 8px; 
+                                          font-family: 'Inter', sans-serif; font-size: 1rem; color: #000000;
+                                          background: #ffffff; width: 100%;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <label for="fechaFin" style="font-weight: 600; color: #000000; font-size: 0.9rem;">
+                                Fecha de Fin <span style="color: #ea0e2a;">*</span>
+                            </label>
+                            <input type="date" id="fechaFin" name="fechaFin" required
+                                   style="padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 8px; 
+                                          font-family: 'Inter', sans-serif; font-size: 1rem; color: #000000;
+                                          background: #ffffff; width: 100%;">
+                        </div>
+                    </div>
+
+                    <!-- Monto en Dinero -->
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="monto" style="font-weight: 600; color: #000000; font-size: 0.9rem;">
+                            Salario Mensual <span style="color: #ea0e2a;">*</span>
+                        </label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); 
+                                         color: #000000; font-weight: 600; font-size: 1rem;">₡</span>
+                            <input type="text" id="monto" name="monto" required
+                                   style="padding: 0.75rem 0.75rem 0.75rem 2rem; border: 1px solid #e0e0e0; border-radius: 8px; 
+                                          font-family: 'Inter', sans-serif; font-size: 1rem; color: #000000;
+                                          background: #ffffff; width: 100%;"
+                                   placeholder="0.000"
+                                   inputmode="numeric">
+                        </div>
+                        <small style="color: #666; font-size: 0.85rem;">Formato: ₡123.456.789</small>
+                    </div>
+
+                    <!-- Detalles/Descripción -->
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label for="detalles" style="font-weight: 600; color: #000000; font-size: 0.9rem;">
+                            Detalles Adicionales
+                        </label>
+                        <textarea id="detalles" name="detalles" rows="4"
+                                  style="padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 8px; 
+                                         font-family: 'Inter', sans-serif; font-size: 1rem; color: #000000;
+                                         background: #ffffff; width: 100%; resize: vertical;"
+                                  placeholder="Ingrese información adicional o comentarios..."></textarea>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                        <button type="submit" 
+                                style="flex: 1; padding: 1rem 1.5rem; background: #0b7835; color: white; 
+                                       border: none; border-radius: 12px; font-weight: 600; font-size: 1rem;
+                                       cursor: pointer; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 
+                                       inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+                                       transition: transform 0.2s, box-shadow 0.2s;"
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2)'">
+                            Guardar
+                        </button>
+                        <button type="button" 
+                                style="flex: 1; padding: 1rem 1.5rem; background: #6c757d; color: white; 
+                                       border: none; border-radius: 12px; font-weight: 600; font-size: 1rem;
+                                       cursor: pointer; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 
+                                       inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+                                       transition: transform 0.2s, box-shadow 0.2s;"
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2)'"
+                                onclick="document.getElementById('exampleForm').reset(); resetDropdown();">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <h3>Características del Formulario</h3>
+            <ul>
+                <li><strong>Etiquetas claras:</strong> Todas las etiquetas son visibles, con asterisco rojo para campos requeridos</li>
+                <li><strong>Espaciado consistente:</strong> Gap de 1rem entre campos, 0.5rem entre label y campo</li>
+                <li><strong>Bordes suaves:</strong> Border-radius de 8px para inputs, 12px para botones</li>
+                <li><strong>Colores primarios:</strong> Verde para botón principal, gris para cancelar</li>
+                <li><strong>Feedback visual:</strong> Hover en radio buttons, checkboxes y botones</li>
+                <li><strong>Formato de moneda:</strong> Campo de monto con símbolo ₡ y formato de miles</li>
+                <li><strong>Dropdown inteligente:</strong> Búsqueda dinámica con orden alfabético</li>
+            </ul>
+
+            <h3>Dropdown con Buscador - Funcionalidad</h3>
+            <p>El dropdown con buscador permite:</p>
+            <ul>
+                <li>Búsqueda en tiempo real mientras se escribe</li>
+                <li>Orden alfabético automático de las opciones</li>
+                <li>Mostrar todas las opciones cuando el campo está vacío</li>
+                <li>Selección por clic en la opción</li>
+                <li>Cierre automático al seleccionar o hacer clic fuera</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        // Datos para el dropdown de departamentos (ordenados alfabéticamente)
+        const departamentos = [
+            'Administración',
+            'Contabilidad',
+            'Fumigación',
+            'Gerencia',
+            'Logística',
+            'Recursos Humanos',
+            'Ventas'
+        ].sort();
+
+        let filteredDepartamentos = [...departamentos];
+        let isDropdownOpen = false;
+
+        const searchInput = document.getElementById('departamentoSearch');
+        const dropdown = document.getElementById('departamentoDropdown');
+        const hiddenInput = document.getElementById('departamento');
+
+        // Función para renderizar opciones
+        function renderDropdown() {
+            dropdown.innerHTML = '';
+            
+            if (filteredDepartamentos.length === 0) {
+                dropdown.innerHTML = '<div style="padding: 0.75rem; color: #666; text-align: center;">No se encontraron resultados</div>';
+            } else {
+                filteredDepartamentos.forEach(dept => {
+                    const option = document.createElement('div');
+                    option.style.cssText = 'padding: 0.75rem; cursor: pointer; color: #000000; transition: background 0.2s;';
+                    option.textContent = dept;
+                    option.onmouseover = () => option.style.background = '#f5f5f5';
+                    option.onmouseout = () => option.style.background = 'transparent';
+                    option.onclick = () => {
+                        searchInput.value = dept;
+                        hiddenInput.value = dept;
+                        dropdown.style.display = 'none';
+                        isDropdownOpen = false;
+                    };
+                    dropdown.appendChild(option);
+                });
+            }
+        }
+
+        // Evento de búsqueda
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                filteredDepartamentos = [...departamentos];
+            } else {
+                filteredDepartamentos = departamentos.filter(dept => 
+                    dept.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            renderDropdown();
+            
+            if (filteredDepartamentos.length > 0 && !isDropdownOpen) {
+                dropdown.style.display = 'block';
+                isDropdownOpen = true;
+            }
+        });
+
+        // Abrir dropdown al hacer focus
+        searchInput.addEventListener('focus', () => {
+            if (filteredDepartamentos.length > 0) {
+                dropdown.style.display = 'block';
+                isDropdownOpen = true;
+            }
+        });
+
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+                isDropdownOpen = false;
+            }
+        });
+
+        // Inicializar dropdown
+        renderDropdown();
+
+        // Función para resetear dropdown
+        function resetDropdown() {
+            searchInput.value = '';
+            hiddenInput.value = '';
+            filteredDepartamentos = [...departamentos];
+            renderDropdown();
+            dropdown.style.display = 'none';
+            isDropdownOpen = false;
+        }
+
+        // Formateo de monto en dinero
+        const montoInput = document.getElementById('monto');
+        montoInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/[^\d]/g, '');
+            
+            if (value) {
+                // Formatear con puntos de miles
+                const formatted = parseInt(value).toLocaleString('es-CR');
+                e.target.value = formatted;
+            }
+        });
+
+        montoInput.addEventListener('blur', (e) => {
+            let value = e.target.value.replace(/[^\d]/g, '');
+            if (value) {
+                const formatted = parseInt(value).toLocaleString('es-CR');
+                e.target.value = formatted;
+            }
+        });
+
+        // Validación de rango de fechas
+        const fechaInicio = document.getElementById('fechaInicio');
+        const fechaFin = document.getElementById('fechaFin');
+
+        fechaInicio.addEventListener('change', () => {
+            if (fechaInicio.value && fechaFin.value) {
+                if (fechaInicio.value > fechaFin.value) {
+                    fechaFin.setCustomValidity('La fecha de fin debe ser posterior a la fecha de inicio');
+                } else {
+                    fechaFin.setCustomValidity('');
+                }
+            }
+        });
+
+        fechaFin.addEventListener('change', () => {
+            if (fechaInicio.value && fechaFin.value) {
+                if (fechaInicio.value > fechaFin.value) {
+                    fechaFin.setCustomValidity('La fecha de fin debe ser posterior a la fecha de inicio');
+                } else {
+                    fechaFin.setCustomValidity('');
+                }
+            }
+        });
+
+        // Prevenir envío del formulario (solo es ejemplo)
+        document.getElementById('exampleForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Este es un formulario de ejemplo. Los datos no se enviarán.');
+        });
+    </script>
+</body>
+</html>

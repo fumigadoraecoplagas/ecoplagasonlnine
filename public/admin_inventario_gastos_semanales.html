@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<!-- ============================================ -->
+<!-- MÓDULO SECURE: admin_inventario_gastos_semanales -->
+<!-- ============================================ -->
+<!-- Este módulo es parte del sistema SECURE -->
+<!-- Usa autenticación Firebase Auth (auth-secure.js) -->
+<!-- URL: admin_inventario_gastos_semanales.html (SECURE) -->
+<!-- ============================================ -->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gastos Semanales por Técnico - Eco Plagas (Secure)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        window.firebaseAuth = auth;
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            if (document.body) document.body.style.display = 'none';
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken && document.body) {
+                document.body.style.display = 'block';
+                document.body.classList.add('authenticated');
+            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+            let retries = 0;
+            while (retries < 40) {
+                if (auth.currentUser) {
+                    if (window.secureAuthManager) window.authManager = window.secureAuthManager;
+                    else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) window.authManager = window.secureAuthManager;
+                    }
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', { detail: { page: 'admin_inventario_gastos_semanales', timestamp: Date.now() } }));
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            if (!hasSessionToken) window.location.replace('iniciar_sesion.html');
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+        
+        .report-table {
+            font-size: 0.85rem;
+        }
+        
+        .report-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 0.5rem 0.4rem;
+            border: 1px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 15;
+            text-align: center;
+        }
+        
+        .report-table td {
+            padding: 0.4rem 0.4rem;
+            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+        
+        .report-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .monto {
+            text-align: right;
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+        
+        .monto-total {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        
+        .report-table thead th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 25;
+        }
+        
+        .filters-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .filters-card label {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .filters-card .form-control,
+        .filters-card .form-select {
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-2 px-3 mb-4">
+        <div class="page-header">
+            <h1><i class="fas fa-calendar-week"></i> Gastos Semanales por Técnico</h1>
+            <div class="mt-3">
+                <a href="administrador_bodega.html" class="btn btn-light btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+                </a>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters-card">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="fechaInicio" class="form-label"><i class="fas fa-calendar-alt me-2"></i>Fecha Inicio</label>
+                    <input type="date" class="form-control" id="fechaInicio">
+                </div>
+                <div class="col-md-3">
+                    <label for="fechaFin" class="form-label"><i class="fas fa-calendar-alt me-2"></i>Fecha Fin</label>
+                    <input type="date" class="form-control" id="fechaFin">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-light w-100" onclick="cargarReporte()">
+                        <i class="fas fa-search me-2"></i>Generar Reporte
+                    </button>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-light w-100" onclick="exportarExcel()">
+                        <i class="fas fa-file-excel me-2"></i>Exportar Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenedor de carga -->
+        <div id="contenedorCargando" class="text-center py-5" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Generando reporte...</p>
+        </div>
+
+        <!-- Resultados -->
+        <div id="contenedorResultados" style="display: none;">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-table me-2"></i>Gastos Semanales por Técnico (Bodegas Personales)</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 70vh; overflow: auto;">
+                        <table class="table table-sm table-bordered table-hover report-table mb-0" id="tablaReporte">
+                            <thead id="theadReporte">
+                            </thead>
+                            <tbody id="tbodyReporte">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Resumen -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Resumen</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small">Total Técnicos</div>
+                                <div class="h4 mb-0" id="totalTecnicos">0</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small">Total Semanas</div>
+                                <div class="h4 mb-0" id="totalSemanas">0</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-light rounded">
+                                <div class="text-muted small">Gasto Total</div>
+                                <div class="h4 mb-0 monto-total" id="gastoTotal">₡0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje vacío -->
+        <div id="contenedorVacio" class="text-center py-5" style="display: none;">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No se encontraron gastos para el período seleccionado.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="admin_inventario_gastos_semanales.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,359 @@
+<!-- ============================================ -->
+<!-- HEADER - Eco Plagas -->
+<!-- ============================================ -->
+<!-- Header Mobile Design - Eco Plagas -->
+<!-- Sistema de autenticación seguro con Firebase -->
+<!-- ============================================ -->
+<div class="mobile-header secure-header">
+    <div class="mobile-header-content">
+        <div class="mobile-header-top">
+            <div class="mobile-logo-section">
+                <img src="Logo Eco Plagas.png" alt="Eco Plagas" class="mobile-logo">
+                <div class="mobile-brand-text">
+                    <h1 class="mobile-brand-title">
+                        Eco Plagas
+                    </h1>
+                </div>
+            </div>
+            <div class="mobile-user-section">
+                <div class="mobile-user-info secure-user-info" id="mobile-user-info">
+                    <i class="fas fa-user"></i>
+                    <span>Cargando...</span>
+                </div>
+                <button class="mobile-logout-btn" id="mobile-logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Menú de navegación siempre visible -->
+        <div class="mobile-navigation show" id="mobile-navigation">
+            <div class="mobile-nav-grid" id="mobile-nav-grid">
+                <!-- GRUPO: GESTIÓN DE HORAS (Azul) -->
+                <a href="registro_horas.html" class="mobile-nav-item hours-group" title="Registrar Horas de Trabajo" data-permission="registro_horas" data-module="registro_horas.html">
+                    <i class="fas fa-clock"></i>
+                    <span>Registrar Horas</span>
+                </a>
+                <a href="reportes_gerenciales.html" class="mobile-nav-item hours-group" title="Pulso de Horas" data-permission="reportes_gerenciales">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Pulso de Horas</span>
+                </a>
+                <a href="edicion_horas.html" class="mobile-nav-item hours-group" title="Editar Horas" data-permission="edicion_horas">
+                    <i class="fas fa-edit"></i>
+                    <span>Editar Horas</span>
+                </a>
+                
+                <!-- GRUPO: GESTIÓN DE CITAS (Verde) -->
+                <a href="calendario.html" class="mobile-nav-item appointments-group" title="Ver Calendario de Citas" data-permission="calendario">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Calendario</span>
+                </a>
+                
+                <!-- GRUPO: GESTIÓN DE PERSONAL (Púrpura) -->
+                <a href="empleados.html" class="mobile-nav-item personnel-group" title="Gestionar Empleados" data-permission="empleados">
+                    <i class="fas fa-users"></i>
+                    <span>Empleados</span>
+                </a>
+                
+                <!-- GRUPO: INVENTARIO (Naranja) -->
+                <a href="operario_bodega.html" class="mobile-nav-item inventory-group" title="Mi Bodeguita Personal" data-permission="operario_bodega">
+                    <i class="fas fa-box-open"></i>
+                    <span>Mi Bodeguita</span>
+                </a>
+                <a href="administrador_bodega.html" class="mobile-nav-item inventory-group" title="Administrar Inventario" data-permission="administrador_bodega">
+                    <i class="fas fa-cogs"></i>
+                    <span>Admin Bodega</span>
+                </a>
+                
+                <!-- GRUPO: TICKETS (Amarillo) -->
+                <a href="tickets.html" class="mobile-nav-item tickets-group" title="Tickets Internos" data-permission="tickets" data-module="tickets.html">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Tickets</span>
+                </a>
+                
+                <!-- GRUPO: RECURSOS HUMANOS (Púrpura) -->
+                <a href="recursos_humanos_modulos.html" class="mobile-nav-item personnel-group" title="Recursos Humanos" data-permission="recursos_humanos">
+                    <i class="fas fa-users-cog"></i>
+                    <span>Recursos Humanos</span>
+                </a>
+                
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script src="mobile-ui.js"></script>
+<script>
+// Función para configurar el header según la página (simplificada)
+function configureHeader(pageConfig) {
+    // Función simplificada - ya no hay elementos de título/subtítulo
+}
+
+// Función para mostrar información del usuario
+function showUserInfo() {
+    const userInfoElement = document.getElementById('mobile-user-info');
+    if (userInfoElement && window.authManager && window.authManager.isAuthenticated()) {
+        const user = window.authManager.getCurrentUser();
+        // Sanitizar: nombre del usuario
+        const nombreUsuario = window.escapeHTML ? window.escapeHTML(user.nombre || 'Usuario') : (user.nombre || 'Usuario');
+        if (window.setSafeInnerHTML) {
+            window.setSafeInnerHTML(userInfoElement, `<i class="fas fa-user"></i><span>${nombreUsuario}</span>`, true);
+        } else {
+            userInfoElement.innerHTML = `<i class="fas fa-user"></i><span>${nombreUsuario}</span>`;
+        }
+    } else {
+        // Sanitizar: HTML estático seguro
+        if (window.setSafeInnerHTML) {
+            window.setSafeInnerHTML(userInfoElement, '<i class="fas fa-user"></i><span>Invitado</span>', true);
+        } else {
+            userInfoElement.innerHTML = '<i class="fas fa-user"></i><span>Invitado</span>';
+        }
+    }
+}
+
+// Función para agregar funcionalidad de logout
+function addLogoutButton() {
+    const logoutBtn = document.getElementById('mobile-logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            if (window.secureAuthManager) {
+                window.secureAuthManager.logout().then(() => {
+                    if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                        window.location.replace('iniciar_sesion.html');
+                    }
+                });
+            } else if (window.authManager) {
+                window.authManager.logout();
+            } else {
+                if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                    window.location.replace('iniciar_sesion.html');
+                }
+            }
+        });
+    }
+}
+
+// Función para filtrar módulos según permisos del usuario
+function filterModulesByPermissions() {
+    const navGrid = document.getElementById('mobile-nav-grid');
+    if (!navGrid) return;
+
+    const navItems = navGrid.querySelectorAll('.mobile-nav-item');
+    
+    // Ocultar todos los módulos por defecto
+    navItems.forEach(item => {
+        item.style.display = 'none';
+    });
+    
+    // Solo mostrar módulos si hay un usuario autenticado
+    if (window.authManager && window.authManager.isAuthenticated()) {
+        const user = window.authManager.getCurrentUser();
+        
+        navItems.forEach(item => {
+            const permission = item.getAttribute('data-permission');
+            const hasPermission = user.permisos && user.permisos[permission] === true;
+            
+            if (hasPermission) {
+                item.style.display = 'flex';
+            }
+        });
+    }
+}
+
+// Definición de módulos disponibles del sistema
+const MODULOS_DISPONIBLES = [
+    { url: 'inicio.html', icon: 'fa-home', title: 'Inicio', permission: null }, // Siempre visible si está autenticado
+    { url: 'registro_horas.html', icon: 'fa-clock', title: 'Registrar Horas', permission: 'registro_horas' },
+    { url: 'reportes_gerenciales.html', icon: 'fa-chart-bar', title: 'Reportes', permission: 'reportes_gerenciales' },
+    { url: 'edicion_horas.html', icon: 'fa-edit', title: 'Editar Horas', permission: 'edicion_horas' },
+    { url: 'calendario.html', icon: 'fa-calendar-alt', title: 'Calendario', permission: 'calendario' },
+    { url: 'empleados.html', icon: 'fa-users', title: 'Empleados', permission: 'empleados' },
+    { url: 'operario_bodega.html', icon: 'fa-box-open', title: 'Mi Bodeguita', permission: 'operario_bodega' },
+    { url: 'administrador_bodega.html', icon: 'fa-warehouse', title: 'Inventario', permission: 'administrador_bodega' },
+    { url: 'tickets.html', icon: 'fa-ticket-alt', title: 'Tickets', permission: 'tickets' },
+    { url: 'recursos_humanos_modulos.html', icon: 'fa-users-cog', title: 'Recursos Humanos', permission: 'recursos_humanos' }
+];
+
+// Función para generar el footer con módulos habilitados
+window.generateMobileFooter = function generateMobileFooter() {
+    const footer = document.getElementById('mobile-footer');
+    const footerContent = document.getElementById('mobile-footer-content');
+    
+    if (!footer || !footerContent) {
+        console.log('⚠️ Footer no encontrado');
+        return;
+    }
+    
+    // Solo mostrar en mobile (pantallas pequeñas)
+    const isMobile = window.innerWidth <= 768;
+    if (!isMobile) {
+        footer.style.display = 'none';
+        return;
+    }
+    
+    // Limpiar contenido anterior - seguro (vacío)
+    footerContent.innerHTML = '';
+    
+    // Verificar si hay usuario autenticado
+    if (!window.authManager || !window.authManager.isAuthenticated()) {
+        footer.style.display = 'none';
+        return;
+    }
+    
+    const user = window.authManager.getCurrentUser();
+    if (!user) {
+        footer.style.display = 'none';
+        return;
+    }
+    
+    let visibleCount = 0;
+    
+    // Generar botones para cada módulo
+    MODULOS_DISPONIBLES.forEach(modulo => {
+        // Si no requiere permiso (como Inicio), siempre mostrarlo
+        if (!modulo.permission) {
+            const button = createFooterButton(modulo);
+            footerContent.appendChild(button);
+            visibleCount++;
+            return;
+        }
+        
+        // Verificar si el usuario tiene el permiso
+        const hasPermission = user.permisos && user.permisos[modulo.permission] === true;
+        
+        if (hasPermission) {
+            const button = createFooterButton(modulo);
+            footerContent.appendChild(button);
+            visibleCount++;
+        }
+    });
+    
+    // Mostrar footer solo si hay módulos visibles
+    if (visibleCount > 0) {
+        footer.style.display = 'block';
+        console.log(`✅ Footer generado con ${visibleCount} módulos`);
+    } else {
+        footer.style.display = 'none';
+    }
+};
+
+// Función auxiliar para crear botones del footer (SISTEMA SEGURO)
+function createFooterButton(modulo) {
+    const button = document.createElement('a');
+    button.href = modulo.url;
+    button.title = modulo.title;
+    button.className = 'footer-button';
+    
+    // Verificar si es la página actual
+    const currentPage = window.location.pathname.split('/').pop();
+    if (currentPage === modulo.url || (currentPage === '' && modulo.url === 'inicio.html')) {
+        button.classList.add('active');
+    }
+    
+    // Sanitizar: modulo.title puede contener datos del usuario
+    const tituloSanitizado = window.escapeHTML ? window.escapeHTML(modulo.title) : modulo.title;
+    if (window.setSafeInnerHTML) {
+        window.setSafeInnerHTML(button, `<i class="fas ${modulo.icon}"></i><span>${tituloSanitizado}</span>`, true);
+    } else {
+        button.innerHTML = `<i class="fas ${modulo.icon}"></i><span>${tituloSanitizado}</span>`;
+    }
+    
+    // Actualizar badge de tickets después de crear el botón si es tickets
+    if (modulo.url === 'tickets.html' && window.actualizarBadgeTickets) {
+        setTimeout(() => {
+            window.actualizarBadgeTickets();
+        }, 100);
+    }
+    
+    return button;
+}
+
+// Variable para cleanup de event listeners
+let resizeListenerController = null;
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Ocultar todos los módulos por defecto
+    filterModulesByPermissions();
+    
+    // Limpiar listener anterior si existe
+    if (resizeListenerController) {
+        resizeListenerController.abort();
+    }
+    
+    // Filtrar footer cuando cambie el tamaño de la ventana
+    resizeListenerController = new AbortController();
+    window.addEventListener('resize', generateMobileFooter, { signal: resizeListenerController.signal });
+    
+    // Esperar a que authManager esté disponible
+    const checkAuthManager = () => {
+        if (window.authManager) {
+            console.log('✅ authManager encontrado');
+            showUserInfo();
+            addLogoutButton();
+            filterModulesByPermissions();
+            // Generar footer con delay para asegurar que el DOM esté listo
+            setTimeout(() => {
+                console.log('🔄 Generando footer (desde checkAuthManager)');
+                generateMobileFooter();
+            }, 500);
+        } else {
+            console.log('⏳ Esperando authManager...');
+            // Reintentar en 100ms
+            setTimeout(checkAuthManager, 100);
+        }
+    };
+    
+    checkAuthManager();
+    
+    // También ejecutar cuando la página esté completamente cargada
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            console.log('🔄 Generando footer (desde load)');
+            generateMobileFooter();
+        }, 500);
+    });
+    
+    // Limpiar listeners al salir de la página
+    window.addEventListener('beforeunload', () => {
+        if (resizeListenerController) {
+            resizeListenerController.abort();
+            resizeListenerController = null;
+        }
+    });
+    
+    // Ejecutar también después de un delay adicional
+    setTimeout(() => {
+        console.log('🔄 Generando footer (delay final)');
+        generateMobileFooter();
+    }, 1000);
+    
+    // Función para verificar y ejecutar cuando authManager esté completamente listo
+    const waitForAuthAndGenerate = () => {
+        if (window.authManager && window.authManager.isAuthenticated && window.authManager.isAuthenticated()) {
+            const user = window.authManager.getCurrentUser();
+            if (user && user.permisos) {
+                console.log('✅ Usuario y permisos disponibles, generando footer');
+                generateMobileFooter();
+            } else {
+                console.log('⏳ Esperando permisos del usuario...');
+                setTimeout(waitForAuthAndGenerate, 200);
+            }
+        } else {
+            console.log('⏳ Esperando autenticación...');
+            setTimeout(waitForAuthAndGenerate, 200);
+        }
+    };
+    
+    // Iniciar verificación después de un pequeño delay
+    setTimeout(waitForAuthAndGenerate, 300);
+});
+</script>
+
+<!-- Footer fijo con módulos habilitados -->
+<footer class="mobile-footer" id="mobile-footer" style="display: none;">
+    <nav class="mobile-footer-content" id="mobile-footer-content">
+        <!-- Los botones se generan dinámicamente según permisos -->
+    </nav>
+</footer>

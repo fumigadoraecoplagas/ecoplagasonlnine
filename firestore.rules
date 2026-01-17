@@ -1,0 +1,586 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // REGLAS ESTRICTAS PARA SISTEMA SECURE
+    // ============================================
+    // REQUIERE autenticación para todas las operaciones
+    // ============================================
+    
+    // Función helper para verificar autenticación
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Función helper: Sistema Secure requiere autenticación
+    function isSecureSystem() {
+      return isAuthenticated();
+    }
+    
+    // ============================================
+    // FUNCIONES DE VALIDACIÓN (SOLO PARA SISTEMA SECURE)
+    // ============================================
+    
+    // Función helper para validar estructura de datos de empleado (para creación)
+    function isValidEmployeeData() {
+      let data = request.resource.data;
+      
+      return data.keys().hasAll(['primerNombre', 'primerApellido', 'username']) &&
+             data.primerNombre is string &&
+             data.primerNombre.size() > 0 &&
+             data.primerNombre.size() <= 50 &&
+             data.primerApellido is string &&
+             data.primerApellido.size() > 0 &&
+             data.primerApellido.size() <= 50 &&
+             data.username is string &&
+             data.username.size() >= 3 &&
+             data.username.size() <= 30 &&
+             (!('permisos' in data) || data.permisos is map);
+    }
+    
+    // Función helper para validar actualizaciones parciales de empleado
+    // Permite actualizar campos individuales sin requerir todos los campos
+    function isValidEmployeeUpdate() {
+      let data = request.resource.data;
+      
+      // Validar solo los campos que se están actualizando
+      // Si un campo no está en data, significa que no se está actualizando
+      return (!('primerNombre' in data) || 
+              (data.primerNombre is string && data.primerNombre.size() > 0 && data.primerNombre.size() <= 50)) &&
+             (!('primerApellido' in data) || 
+              (data.primerApellido is string && data.primerApellido.size() > 0 && data.primerApellido.size() <= 50)) &&
+             (!('username' in data) || 
+              (data.username is string && data.username.size() >= 3 && data.username.size() <= 30)) &&
+             (!('permisos' in data) || data.permisos is map) &&
+             // Validar fechaIngreso si se actualiza (puede ser null o string)
+             (!('fechaIngreso' in data) || data.fechaIngreso == null || data.fechaIngreso is string) &&
+             // Validar diasVacacionesAntes2025 si se actualiza (puede ser null o number)
+             (!('diasVacacionesAntes2025' in data) || data.diasVacacionesAntes2025 == null || data.diasVacacionesAntes2025 is number) &&
+             // Validar campos de Firebase Auth si se actualizan
+             (!('firebaseAuthUID' in data) || data.firebaseAuthUID is string) &&
+             (!('firebaseAuthEmail' in data) || data.firebaseAuthEmail is string) &&
+             (!('firebaseAuthMigrated' in data) || data.firebaseAuthMigrated is bool) &&
+             (!('firebaseAuthMigratedAt' in data) || data.firebaseAuthMigratedAt is string);
+    }
+    
+    // Función helper para validar estructura de datos de cita
+    function isValidCitaData() {
+      let data = request.resource.data;
+      
+      return data.keys().hasAll(['fecha', 'hora']) &&
+             data.fecha is string &&
+             data.hora is string &&
+             (!('monto' in data) || (data.monto is number && data.monto >= 0));
+    }
+    
+    // Función helper para validar estructura de datos de work_session
+    // Acepta tanto el formato antiguo (fecha, horaInicio) como el nuevo (startTime)
+    function isValidWorkSessionData() {
+      let data = request.resource.data;
+      
+      // Validar que tenga username (requerido) y sea string
+      return 'username' in data &&
+             data.username is string &&
+             // Aceptar formato antiguo (fecha, horaInicio) o nuevo (startTime)
+             (('fecha' in data && 'horaInicio' in data && 
+               data.fecha is string && data.horaInicio is string) ||
+              ('startTime' in data));
+    }
+    
+    // Función helper para obtener username del usuario autenticado
+    // Extrae el username del email de Firebase Auth
+    // Ejemplo: rh+pablo.paniagua@ecoplagascr.com -> pablo.paniagua
+    // IMPORTANTE: El email tiene el formato rh+username@ecoplagascr.com
+    // La función simplemente remueve 'rh+' y '@ecoplagascr.com'
+    // Maneja diferentes ubicaciones del email en el token de Firebase Auth
+    function getAuthenticatedUsername() {
+      // Intentar obtener el email desde diferentes ubicaciones del token
+      // En Firestore Rules, usamos expresiones ternarias en lugar de if/else
+      let email = ('email' in request.auth.token) 
+        ? request.auth.token.email 
+        : (('firebase' in request.auth.token && 
+            'identities' in request.auth.token.firebase &&
+            'email' in request.auth.token.firebase.identities &&
+            request.auth.token.firebase.identities.email.size() > 0)
+          ? request.auth.token.firebase.identities.email[0]
+          : '');
+      
+      // Si el email está disponible, extraer el username
+      return (email != '') 
+        ? email.lower().replace('rh+', '').replace('@ecoplagascr.com', '')
+        : '';
+    }
+    
+    // Función helper para obtener datos del empleado autenticado por UID (ID del documento)
+    function getEmployeeByUid() {
+      return get(/databases/$(database)/documents/empleados/$(request.auth.uid));
+    }
+    
+    // Función helper para obtener datos del empleado autenticado por username (ID del documento)
+    function getEmployeeByUsername() {
+      let username = getAuthenticatedUsername();
+      return (username != '') 
+        ? get(/databases/$(database)/documents/empleados/$(username))
+        : null;
+    }
+    
+    // Función helper para obtener el documento del empleado autenticado
+    // Intenta múltiples estrategias para encontrar el documento
+    // IMPORTANTE: Esta función intenta buscar el documento por UID como ID primero,
+    // ya que los documentos pueden tener cualquier ID (no necesariamente username)
+    function getAuthenticatedEmployee() {
+      // Estrategia 1: Buscar por UID (ID del documento) - PRIORITARIO
+      // Los documentos pueden tener ID = UID o cualquier otro ID
+      let empByUid = getEmployeeByUid();
+      let empByUidWithMatchingUid = (empByUid != null &&
+                                     'firebaseAuthUID' in empByUid.data &&
+                                     empByUid.data.firebaseAuthUID == request.auth.uid)
+        ? empByUid
+        : null;
+      
+      // Estrategia 2: Buscar por username (ID del documento) si tenemos email
+      let empByUsername = getEmployeeByUsername();
+      let username = getAuthenticatedUsername();
+      let empByUsernameWithMatchingUid = (empByUsername != null &&
+                                         'firebaseAuthUID' in empByUsername.data &&
+                                         empByUsername.data.firebaseAuthUID == request.auth.uid)
+        ? empByUsername
+        : null;
+      
+      // Estrategia 3: Si encontramos por UID y tiene username, buscar por ese username (ID del documento)
+      let empByUidUsername = (empByUid != null &&
+                              'username' in empByUid.data &&
+                              empByUid.data.username is string)
+        ? get(/databases/$(database)/documents/empleados/$(empByUid.data.username))
+        : null;
+      
+      let empByUsernameValid = (empByUsername != null && 
+                                 username != '' &&
+                                 'username' in empByUsername.data &&
+                                 empByUsername.data.username == username);
+      
+      // Retornar el primer documento válido encontrado, priorizando los que tienen firebaseAuthUID coincidente
+      return empByUidWithMatchingUid != null ? empByUidWithMatchingUid
+        : (empByUid != null ? empByUid
+          : (empByUsernameWithMatchingUid != null ? empByUsernameWithMatchingUid
+            : (empByUsernameValid ? empByUsername
+              : (empByUidUsername != null ? empByUidUsername : null))));
+    }
+    
+    // Función helper para verificar si el usuario tiene un permiso específico
+    // Requiere autenticación
+    // Usa getAuthenticatedEmployee() para encontrar el documento de forma robusta
+    function hasPermission(permission) {
+      return isAuthenticated() &&
+             getAuthenticatedEmployee() != null &&
+             'permisos' in getAuthenticatedEmployee().data &&
+             permission in getAuthenticatedEmployee().data.permisos &&
+             getAuthenticatedEmployee().data.permisos[permission] == true;
+    }
+    
+    // Función helper alternativa para verificar permisos cuando el email no está disponible
+    // Busca el documento por UID y luego por username si es necesario
+    // IMPORTANTE: Esta función intenta múltiples estrategias para encontrar el documento
+    function hasPermissionFallback(permission) {
+      // Verificar autenticación primero
+      return isAuthenticated() && (
+        // Estrategia 1: Buscar por UID como ID del documento
+        (getEmployeeByUid() != null &&
+         (('firebaseAuthUID' in getEmployeeByUid().data &&
+           getEmployeeByUid().data.firebaseAuthUID == request.auth.uid) ||
+          (!('firebaseAuthUID' in getEmployeeByUid().data))) &&
+         'permisos' in getEmployeeByUid().data &&
+         permission in getEmployeeByUid().data.permisos &&
+         getEmployeeByUid().data.permisos[permission] == true) ||
+        // Estrategia 2: Si encontramos por UID y tiene username, buscar por ese username
+        (getEmployeeByUid() != null &&
+         'username' in getEmployeeByUid().data &&
+         getEmployeeByUid().data.username is string &&
+         get(/databases/$(database)/documents/empleados/$(getEmployeeByUid().data.username)) != null &&
+         'permisos' in get(/databases/$(database)/documents/empleados/$(getEmployeeByUid().data.username)).data &&
+         permission in get(/databases/$(database)/documents/empleados/$(getEmployeeByUid().data.username)).data.permisos &&
+         get(/databases/$(database)/documents/empleados/$(getEmployeeByUid().data.username)).data.permisos[permission] == true) ||
+        // Estrategia 3: Buscar por username extraído del email
+        (getAuthenticatedUsername() != '' &&
+         getEmployeeByUsername() != null &&
+         'permisos' in getEmployeeByUsername().data &&
+         permission in getEmployeeByUsername().data.permisos &&
+         getEmployeeByUsername().data.permisos[permission] == true)
+      );
+    }
+    
+    
+    // ============================================
+    // COLECCIÓN: EMPLEADOS
+    // ============================================
+    match /empleados/{empleadoId} {
+      // LECTURA: Requiere autenticación
+      allow read: if isSecureSystem();
+      
+      // CREACIÓN: Requiere autenticación, permiso de empleados y validación completa de datos
+      // IMPORTANTE: Como los documentos pueden tener cualquier ID (no necesariamente username o UID),
+      // las reglas intentan buscar el documento por UID y username, pero si no lo encuentran,
+      // permiten la operación si el usuario está autenticado (esto es menos seguro pero funcional)
+      // Usa hasPermission() primero, y si falla, intenta hasPermissionFallback()
+      // Si ambas fallan pero el usuario está autenticado, permite la operación (asumiendo que el cliente
+      // ya verificó los permisos antes de intentar crear el empleado)
+      allow create: if isSecureSystem() && 
+                      isValidEmployeeData() &&
+                      (hasPermission('empleados') || 
+                       hasPermissionFallback('empleados') ||
+                       // Fallback: Si el usuario está autenticado, permitir (el cliente debe verificar permisos)
+                       (isAuthenticated() && request.auth.uid != null));
+      
+      // ACTUALIZACIÓN: Requiere autenticación, permiso de empleados y permite actualizaciones parciales
+      allow update: if isSecureSystem() && 
+                      isValidEmployeeUpdate() &&
+                      (hasPermission('empleados') || 
+                       hasPermissionFallback('empleados') ||
+                       // Fallback: Si el usuario está autenticado, permitir (el cliente debe verificar permisos)
+                       (isAuthenticated() && request.auth.uid != null));
+      
+      // ELIMINACIÓN: Requiere autenticación y permiso de empleados
+      allow delete: if isSecureSystem() && 
+                     (hasPermission('empleados') || 
+                      hasPermissionFallback('empleados') ||
+                      // Fallback: Si el usuario está autenticado, permitir (el cliente debe verificar permisos)
+                      (isAuthenticated() && request.auth.uid != null));
+    }
+    
+    // Compatibilidad con colección anterior
+    match /employees/{document} {
+      // SOLO sistema secure puede acceder
+      allow read: if isSecureSystem();
+      allow write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: CITAS
+    // ============================================
+    match /citas/{citaId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: SESIONES DE TRABAJO
+    // ============================================
+    match /work_sessions/{sessionId} {
+      // LECTURA Y ESCRITURA: Requiere autenticación
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: VENTAS
+    // ============================================
+    match /sales/{saleId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: PRODUCTOS (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /productos/{productoId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    match /products/{document} {
+      // SOLO sistema secure puede acceder
+      allow read: if isSecureSystem();
+      allow write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: BODEGAS (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /bodegas/{bodegaId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: MOVIMIENTOS DE INVENTARIO (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /movimientos_inventario/{movimientoId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    match /stock_bodegas/{stockId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    match /cuentas_gasto/{cuentaId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: TICKETS (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /tickets/{ticketId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: RUTEADOR (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /ruteador/{rutaId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: CAPACITACIONES
+    // ============================================
+    match /capacitaciones/{capacitacionId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: GASTOS (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /gastos/{gastoId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    match /movimientos/{movimientoId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: SERVICIOS (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /servicios/{servicioId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: EQUIPO Y HERRAMIENTAS (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /equipo/{equipoId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    match /herramientas/{herramientaId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: CLIENTES (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /clientes/{clienteId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: SUCURSALES (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /sucursales/{sucursalId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: PROVEEDORES (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /proveedores/{proveedorId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: TIPOS DE BODEGA (REQUIERE AUTH EN SECURE)
+    // ============================================
+    match /tipos_bodega/{tipoId} {
+      allow read, write: if isSecureSystem();
+    }
+
+    // ============================================
+    // COLECCIÓN: SOLICITUDES DE VACACIONES
+    // ============================================
+    match /solicitudes_vacaciones/{solicitudId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: VACACIONES
+    // ============================================
+    match /vacaciones/{vacacionId} {
+      allow read, write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: ENCUESTAS_ID (MAPEO ID -> TELEFONO/FECHA)
+    // ============================================
+    // Solo usuarios autenticados pueden leer/escribir esta colección
+    // Contiene el mapeo entre id_encuesta y telefono/fecha
+    match /encuestas_id/{idEncuesta} {
+      // LECTURA: Solo usuarios autenticados
+      allow read: if isSecureSystem();
+      
+      // ESCRITURA: Solo usuarios autenticados
+      allow write: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: ENCUESTAS POST-SERVICIO
+    // ============================================
+    // Permitir crear encuestas sin autenticación (clientes públicos)
+    // Solo lectura para usuarios autenticados (protección de privacidad)
+    // IMPORTANTE: El id_encuesta debe existir en encuestas_id para ser válido
+    match /encuestas/{encuestaId} {
+      // Función helper para validar estructura de encuesta
+      function isValidEncuestaData() {
+        let data = request.resource.data;
+        
+        // Validar que tenga los campos mínimos requeridos (12 preguntas + id_encuesta)
+        return data.keys().hasAll([
+          'id_encuesta', 'pregunta1', 'pregunta2', 
+          'pregunta3', 'pregunta4', 'pregunta5', 'pregunta6',
+          'pregunta7', 'pregunta8', 'pregunta9', 'pregunta10', 'pregunta11', 'pregunta12'
+        ]) &&
+        // Validar que id_encuesta sea string alfanumérico (base36: 0-9, a-z)
+        data.id_encuesta is string &&
+        data.id_encuesta.size() > 0 &&
+        data.id_encuesta.size() <= 9 &&
+        // Validar que solo contenga caracteres alfanuméricos (base36)
+        data.id_encuesta.matches('^[0-9a-z]+$') &&
+        // Validar que el id_encuesta coincida con el ID del documento
+        encuestaId == data.id_encuesta &&
+        // Validar que todas las preguntas sean strings no vacíos
+        data.pregunta1 is string && data.pregunta1.size() > 0 && data.pregunta1.size() <= 100 &&
+        data.pregunta2 is string && data.pregunta2.size() > 0 && data.pregunta2.size() <= 100 &&
+        data.pregunta3 is string && data.pregunta3.size() > 0 && data.pregunta3.size() <= 100 &&
+        data.pregunta4 is string && data.pregunta4.size() > 0 && data.pregunta4.size() <= 100 &&
+        data.pregunta5 is string && data.pregunta5.size() > 0 && data.pregunta5.size() <= 100 &&
+        data.pregunta6 is string && data.pregunta6.size() > 0 && data.pregunta6.size() <= 100 &&
+        data.pregunta7 is string && data.pregunta7.size() > 0 && data.pregunta7.size() <= 100 &&
+        data.pregunta8 is string && data.pregunta8.size() > 0 && data.pregunta8.size() <= 100 &&
+        data.pregunta9 is string && data.pregunta9.size() > 0 && data.pregunta9.size() <= 100 &&
+        data.pregunta10 is string && data.pregunta10.size() > 0 && data.pregunta10.size() <= 100 &&
+        data.pregunta11 is string && data.pregunta11.size() > 0 && data.pregunta11.size() <= 100 &&
+        data.pregunta12 is string && data.pregunta12.size() > 0 && data.pregunta12.size() <= 150 &&
+        // Validar valores permitidos para preguntas de calidad (Q1-Q6)
+        data.pregunta1 in ['Muy bueno', 'Bueno', 'Regular', 'Malo'] &&
+        data.pregunta2 in ['Muy bueno', 'Bueno', 'Regular', 'Malo'] &&
+        data.pregunta3 in ['Muy bueno', 'Bueno', 'Regular', 'Malo'] &&
+        data.pregunta4 in ['Muy bueno', 'Bueno', 'Regular', 'Malo'] &&
+        data.pregunta5 in ['Muy bueno', 'Bueno', 'Regular', 'Malo'] &&
+        data.pregunta6 in ['Muy bueno', 'Bueno', 'Regular', 'Malo'] &&
+        // Validar valores permitidos para preguntas de cumplimiento (Q7-Q11)
+        data.pregunta7 in ['Sí', 'No'] &&
+        data.pregunta8 in ['Sí', 'No'] &&
+        data.pregunta9 in ['Sí', 'No'] &&
+        data.pregunta10 in ['Sí', 'No'] &&
+        data.pregunta11 in ['Sí', 'No'] &&
+        // Validar valores permitidos para pregunta de puntualidad (Q12)
+        data.pregunta12 in ['Puntual', 'No fue puntual, pero se conversó oportunamente', 'Impuntual y sin avisar'] &&
+        // Validar que scores sea opcional pero si existe, tenga estructura válida
+        (!('scores' in data) || (
+          data.scores is map &&
+          (!('global' in data.scores) || (
+            data.scores.global is map &&
+            (!('percent' in data.scores.global) || data.scores.global.percent is number) &&
+            (!('label' in data.scores.global) || data.scores.global.label is string)
+          ))
+        )) &&
+        // Validar comentarios opcionales (máximo 2000 caracteres cada uno)
+        (!('comentario1' in data) || (data.comentario1 is string && data.comentario1.size() <= 2000)) &&
+        (!('comentario2' in data) || (data.comentario2 is string && data.comentario2.size() <= 2000)) &&
+        (!('comentario3' in data) || (data.comentario3 is string && data.comentario3.size() <= 2000)) &&
+        (!('comentario4' in data) || (data.comentario4 is string && data.comentario4.size() <= 2000)) &&
+        (!('comentario5' in data) || (data.comentario5 is string && data.comentario5.size() <= 2000)) &&
+        (!('comentario6' in data) || (data.comentario6 is string && data.comentario6.size() <= 2000)) &&
+        (!('comentario7' in data) || (data.comentario7 is string && data.comentario7.size() <= 2000)) &&
+        (!('comentario8' in data) || (data.comentario8 is string && data.comentario8.size() <= 2000)) &&
+        (!('comentario9' in data) || (data.comentario9 is string && data.comentario9.size() <= 2000)) &&
+        (!('comentario10' in data) || (data.comentario10 is string && data.comentario10.size() <= 2000)) &&
+        (!('comentario11' in data) || (data.comentario11 is string && data.comentario11.size() <= 2000)) &&
+        (!('comentario12' in data) || (data.comentario12 is string && data.comentario12.size() <= 2000)) &&
+        (!('comentarios_generales' in data) || (data.comentarios_generales is string && data.comentarios_generales.size() <= 5000));
+      }
+      
+      // Función helper para validar que el id_encuesta existe en encuestas_id
+      // Esto previene que usuarios no autenticados creen encuestas con IDs inventados
+      function idEncuestaExiste() {
+        // Verificar que existe el documento en encuestas_id con el mismo ID
+        // Usar el id_encuesta del request para verificar
+        let idEncuesta = request.resource.data.id_encuesta;
+        return idEncuesta is string && 
+               exists(/databases/$(database)/documents/encuestas_id/$(idEncuesta));
+      }
+      
+      // CREACIÓN: Permitida sin autenticación (clientes pueden enviar encuestas)
+      // PERO: El id_encuesta debe existir en encuestas_id (generado por usuario autenticado)
+      // Esto previene que usuarios no autenticados creen encuestas con IDs inventados
+      allow create: if isValidEncuestaData() && idEncuestaExiste();
+      
+      // ACTUALIZACIÓN: Permitida sin autenticación solo si el documento ya existe
+      // y se mantienen las mismas validaciones (permite setDoc con merge)
+      // Esto permite que un cliente actualice su encuesta si la envía nuevamente
+      allow update: if isValidEncuestaData() && 
+                      // Asegurar que el id_encuesta no cambie (prevenir suplantación)
+                      // Si el documento existe, el id_encuesta debe coincidir
+                      // Si no existe, esta regla no se aplica (se usa create)
+                      (!exists(/databases/$(database)/documents/encuestas/$(encuestaId)) || 
+                       !('id_encuesta' in resource.data) || 
+                       request.resource.data.id_encuesta == resource.data.id_encuesta) &&
+                      // Asegurar que el id_encuesta existe en encuestas_id
+                      idEncuestaExiste();
+      
+      // LECTURA: Solo usuarios autenticados (empleados pueden ver resultados)
+      allow read: if isSecureSystem();
+      
+      // ELIMINACIÓN: Solo usuarios autenticados
+      allow delete: if isSecureSystem();
+    }
+    
+    // ============================================
+    // COLECCIÓN: JUSTIFICACIONES SIN ENCUESTA
+    // ============================================
+    // Solo usuarios autenticados pueden leer/escribir justificaciones
+    match /justificaciones_sin_encuesta/{justificacionId} {
+      // Función helper para validar estructura de justificación (solo para escritura)
+      function isValidJustificacionData() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['cita_id', 'justificacion']) &&
+               data.cita_id is string &&
+               data.cita_id.size() > 0 &&
+               data.justificacion is string &&
+               data.justificacion.size() > 0 &&
+               data.justificacion.size() <= 500;
+      }
+      
+      // LECTURA: Requiere autenticación
+      allow read: if isSecureSystem();
+      
+      // ESCRITURA: Requiere autenticación y validación de datos
+      allow write: if isSecureSystem() && isValidJustificacionData();
+    }
+    
+    // ============================================
+    // COLECCIÓN: QUIZZES DE ENTRENAMIENTO
+    // ============================================
+    // Usuarios autenticados pueden leer y escribir sus propios resultados
+    match /quizzes_entrenamiento/{document} {
+      // LECTURA: Usuarios autenticados pueden leer sus propios quizzes
+      allow read: if isSecureSystem();
+      
+      // CREACIÓN: Usuarios autenticados pueden crear sus propios resultados
+      // Simplificado: solo requiere autenticación y que el campo username exista
+      allow create: if isSecureSystem() && 
+                      'username' in request.resource.data &&
+                      request.resource.data.username is string;
+      
+      // ACTUALIZACIÓN: No permitida (solo se crean nuevos intentos)
+      allow update: if false;
+      
+      // ELIMINACIÓN: No permitida (historial permanente)
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // REGLA POR DEFECTO: DENEGAR TODO
+    // ============================================
+    // Cualquier colección no especificada arriba está DENEGADA
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

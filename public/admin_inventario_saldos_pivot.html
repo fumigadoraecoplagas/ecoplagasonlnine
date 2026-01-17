@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<!-- ============================================ -->
+<!-- MÓDULO SECURE: admin_inventario_saldos_pivot -->
+<!-- ============================================ -->
+<!-- Este módulo es parte del sistema SECURE -->
+<!-- Usa autenticación Firebase Auth (auth-secure.js) -->
+<!-- URL: admin_inventario_saldos_pivot.html (SECURE) -->
+<!-- ============================================ -->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saldos por Bodega - Eco Plagas (Secure)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        window.firebaseAuth = auth;
+        
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            
+            if (document.body) document.body.style.display = 'none';
+
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken) {
+                if (document.body) {
+                    document.body.style.display = 'block';
+                    document.body.classList.add('authenticated');
+                }
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            let retries = 0;
+            const maxRetries = 40;
+            
+            while (retries < maxRetries) {
+                if (auth.currentUser) {
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', {
+                        detail: { page: 'admin_inventario_saldos_pivot', timestamp: Date.now() }
+                    }));
+                    
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            if (!hasSessionToken) {
+                window.location.replace('iniciar_sesion.html');
+            }
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+        
+        .pivot-table {
+            font-size: 0.85rem;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .pivot-table thead th {
+            background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            white-space: nowrap;
+        }
+        
+        .pivot-table thead th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+            min-width: 200px;
+        }
+        
+        .pivot-table tbody td {
+            padding: 0.5rem;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            background: white;
+            vertical-align: middle;
+        }
+        
+        .pivot-table tbody td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            background: white;
+            font-weight: 600;
+            text-align: left;
+            min-width: 200px;
+            border-right: 2px solid #495057;
+        }
+        
+        .pivot-table tbody tr:hover td:first-child {
+            background: #f8f9fa;
+        }
+        
+        .pivot-table tbody tr:hover td {
+            background: #f1f3f5;
+        }
+        
+        .pivot-value {
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .pivot-value.zero {
+            color: #adb5bd;
+            font-weight: 400;
+        }
+        
+        .pivot-value.low {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .pivot-value.very-low {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        
+        .pivot-value.normal {
+            color: #212529;
+        }
+        
+        .table-container {
+            max-height: 80vh;
+            overflow: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .filters-section {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .filters-section label {
+            color: white;
+            font-weight: 600;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-2 px-3">
+        <!-- Header Principal -->
+        <div class="page-header">
+            <h1><i class="fas fa-table"></i> Saldos por Bodega y Producto</h1>
+            <div class="mt-3">
+                <a href="administrador_bodega.html" class="btn btn-light btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+                </a>
+            </div>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div class="section-content">
+            <div class="consolidado-section">
+                <h3><i class="fas fa-chart-bar"></i> Reporte Pivot de Saldos</h3>
+                
+                <!-- Filtros -->
+                <div class="filters-section">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label for="filtroTipoBodega"><i class="fas fa-filter me-2"></i>Tipo de Bodega</label>
+                            <select class="form-select" id="filtroTipoBodega" onchange="filtrarBodegas()">
+                                <option value="">Todas las bodegas</option>
+                                <option value="principal">Bodegas Principales</option>
+                                <option value="apv">Bodegas APV</option>
+                                <option value="rutero">Bodegas Rutero</option>
+                                <option value="especial">Bodegas Especiales</option>
+                                <option value="herramientas">Bodegas de Herramientas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="filtroBodegas"><i class="fas fa-warehouse me-2"></i>Bodegas a Mostrar</label>
+                            <div class="card p-2" style="max-height: 120px; overflow-y: auto; background: rgba(255,255,255,0.95);">
+                                <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkTodasBodegas" checked onchange="toggleTodasBodegas()">
+                                        <label class="form-check-label" for="checkTodasBodegas" style="color: #495057;">Seleccionar todas</label>
+                                    </div>
+                                </div>
+                                <div id="listaBodegas" class="row g-2">
+                                    <div class="text-center text-muted py-2">Cargando bodegas...</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filtroProducto"><i class="fas fa-box me-2"></i>Buscar</label>
+                            <input type="text" class="form-control" id="filtroProducto" placeholder="Nombre o código..." onkeyup="filtrarProductos()">
+                        </div>
+                    </div>
+                    
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #f8d7da;"></div>
+                            <span>Muy Bajo (≤ 1 unidad)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #fff3cd;"></div>
+                            <span>Bajo (2-5 unidades)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: white; border: 1px solid #dee2e6;"></div>
+                            <span>Normal (> 5 unidades)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #adb5bd;"></div>
+                            <span>Sin Stock (0)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tabla Pivot -->
+                <div class="table-container">
+                    <table class="table pivot-table">
+                        <thead id="pivotHeader">
+                            <tr>
+                                <th>Producto</th>
+                                <!-- Columnas de bodegas se agregan dinámicamente -->
+                            </tr>
+                        </thead>
+                        <tbody id="pivotBody">
+                            <tr>
+                                <td colspan="100" class="text-center py-4">
+                                    <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                    <p class="mt-3 text-white">Cargando saldos...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-3 text-end">
+                    <button class="btn btn-destacado" onclick="exportarExcel()">
+                        <i class="fas fa-file-excel me-2"></i>Exportar a Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="admin_inventario_saldos_pivot.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Bodegas - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        // Guardar auth en window para uso global
+        window.firebaseAuth = auth;
+        
+        // VERIFICACIÓN INMEDIATA DE AUTENTICACIÓN
+        (async function() {
+            // Prevenir múltiples ejecuciones
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            
+            // Ocultar body inmediatamente
+            if (document.body) document.body.style.display = 'none';
+
+            // Validación optimista
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken) {
+                if (document.body) {
+                    document.body.style.display = 'block';
+                    document.body.classList.add('authenticated');
+                }
+            }
+
+            // Esperar a que auth-secure.js se cargue
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            let retries = 0;
+            const maxRetries = 40;
+            
+            while (retries < maxRetries) {
+                if (auth.currentUser) {
+                    // Esperar a secureAuthManager
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', {
+                        detail: { page: 'admin_inventario_bodegas', timestamp: Date.now() }
+                    }));
+                    
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            if (!hasSessionToken) {
+                window.location.replace('iniciar_sesion.html');
+            }
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+        .table-primary td, .table-success td, .table-info td, .table-warning td {
+            border-top: none !important; font-weight: 600; color: #495057;
+        }
+        .table-primary { background-color: rgba(13, 110, 253, 0.1) !important; border-left: 4px solid #0d6efd !important; }
+        .table-success { background-color: rgba(25, 135, 84, 0.1) !important; border-left: 4px solid #198754 !important; }
+        .table-info { background-color: rgba(13, 202, 240, 0.1) !important; border-left: 4px solid #0dcaf0 !important; }
+        .table-warning { background-color: rgba(255, 193, 7, 0.1) !important; border-left: 4px solid #ffc107 !important; }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-2 px-3">
+        <!-- Header Principal -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-warehouse inventory-icon"></i> Gestión de Bodegas</h1>
+            <a href="administrador_bodega.html" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+            </a>
+        </div>
+
+        <!-- Contenido Principal: Bodegas -->
+        <div class="section-content">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class="fas fa-warehouse"></i> Almacenes e Inventarios</h3>
+                    <div class="section-badge">
+                        <span class="badge bg-primary">Configuración</span>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <!-- Botones de gestión -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <button class="btn btn-primary btn-lg w-100" data-bs-toggle="modal" data-bs-target="#modalBodega">
+                                <i class="fas fa-plus-circle me-2"></i>Nueva Bodega
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- Eliminado botón de gestionar tipos, ahora son fijos -->
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <button class="btn btn-warning btn-lg w-100" onclick="recalcularTodosLosSaldos()" id="btnRecalcularSaldos">
+                                <i class="fas fa-sync-alt me-2"></i>Recalcular Saldos
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-success btn-lg w-100" onclick="exportarTransaccionesCSV()" id="btnExportarCSV">
+                                <i class="fas fa-file-csv me-2"></i>Exportar Transacciones a CSV
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Indicador de progreso -->
+                    <div id="progresoRecalculo" class="alert alert-info" style="display: none;">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-3" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <div class="w-100">
+                                <strong id="mensajeProgreso">Recalculando saldos...</strong>
+                                <div class="progress mt-2" style="height: 20px;">
+                                    <div id="barraProgresoRecalculo" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Resultado del recálculo -->
+                    <div id="resultadoRecalculo" class="alert" style="display: none;">
+                        <strong id="mensajeResultado"></strong>
+                    </div>
+                    
+                    <!-- Resumen de Valores por Tipo de Bodega -->
+                    <div id="resumenValoresBodegas" class="row mb-4">
+                        <!-- Se llena dinámicamente -->
+                        <div class="text-center py-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Cargando resumen de bodegas...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-modern">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-warehouse me-2"></i>Nombre</th>
+                                    <th><i class="fas fa-tag me-2"></i>Tipo</th>
+                                    <th><i class="fas fa-user me-2"></i>Empleado</th>
+                                    <th><i class="fas fa-map-marker-alt me-2"></i>Ubicación</th>
+                                    <th><i class="fas fa-dollar-sign me-2"></i>Valor Total</th>
+                                    <th><i class="fas fa-toggle-on me-2"></i>Estado</th>
+                                    <th><i class="fas fa-cogs me-2"></i>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaBodegas">
+                                <!-- Se llena dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nueva/Editar Bodega -->
+    <div class="modal fade" id="modalBodega" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalBodegaLabel">Nueva Bodega</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formBodega">
+                        <input type="hidden" id="bodegaId">
+                        <div class="mb-3">
+                            <label for="nombreBodega" class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="nombreBodega" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="tipoBodega" class="form-label">Tipo *</label>
+                            <select class="form-select" id="tipoBodega" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="principal">Bodega Principal</option>
+                                <option value="apv">Bodega APV</option>
+                                <option value="rutero">Bodega Rutero</option>
+                                <option value="especial">Bodega Especial</option>
+                                <option value="herramientas">Bodega de Herramientas</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="empleadoBodegaGroup" style="display: none;">
+                            <label for="empleadoBodega" class="form-label">Empleado</label>
+                            <select class="form-select" id="empleadoBodega">
+                                <option value="">Seleccionar empleado...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="vehiculoBodegaGroup" style="display: none;">
+                            <label for="vehiculoBodega" class="form-label">Vehículo</label>
+                            <select class="form-select" id="vehiculoBodega">
+                                <option value="">Seleccionar vehículo...</option>
+                                <option value="APV-01">APV-01</option>
+                                <option value="APV-02">APV-02</option>
+                                <option value="APV-03">APV-03</option>
+                                <option value="APV-04">APV-04</option>
+                                <option value="APV-05">APV-05</option>
+                                <option value="APV-06">APV-06</option>
+                                <option value="APV-07">APV-07</option>
+                                <option value="APV-08">APV-08</option>
+                                <option value="Yaris">Yaris</option>
+                                <option value="Kangoo">Kangoo</option>
+                                <option value="Carro Rojo">Carro Rojo</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ubicacionBodega" class="form-label">Ubicación</label>
+                            <input type="text" class="form-control" id="ubicacionBodega">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarBodega()">Guardar Bodega</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cargar scripts al final -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="admin_inventario_bodegas.js"></script>
+</body>
+</html>

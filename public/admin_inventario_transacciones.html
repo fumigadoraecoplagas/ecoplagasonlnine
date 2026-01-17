@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Transacciones - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        window.firebaseAuth = auth;
+        
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            
+            if (document.body) document.body.style.display = 'none';
+
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken) {
+                if (document.body) {
+                    document.body.style.display = 'block';
+                    document.body.classList.add('authenticated');
+                }
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            let retries = 0;
+            const maxRetries = 40;
+            
+            while (retries < maxRetries) {
+                if (auth.currentUser) {
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', {
+                        detail: { page: 'admin_inventario_transacciones', timestamp: Date.now() }
+                    }));
+                    
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            if (!hasSessionToken) {
+                window.location.replace('iniciar_sesion.html');
+            }
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+        .table-primary td, .table-success td, .table-info td, .table-warning td {
+            border-top: none !important; font-weight: 600; color: #495057;
+        }
+        /* Forzar títulos en Title Case normal, no mayúsculas agresivas */
+        .table thead th {
+            text-transform: none !important;
+            font-weight: 600;
+            letter-spacing: normal;
+        }
+        .table-primary { background-color: rgba(13, 110, 253, 0.1) !important; border-left: 4px solid #0d6efd !important; }
+        .table-success { background-color: rgba(25, 135, 84, 0.1) !important; border-left: 4px solid #198754 !important; }
+        .table-info { background-color: rgba(13, 202, 240, 0.1) !important; border-left: 4px solid #0dcaf0 !important; }
+        .table-warning { background-color: rgba(255, 193, 7, 0.1) !important; border-left: 4px solid #ffc107 !important; }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-2 px-3">
+        <!-- Header Principal -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-list-alt inventory-icon"></i> Historial de Transacciones</h1>
+            <a href="administrador_bodega.html" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+            </a>
+        </div>
+
+        <!-- Contenido Principal: Transacciones -->
+        <div class="section-content">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class="fas fa-history"></i> Historial de Movimientos</h3>
+                </div>
+                <div class="section-body">
+                    <!-- Filtros Simplificados -->
+                    <div class="row g-3 mb-4 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Filtrar por Bodega (Origen o Destino)</label>
+                            <select class="form-select" id="filtroBodegaMovimiento">
+                                <option value="">Todas las bodegas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Fecha Contable Desde</label>
+                            <input type="date" class="form-control" id="fechaDesdeMovimiento">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Fecha Contable Hasta</label>
+                            <input type="date" class="form-control" id="fechaHastaMovimiento">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" onclick="filtrarMovimientos()">
+                                <i class="fas fa-filter me-1"></i>Filtrar
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-secondary w-100" onclick="limpiarFiltrosMovimientos()">
+                                <i class="fas fa-sync-alt me-1"></i>Restablecer (3 Días)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sección de Resumen -->
+                    <div class="row mb-3">
+                        <div class="col-12 text-end">
+                            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#resumenTransaccionesPanel" aria-expanded="false" aria-controls="resumenTransaccionesPanel">
+                                <i class="fas fa-chart-bar me-1"></i>Ver Resumen por Producto
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="collapse mb-4" id="resumenTransaccionesPanel">
+                        <div class="card card-body bg-light border-0">
+                            <h6 class="mb-3">Resumen de Movimientos (Periodo Seleccionado)</h6>
+                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                <table class="table table-sm table-bordered bg-white" id="tablaResumenProductos">
+                                    <thead class="table-secondary text-center sticky-top">
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th class="text-success">Entradas (+)</th>
+                                            <th class="text-danger">Salidas (-)</th>
+                                            <th class="text-primary fw-bold">Saldo Neto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Se llena dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-modern table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="align-middle"><i class="fas fa-calendar me-2"></i>Fecha Contable</th>
+                                    <th class="align-top">
+                                        <div class="mb-1"><i class="fas fa-tag me-2"></i>Tipo</div>
+                                        <select class="form-select form-select-sm fw-normal" id="colFilterTipo" onchange="filtrarTablaEnCliente()" onclick="event.stopPropagation()">
+                                            <option value="">Todos</option>
+                                            <option value="compra">Compra</option>
+                                            <option value="gasto">Gasto</option>
+                                            <option value="transferencia">Transf.</option>
+                                            <option value="reversion">Reversión</option>
+                                        </select>
+                                    </th>
+                                    <th class="align-top">
+                                        <div class="mb-1"><i class="fas fa-box me-2"></i>Producto</div>
+                                        <input type="text" class="form-control form-control-sm fw-normal" id="colFilterProducto" placeholder="Buscar..." onkeyup="filtrarTablaEnCliente()" onclick="event.stopPropagation()">
+                                    </th>
+                                    <th class="align-top">
+                                        <div class="mb-1"><i class="fas fa-map-marker-alt me-2"></i>Origen</div>
+                                        <input type="text" class="form-control form-control-sm fw-normal" id="colFilterOrigen" placeholder="Buscar..." onkeyup="filtrarTablaEnCliente()" onclick="event.stopPropagation()">
+                                    </th>
+                                    <th class="align-top">
+                                        <div class="mb-1"><i class="fas fa-map-marker me-2"></i>Destino</div>
+                                        <input type="text" class="form-control form-control-sm fw-normal" id="colFilterDestino" placeholder="Buscar..." onkeyup="filtrarTablaEnCliente()" onclick="event.stopPropagation()">
+                                    </th>
+                                    <th class="align-middle"><i class="fas fa-hashtag me-2"></i>Cant.</th>
+                                    <th class="align-top">
+                                        <div class="mb-1"><i class="fas fa-user me-2"></i>Usuario</div>
+                                        <input type="text" class="form-control form-control-sm fw-normal" id="colFilterUsuario" placeholder="Buscar..." onkeyup="filtrarTablaEnCliente()" onclick="event.stopPropagation()">
+                                    </th>
+                                    <th class="align-middle text-center">
+                                        <div class="mb-1"><i class="fas fa-cogs"></i></div>
+                                        <button class="btn btn-xs btn-outline-secondary" onclick="limpiarFiltrosColumnas()" title="Limpiar filtros">
+                                            <i class="fas fa-eraser"></i>
+                                        </button>
+                                    </th>
+                                </tr>
+                            </thead>
+                            </thead>
+                            <tbody id="tablaMovimientos">
+                                <!-- Se llena dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="text-center py-3" id="loadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Cargando historial...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Transacción -->
+    <div class="modal fade" id="modalEditarTransaccion" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Editar Transacción Completa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Advertencia:</strong> Editar una transacción puede afectar los saldos de inventario. 
+                        Asegúrate de que los cambios sean correctos.
+                    </div>
+                    
+                    <form id="formEditarTransaccion">
+                        <input type="hidden" id="editTransaccionId">
+                        <input type="hidden" id="editTransaccionTipoOriginal">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Fecha y Hora *</label>
+                                <input type="datetime-local" class="form-control" id="editTransaccionFecha" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Tipo de Movimiento *</label>
+                                <select class="form-select" id="editTransaccionTipo" required>
+                                    <option value="compra">Compra</option>
+                                    <option value="transferencia">Transferencia</option>
+                                    <option value="gasto">Gasto</option>
+                                    <option value="reversion">Reversión</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Producto *</label>
+                                <select class="form-select" id="editTransaccionProducto" required>
+                                    <option value="">Seleccionar producto...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Origen *</label>
+                                <select class="form-select" id="editTransaccionOrigen" required>
+                                    <option value="">Seleccionar origen...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Destino *</label>
+                                <select class="form-select" id="editTransaccionDestino" required>
+                                    <option value="">Seleccionar destino...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Cantidad *</label>
+                                <input type="number" class="form-control" id="editTransaccionCantidad" required step="any">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Precio Unitario *</label>
+                                <input type="number" class="form-control" id="editTransaccionPrecio" required step="0.01" min="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Total</label>
+                                <input type="text" class="form-control" id="editTransaccionTotal" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Empleado</label>
+                                <input type="text" class="form-control" id="editTransaccionEmpleado" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Usuario</label>
+                                <input type="text" class="form-control" id="editTransaccionUsuario" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Motivo</label>
+                            <input type="text" class="form-control" id="editTransaccionMotivo">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Observaciones</label>
+                            <textarea class="form-control" id="editTransaccionObservaciones" rows="2"></textarea>
+                        </div>
+
+                        <!-- Campos adicionales para reversiones -->
+                        <div id="camposReversion" style="display: none;" class="border p-3 rounded bg-light mt-3">
+                             <h6 class="fw-bold">Detalles de Reversión</h6>
+                             <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tipo Original (Reversión)</label>
+                                    <select class="form-select" id="editTransaccionTipoOriginalRev">
+                                        <option value="">Seleccionar...</option>
+                                        <option value="gasto">Gasto</option>
+                                        <option value="compra">Compra</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">ID Movimiento Original (Reversión)</label>
+                                    <input type="text" class="form-control" id="editTransaccionIdOriginalRev">
+                                </div>
+                             </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="guardarCambiosTransaccion()">
+                        <i class="fas fa-save me-2"></i>Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="admin_inventario_transacciones.js"></script>
+</body>
+</html>

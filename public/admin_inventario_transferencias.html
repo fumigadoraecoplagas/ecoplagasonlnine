@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Transferencias - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        window.firebaseAuth = auth;
+        
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            
+            if (document.body) document.body.style.display = 'none';
+
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken) {
+                if (document.body) {
+                    document.body.style.display = 'block';
+                    document.body.classList.add('authenticated');
+                }
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            let retries = 0;
+            const maxRetries = 40;
+            
+            while (retries < maxRetries) {
+                if (auth.currentUser) {
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', {
+                        detail: { page: 'admin_inventario_transferencias', timestamp: Date.now() }
+                    }));
+                    
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            if (!hasSessionToken) {
+                window.location.replace('iniciar_sesion.html');
+            }
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-2 px-3">
+        <!-- Header Principal -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-exchange-alt inventory-icon"></i> Gestión de Transferencias</h1>
+            <a href="administrador_bodega.html" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+            </a>
+        </div>
+
+        <!-- Contenido Principal: Transferencias -->
+        <div class="section-content">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class="fas fa-truck"></i> Transferencias entre Bodegas</h3>
+                    <div class="section-badge">
+                        <span class="badge bg-primary">Movimientos</span>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <!-- Botones de Acción -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-center gap-3">
+                                <button class="btn btn-warning btn-lg" data-bs-toggle="modal" data-bs-target="#modalRegistrarCompra">
+                                    <i class="fas fa-plus me-2"></i>Registrar Compra
+                                </button>
+                                <button class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#modalReversarGasto">
+                                    <i class="fas fa-undo me-2"></i>Reversar Gasto/Compra
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de transferencia moderno -->
+                    <div class="section-card mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+                        <div class="section-header" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: none;">
+                            <h5 style="color: white; margin: 0;"><i class="fas fa-exchange-alt me-2"></i>Nueva Transferencia</h5>
+                        </div>
+                        <div class="section-body" style="padding: 2rem;">
+                            <form id="formTransferencia">
+                                <!-- Bodega Origen -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-warehouse me-2"></i>Bodega Origen *
+                                    </label>
+                                    <select class="form-select form-select-lg" id="bodegaOrigenTransferencia" required style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                                        <option value="">Selecciona la bodega origen...</option>
+                                    </select>
+                                </div>
+
+                                <!-- Destino -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-arrow-right me-2"></i>Destino *
+                                    </label>
+                                    <select class="form-select form-select-lg" id="bodegaDestinoTransferencia" required style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                                        <option value="">Selecciona el destino...</option>
+                                        <!-- Optgroups llenados dinámicamente -->
+                                    </select>
+                                </div>
+
+                                <!-- Campo de búsqueda de producto -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-search me-2"></i>Buscar Producto *
+                                    </label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text" style="background: rgba(255,255,255,0.9); border: 2px solid rgba(255,255,255,0.3);">
+                                            <i class="fas fa-search text-primary"></i>
+                                        </span>
+                                        <input type="text" 
+                                               class="form-control form-control-lg" 
+                                               id="buscarProductoTransferencia" 
+                                               placeholder="Escribe el nombre o código del producto..."
+                                               style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); border-radius: 0; font-size: 1.1rem;">
+                                        <button class="btn btn-outline-light" type="button" onclick="limpiarBusquedaProductoTransferencia()" style="border: 2px solid rgba(255,255,255,0.3);">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <select class="form-select form-select-lg mt-3" id="productoTransferencia" required style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                                        <option value="">Primero selecciona bodega origen y destino...</option>
+                                    </select>
+                                </div>
+
+                                <!-- Cantidad -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-hashtag me-2"></i>Cantidad *
+                                    </label>
+                                    <div class="input-group input-group-lg">
+                                        <button class="btn btn-outline-light" type="button" onclick="decrementarCantidadTransferencia()" style="border: 2px solid rgba(255,255,255,0.3);">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" 
+                                               class="form-control form-control-lg text-center" 
+                                               id="cantidadTransferencia" 
+                                               required min="1" 
+                                               value="1"
+                                               style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.2rem; font-weight: bold;">
+                                        <button class="btn btn-outline-light" type="button" onclick="incrementarCantidadTransferencia()" style="border: 2px solid rgba(255,255,255,0.3);">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Motivo -->
+                                <div class="mb-4" id="motivoTransferenciaContainer">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-comment me-2"></i>Motivo
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           id="motivoTransferencia" 
+                                           placeholder="Describe el motivo de la transferencia..."
+                                           style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                                </div>
+
+                                <!-- Recibo -->
+                                <div class="mb-4" id="reciboTransferenciaContainer" style="display: none;">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-receipt me-2"></i>Recibo *
+                                    </label>
+                                    <input type="number" 
+                                           class="form-control form-control-lg" 
+                                           id="reciboTransferencia" 
+                                           min="1" 
+                                           step="1"
+                                           placeholder="Número de recibo (entero)"
+                                           style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                                </div>
+
+                                <!-- Observaciones -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-sticky-note me-2"></i>Observaciones
+                                    </label>
+                                    <textarea class="form-control form-control-lg" 
+                                              id="observacionesTransferencia" 
+                                              rows="3" 
+                                              placeholder="Observaciones adicionales..."
+                                              style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem; resize: vertical;"></textarea>
+                                </div>
+
+                                <!-- Botón de envío -->
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-light btn-lg py-3" style="font-size: 1.2rem; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                                        <i class="fas fa-paper-plane me-2"></i>Registrar Transferencia
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registrar Compra -->
+    <div class="modal fade" id="modalRegistrarCompra" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar Compra</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCompra">
+                        <div class="mb-3">
+                            <label class="form-label">Producto *</label>
+                            <select class="form-select" id="productoCompra" required>
+                                <option value="">Seleccionar producto...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bodega Destino *</label>
+                            <select class="form-select" id="bodegaCompra" required>
+                                <option value="">Seleccionar bodega...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cantidad *</label>
+                            <input type="number" class="form-control" id="cantidadCompra" required min="0.01" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Precio Unitario *</label>
+                            <input type="number" class="form-control" id="precioCompra" required min="0" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Total</label>
+                            <input type="number" class="form-control" id="totalCompra" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Número de Factura *</label>
+                            <input type="text" class="form-control" id="facturaCompra" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Proveedor *</label>
+                            <select class="form-select" id="proveedorCompra" required>
+                                <option value="">Seleccionar proveedor...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" id="observacionesCompra"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" onclick="registrarCompra()">Registrar Compra</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reversar Gasto -->
+    <div class="modal fade" id="modalReversarGasto" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reversar Gasto o Compra</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Reversar Gasto o Compra:</strong> Convierte un gasto o compra registrado de vuelta a stock de bodega.
+                        Esto crea un nuevo movimiento de reversión manteniendo la trazabilidad completa.
+                    </div>
+                    <form id="formReversarGasto">
+                        <div class="mb-3">
+                            <label class="form-label">Gasto o Compra a Reversar *</label>
+                            <select class="form-select" id="gastoReversar" required>
+                                <option value="">Seleccionar gasto o compra...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bodega Destino *</label>
+                            <select class="form-select" id="bodegaDestinoReversion" required>
+                                <option value="">Seleccionar bodega...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Motivo de la Reversión *</label>
+                            <input type="text" class="form-control" id="motivoReversion" required placeholder="Ej: Error en registro, Devolución de producto">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" id="observacionesReversion" placeholder="Detalles adicionales..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" onclick="reversarGasto()">Reversar Movimiento</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="admin_inventario_transferencias.js"></script>
+</body>
+</html>

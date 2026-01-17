@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Táctico 2025 - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script>
+        // Asegurar que ChartDataLabels esté disponible globalmente
+        window.ChartDataLabels = window.ChartDataLabels || (typeof ChartDataLabels !== 'undefined' ? ChartDataLabels : null);
+    </script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        window.firebaseAuth = auth;
+        
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            
+            if (document.body) {
+                document.body.style.display = 'none';
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            if (window.location.pathname.includes('iniciar_sesion.html')) {
+                window.authCheckInProgress = false;
+                return;
+            }
+            
+            let retries = 0;
+            const maxRetries = 100;
+            
+            while (retries < maxRetries) {
+                if (auth.currentUser) {
+                    console.log('✅ [REPORTE_TACTICO_SECURE] Usuario autenticado:', auth.currentUser.email);
+                    
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    if (document.body) {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+                    
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            console.log('❌ [REPORTE_TACTICO_SECURE] No autenticado después de esperar');
+            if (document.body) {
+                document.body.style.display = 'none';
+            }
+            
+            if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                try {
+                    sessionStorage.setItem('postLoginRedirect', window.location.href);
+                } catch (e) { console.error('Error saving redirect:', e); }
+                window.location.replace('iniciar_sesion.html');
+            }
+            
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body {
+            display: none !important;
+        }
+        body.authenticated {
+            display: block !important;
+        }
+        
+        .container-fluid {
+            padding: 20px;
+        }
+        
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        #graficoVentasPorDia {
+            max-height: 500px;
+        }
+        
+        .table th {
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        
+        .table td {
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+        
+        .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">🔥🪖 Táctico 2025</h2>
+            <a href="calendario.html" class="btn btn-primary-modern btn-modern">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Calendario
+            </a>
+        </div>
+        
+        <div class="card mb-4" id="cardVentasPorAño" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Ventas Totales por Año</h5>
+            </div>
+            <div class="card-body">
+                <div id="disclaimerSociosAño" class="mb-3">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        <strong>Confidencial:</strong> Solo visible para socios. Oculto para otros usuarios.
+                    </div>
+                </div>
+                <canvas id="graficoVentasPorAño"></canvas>
+            </div>
+        </div>
+        
+        <div class="card mb-4" id="cardVentasPorMes" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">Ventas por Mes (Comparativo Anual)</h5>
+            </div>
+            <div class="card-body">
+                <div id="disclaimerSocios" class="mb-3">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Información confidencial:</strong> Este gráfico solo es visible para socios y está oculto para otros usuarios.
+                    </div>
+                </div>
+                <canvas id="graficoVentasPorMes"></canvas>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label mb-2 fw-bold">Mes:</label>
+            <div id="botonesMeses" class="d-flex gap-2 flex-wrap mb-3">
+                <div class="text-muted">Cargando meses disponibles...</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Ventas por Día <span id="totalVentasGrafico" class="badge bg-light text-dark ms-2"></span></h5>
+            </div>
+            <div class="card-body">
+                <canvas id="graficoVentasPorDia"></canvas>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Análisis de Recurrencia</h5>
+                <small class="text-muted">Ranking según facturación relativa al promedio</small>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Seleccionar mes a analizar:</label>
+                    <div id="botonesMesRecurrencia" class="d-flex flex-wrap gap-2 mb-3">
+                        <!-- Los botones se generarán dinámicamente -->
+                    </div>
+                    <label class="form-label fw-bold">Filtrar por porcentaje del promedio:</label>
+                    <div id="botonesPorcentajeRecurrencia" class="d-flex flex-wrap gap-2 mb-3">
+                        <!-- Los botones se generarán dinámicamente -->
+                    </div>
+                    <div class="row align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Filtrar por vendedor:</label>
+                            <select id="filtroVendedorRecurrencia" class="form-select form-select-sm" onchange="aplicarFiltroVendedorRecurrencia()">
+                                <option value="">Todos los vendedores</option>
+                                <!-- Las opciones se generarán dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <div id="indicadorFiltroVendedor" class="text-muted small" style="display: none;">
+                                <i class="fas fa-filter me-1"></i>
+                                <span id="textoFiltroVendedor"></span>
+                                <button class="btn btn-sm btn-link p-0 ms-2" onclick="limpiarFiltroVendedor()" style="text-decoration: none;">
+                                    <i class="fas fa-times"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="tablaRecurrenciaContainer">
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-spinner fa-spin me-2"></i>Cargando análisis de recurrencia...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, collection, getDocs, query, where, orderBy, Timestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        
+        try {
+            const firebaseConfig = {
+                projectId: "cursorwebapp-f376d",
+                appId: "1:719990096116:web:07c1ff697e7655b2cd9ea1",
+                databaseURL: "https://cursorwebapp-f376d-default-rtdb.firebaseio.com",
+                storageBucket: "cursorwebapp-f376d.firebasestorage.app",
+                apiKey: "AIzaSyC-IQj0yHR8cELr-mw-v2xlnw6LlJYFUyk",
+                authDomain: "cursorwebapp-f376d.firebaseapp.com",
+                messagingSenderId: "719990096116",
+                measurementId: "G-DJXLKFR7CD"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            window.db = db;
+            window.Timestamp = Timestamp;
+            
+            let graficoVentasPorDia = null;
+            let graficoVentasPorMes = null;
+            let graficoVentasPorAño = null;
+            let mesSeleccionado = null; // Guardar mes seleccionado
+
+            // Función helper para extraer día en GMT-6 desde inicio_gmt6
+            // inicio_gmt6 es un Timestamp que representa hora en GMT-6
+            // Cuando se convierte a Date con toDate(), JavaScript lo interpreta como UTC
+            // Para obtener el día correcto en GMT-6, necesitamos restar 6 horas del timestamp UTC
+            // porque el timestamp UTC interno representa la hora GMT-6
+            function extraerDiaGMT6(timestamp) {
+                if (!timestamp) return null;
+                
+                const fechaUTC = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                
+                // inicio_gmt6 almacena hora en GMT-6, pero toDate() la interpreta como UTC
+                // Para extraer el día correcto en GMT-6, restamos 6 horas del timestamp UTC
+                // Ejemplo: Si es 31 oct 23:00 GMT-6, toDate() da 1 nov 05:00 UTC
+                // Restando 6 horas: 31 oct 23:00 UTC, que representa 31 oct 23:00 GMT-6 (correcto)
+                const ajusteGMT6 = -6 * 60 * 60 * 1000; // -6 horas en milisegundos
+                const fechaAjustada = new Date(fechaUTC.getTime() + ajusteGMT6);
+                
+                // Usar métodos UTC para obtener el día correcto después del ajuste
+                const año = fechaAjustada.getUTCFullYear();
+                const mes = fechaAjustada.getUTCMonth() + 1;
+                const dia = fechaAjustada.getUTCDate();
+                
+                return { año, mes, dia, fechaOriginal: fechaUTC, fechaAjustada };
+            }
+
+            // Función para verificar si el usuario es paniagua
+            function esUsuarioPaniagua() {
+                // Intentar obtener auth de diferentes fuentes
+                let auth = window.firebaseAuth;
+                if (!auth && window.authManager) {
+                    auth = window.authManager.auth || (window.authManager.getAuth ? window.authManager.getAuth() : null);
+                }
+                
+                // Si aún no hay auth, intentar desde el módulo auth-secure
+                if (!auth && typeof window !== 'undefined') {
+                    // Esperar un momento y volver a intentar
+                    const emailUsuario = auth?.currentUser?.email || '';
+                    if (emailUsuario) {
+                        return emailUsuario.toLowerCase().includes('paniagua');
+                    }
+                }
+                
+                const emailUsuario = auth?.currentUser?.email || '';
+                console.log('🔍 [VERIFICACION_PANIAGUA] Email usuario:', emailUsuario, 'Es paniagua:', emailUsuario.toLowerCase().includes('paniagua'));
+                return emailUsuario.toLowerCase().includes('paniagua');
+            }
+
+            // Función para cargar y mostrar ventas totales por año
+            async function cargarVentasPorAño() {
+                    // Asegurar que el plugin ChartDataLabels esté registrado
+                let ChartDataLabelsPlugin = null;
+                
+                // Intentar obtener el plugin de diferentes fuentes
+                if (typeof ChartDataLabels !== 'undefined') {
+                    ChartDataLabelsPlugin = ChartDataLabels;
+                } else if (window.ChartDataLabels) {
+                    ChartDataLabelsPlugin = window.ChartDataLabels;
+                } else if (typeof Chart !== 'undefined' && Chart.registry && Chart.registry.plugins) {
+                    // Buscar el plugin en el registro
+                    const plugin = Chart.registry.plugins.get('datalabels');
+                    if (plugin) ChartDataLabelsPlugin = plugin;
+                }
+                
+                console.log('🔍 [CHART_DATA_LABELS] Plugin disponible:', {
+                    ChartDataLabels: typeof ChartDataLabels !== 'undefined',
+                    windowChartDataLabels: !!window.ChartDataLabels,
+                    ChartDataLabelsPlugin: !!ChartDataLabelsPlugin
+                });
+                
+                if (ChartDataLabelsPlugin && typeof Chart !== 'undefined') {
+                    try {
+                        Chart.register(ChartDataLabelsPlugin);
+                        console.log('✅ Plugin datalabels registrado para gráfico de ventas por año');
+                    } catch (e) {
+                        console.log('⚠️ Plugin datalabels ya registrado o error:', e);
+                    }
+                } else {
+                    console.warn('⚠️ Plugin ChartDataLabels no disponible. Intentando usar configuración alternativa.');
+                }
+                
+                const cardVentasPorAño = document.getElementById('cardVentasPorAño');
+                const disclaimerSociosAño = document.getElementById('disclaimerSociosAño');
+                const canvasGraficoAño = document.getElementById('graficoVentasPorAño');
+                
+                // Verificar si el usuario es paniagua
+                const esPaniagua = esUsuarioPaniagua();
+                
+                if (!esPaniagua) {
+                    // Ocultar completamente el card si no es paniagua (ya está oculto por defecto)
+                    if (cardVentasPorAño) cardVentasPorAño.style.display = 'none';
+                    return; // No cargar el gráfico
+                }
+                
+                // Usuario es paniagua: mostrar card, gráfico y disclaimer
+                if (cardVentasPorAño) cardVentasPorAño.style.display = 'block';
+                if (canvasGraficoAño) canvasGraficoAño.style.display = 'block';
+                if (disclaimerSociosAño) disclaimerSociosAño.style.display = 'block';
+                
+                try {
+                    // Datos históricos fijos (2019-2022)
+                    const ventasPorAño = {
+                        2019: 1602908,
+                        2020: 6025453,
+                        2021: 32129323,
+                        2022: 116614101,
+                        2023: 0,
+                        2024: 0,
+                        2025: 0,
+                        2026: 0
+                    };
+
+                    // Consultar todas las citas desde 2023 para obtener datos reales
+                    const fechaInicio = new Date(2023, 0, 1, 0, 0, 0, 0); // 1 enero 2023
+                    const fechaFin = new Date(2026, 11, 31, 23, 59, 59, 999); // 31 diciembre 2026
+                    
+                    const inicioTimestamp = Timestamp.fromDate(fechaInicio);
+                    const finTimestamp = Timestamp.fromDate(fechaFin);
+
+                    const q = query(
+                        collection(db, 'citas'),
+                        where('inicio_gmt6', '>=', inicioTimestamp),
+                        where('inicio_gmt6', '<=', finTimestamp)
+                    );
+
+                    const querySnapshot = await getDocs(q);
+
+                    querySnapshot.forEach(doc => {
+                        const cita = doc.data();
+                        const monto = cita.metadata?.monto || 0;
+                        if (monto <= 0) return;
+
+                        const diaInfo = extraerDiaGMT6(cita.inicio_gmt6);
+                        if (!diaInfo) return;
+
+                        const año = diaInfo.año;
+                        if (ventasPorAño.hasOwnProperty(año)) {
+                            ventasPorAño[año] += monto;
+                        }
+                    });
+
+                    // Función para obtener color por año
+                    function obtenerColorPorAño(año) {
+                        if (año === 2019) {
+                            return `rgb(120, 120, 120)`; // Gris medio para años históricos antiguos
+                        } else if (año === 2020) {
+                            return `rgb(140, 140, 140)`; // Gris medio-claro
+                        } else if (año === 2021) {
+                            return `rgb(160, 160, 160)`; // Gris claro
+                        } else if (año === 2022) {
+                            return `rgb(180, 180, 180)`; // Gris más claro
+                        } else if (año === 2023) {
+                            return `rgb(97, 97, 97)`; // Gris oscuro
+                        } else if (año === 2024) {
+                            return `rgb(135, 206, 250)`; // Celeste
+                        } else if (año === 2025) {
+                            return `rgb(25, 118, 210)`; // Azul oscuro
+                        } else if (año === 2026) {
+                            return `rgb(27, 94, 32)`; // Verde oscuro
+                        }
+                        return `rgb(158, 158, 158)`; // Gris por defecto
+                    }
+
+                    // Función para convertir número a texto legible en español
+                    function numeroATexto(monto) {
+                        const millones = monto / 1000000;
+                        const parteEntera = Math.floor(millones);
+                        
+                        // Números simples
+                        const unidades = ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
+                        const decenas = ['', 'diez', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+                        const decenasEspeciales = ['', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve'];
+                        const centenas = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 
+                                        'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+                        
+                        function convertirNumero(num) {
+                            if (num === 0) return '';
+                            if (num === 100) return 'cien';
+                            if (num < 10) return unidades[num];
+                            if (num < 20) return decenasEspeciales[num - 10];
+                            if (num < 100) {
+                                const d = Math.floor(num / 10);
+                                const u = num % 10;
+                                if (u === 0) return decenas[d];
+                                return decenas[d] + ' y ' + unidades[u];
+                            }
+                            if (num < 1000) {
+                                const c = Math.floor(num / 100);
+                                const resto = num % 100;
+                                if (resto === 0) return centenas[c];
+                                return centenas[c] + ' ' + convertirNumero(resto);
+                            }
+                            if (num < 2000) {
+                                const resto = num % 1000;
+                                if (resto === 0) return 'mil';
+                                return 'mil ' + convertirNumero(resto);
+                            }
+                            if (num < 1000000) {
+                                const miles = Math.floor(num / 1000);
+                                const resto = num % 1000;
+                                let texto = convertirNumero(miles) + ' mil';
+                                if (resto > 0) {
+                                    texto += ' ' + convertirNumero(resto);
+                                }
+                                return texto;
+                            }
+                            return num.toString();
+                        }
+                        
+                        const texto = convertirNumero(parteEntera);
+                        
+                        // Ajustar "un millón" vs "millones"
+                        if (parteEntera === 1) {
+                            return 'un millón';
+                        } else {
+                            return texto + ' millones';
+                        }
+                    }
+
+                    // Preparar datos para Chart.js
+                    const años = Object.keys(ventasPorAño).map(Number).sort();
+                    const datos = años.map(año => ventasPorAño[año]);
+                    const colores = años.map(año => obtenerColorPorAño(año));
+                    const totalGeneral = datos.reduce((sum, val) => sum + val, 0);
+                    const totalEnTexto = numeroATexto(totalGeneral);
+                    
+                    console.log('📊 [VENTAS_POR_AÑO] Datos preparados:', { años, datos, totalGeneral });
+
+                    // Crear o actualizar gráfico
+                    const canvas = document.getElementById('graficoVentasPorAño');
+                    if (!canvas) return;
+
+                    const ctx = canvas.getContext('2d');
+
+                    if (graficoVentasPorAño) {
+                        graficoVentasPorAño.destroy();
+                    }
+
+                    // Preparar datos para la meta de 2026
+                    const meta2026 = 500000000; // 500 millones
+                    // Línea solo sobre 2026 (null en otros años)
+                    const metaDataLine = años.map((año) => {
+                        if (año === 2026) {
+                            return meta2026;
+                        }
+                        return null;
+                    });
+                    const metaDataPoint = años.map((año) => {
+                        if (año === 2026) {
+                            return meta2026;
+                        }
+                        return null;
+                    });
+
+                    graficoVentasPorAño = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: años.map(a => a.toString()),
+                            datasets: [
+                                {
+                                    label: 'Ventas Totales',
+                                    data: datos,
+                                    backgroundColor: colores,
+                                    borderWidth: 0,
+                                    order: 2
+                                },
+                                {
+                                    label: 'Meta 2026',
+                                    data: metaDataLine,
+                                    type: 'line',
+                                    borderColor: '#2e7d32',
+                                    borderWidth: 3,
+                                    borderDash: [8, 4],
+                                    pointRadius: 8,
+                                    pointHoverRadius: 10,
+                                    pointBackgroundColor: '#2e7d32',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2,
+                                    fill: false,
+                                    order: 0,
+                                    tension: 0,
+                                    spanGaps: true
+                                },
+                                {
+                                    label: 'Meta 2026',
+                                    data: metaDataPoint,
+                                    type: 'scatter',
+                                    pointRadius: 16,
+                                    pointHoverRadius: 20,
+                                    pointStyle: 'star',
+                                    backgroundColor: '#2e7d32',
+                                    borderColor: '#fff',
+                                    borderWidth: 3,
+                                    order: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'bottom',
+                                    labels: {
+                                        filter: (item, chart) => {
+                                            // Solo mostrar la leyenda para la meta
+                                            return item.datasetIndex === 1 || item.datasetIndex === 2;
+                                        },
+                                        generateLabels: (chart) => {
+                                            return [{
+                                                text: '🎯 Meta 2026: ₡500M (Objetivo retador)',
+                                                fillStyle: '#2e7d32',
+                                                strokeStyle: '#2e7d32',
+                                                lineWidth: 2,
+                                                hidden: false
+                                            }];
+                                        },
+                                        font: {
+                                            size: 12,
+                                            weight: 'bold'
+                                        },
+                                        color: '#2e7d32',
+                                        padding: 15
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: [
+                                        `Total Histórico: ₡${(totalGeneral / 1000000).toFixed(1)}M`,
+                                        `(${totalEnTexto} de colones)`
+                                    ],
+                                    font: {
+                                        size: 24,
+                                        weight: 'bold'
+                                    },
+                                    color: '#1976d2',
+                                    padding: {
+                                        top: 20,
+                                        bottom: 10
+                                    },
+                                    fullSize: true
+                                },
+                                datalabels: {
+                                    enabled: true,
+                                    anchor: (context) => {
+                                        // Para barras, usar 'end' para que aparezcan arriba
+                                        if (context && context.datasetIndex === 0) return 'end';
+                                        // Para meta
+                                        if (context && (context.datasetIndex === 1 || context.datasetIndex === 2)) return 'end';
+                                        return 'end';
+                                    },
+                                    align: (context) => {
+                                        // Para barras, alinear arriba
+                                        if (context && context.datasetIndex === 0) return 'top';
+                                        // Para meta
+                                        if (context && (context.datasetIndex === 1 || context.datasetIndex === 2)) return 'top';
+                                        return 'top';
+                                    },
+                                    offset: 8,
+                                    clamp: false,
+                                    clip: false,
+                                    formatter: (value, context) => {
+                                        // Log para depuración
+                                        if (context && context.datasetIndex === 0) {
+                                            console.log('🔍 [DATALABELS] Formatter llamado:', { value, datasetIndex: context.datasetIndex, dataIndex: context.dataIndex });
+                                        }
+                                        
+                                        // Verificar que value sea válido
+                                        if (value === null || value === undefined) return '';
+                                        
+                                        // Para el dataset de meta (línea y punto), mostrar "Meta"
+                                        if (context && (context.datasetIndex === 1 || context.datasetIndex === 2)) {
+                                            return 'Meta';
+                                        }
+                                        
+                                        // Para las barras normales - siempre mostrar el valor
+                                        const numValue = typeof value === 'number' ? value : parseFloat(value);
+                                        if (isNaN(numValue)) {
+                                            console.warn('⚠️ [DATALABELS] Valor no numérico:', value);
+                                            return '';
+                                        }
+                                        
+                                        if (numValue === 0) return '₡0';
+                                        if (numValue >= 1000000) {
+                                            return `₡${(numValue / 1000000).toFixed(1)}M`;
+                                        } else if (numValue >= 1000) {
+                                            return `₡${(numValue / 1000).toFixed(0)}K`;
+                                        } else {
+                                            return `₡${numValue.toLocaleString('es-CR')}`;
+                                        }
+                                    },
+                                    color: (context) => {
+                                        // Color especial para la meta (verde)
+                                        if (context && (context.datasetIndex === 1 || context.datasetIndex === 2)) {
+                                            return '#2e7d32';
+                                        }
+                                        
+                                        // Para las barras, usar negro para mejor visibilidad
+                                        return '#000000';
+                                    },
+                                    font: {
+                                        weight: 'bold',
+                                        size: (context) => {
+                                            // Texto más grande para la meta (línea y punto)
+                                            return (context.datasetIndex === 1 || context.datasetIndex === 2) ? 16 : 12;
+                                        }
+                                    },
+                                    display: (context) => {
+                                        if (!context) return false;
+                                        
+                                        // Para el dataset de meta (línea y punto), mostrar solo si tiene valor
+                                        if (context.datasetIndex === 1 || context.datasetIndex === 2) {
+                                            const value = context.parsed?.y ?? context.dataset?.data[context.dataIndex];
+                                            return value !== null && value !== undefined;
+                                        }
+                                        
+                                        // Para las barras (datasetIndex === 0), SIEMPRE mostrar
+                                        if (context.datasetIndex === 0) {
+                                            return true; // Siempre mostrar para barras
+                                        }
+                                        
+                                        return true;
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    ticks: {
+                                        color: '#212529',
+                                        font: {
+                                            size: 12
+                                        }
+                                    },
+                                    grid: {
+                                        display: false
+                                    }
+                                },
+                                y: {
+                                    ticks: {
+                                        color: '#212529',
+                                        callback: function(value) {
+                                            if (value >= 1000000) {
+                                                return `₡${(value / 1000000).toFixed(1)}M`;
+                                            } else if (value >= 1000) {
+                                                return `₡${(value / 1000).toFixed(0)}K`;
+                                            }
+                                            return `₡${value}`;
+                                        }
+                                    },
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Forzar actualización para renderizar las etiquetas
+                    graficoVentasPorAño.update();
+                    
+                    // Verificar que el plugin esté aplicado
+                    try {
+                        const pluginsList = Chart.registry?.plugins ? Object.keys(Chart.registry.plugins._elements || {}) : [];
+                        console.log('🔍 [CHART_DATA_LABELS] Gráfico creado y actualizado. Plugins disponibles:', pluginsList);
+                        console.log('🔍 [CHART_DATA_LABELS] Configuración datalabels:', graficoVentasPorAño.options?.plugins?.datalabels);
+                        console.log('🔍 [CHART_DATA_LABELS] Datasets:', graficoVentasPorAño.data?.datasets?.length);
+                        console.log('🔍 [CHART_DATA_LABELS] Canvas size:', { width: canvas.width, height: canvas.height });
+                    } catch (e) {
+                        console.log('🔍 [CHART_DATA_LABELS] No se pudo obtener info de plugins:', e);
+                    }
+
+                } catch (error) {
+                    console.error('Error cargando ventas por año:', error);
+                }
+            }
+
+            // Función para cargar y mostrar ventas por mes (comparativo anual)
+            async function cargarVentasPorMes() {
+                const cardVentasPorMes = document.getElementById('cardVentasPorMes');
+                const disclaimerSocios = document.getElementById('disclaimerSocios');
+                const canvasGrafico = document.getElementById('graficoVentasPorMes');
+                
+                // Verificar si el usuario es paniagua
+                const esPaniagua = esUsuarioPaniagua();
+                
+                if (!esPaniagua) {
+                    // Ocultar completamente el card si no es paniagua (ya está oculto por defecto)
+                    if (cardVentasPorMes) cardVentasPorMes.style.display = 'none';
+                    return; // No cargar el gráfico
+                }
+                
+                // Usuario es paniagua: mostrar card, gráfico y disclaimer
+                if (cardVentasPorMes) cardVentasPorMes.style.display = 'block';
+                if (canvasGrafico) canvasGrafico.style.display = 'block';
+                if (disclaimerSocios) disclaimerSocios.style.display = 'block';
+                
+                try {
+                    // Consultar todas las citas desde 2023
+                    const fechaInicio = new Date(2023, 0, 1, 0, 0, 0, 0); // 1 enero 2023
+                    const fechaFin = new Date(2026, 11, 31, 23, 59, 59, 999); // 31 diciembre 2026
+                    
+                    const inicioTimestamp = Timestamp.fromDate(fechaInicio);
+                    const finTimestamp = Timestamp.fromDate(fechaFin);
+
+                    const q = query(
+                        collection(db, 'citas'),
+                        where('inicio_gmt6', '>=', inicioTimestamp),
+                        where('inicio_gmt6', '<=', finTimestamp)
+                    );
+
+                    const querySnapshot = await getDocs(q);
+                    const citas = [];
+                    querySnapshot.forEach(doc => {
+                        citas.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    console.log(`📊 Cargadas ${citas.length} citas para gráfico de ventas por mes`);
+
+                    // Agrupar ventas por año y mes
+                    const ventasPorMes = {};
+                    const años = [2023, 2024, 2025, 2026];
+                    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                                  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+                    // Inicializar estructura con ceros
+                    años.forEach(año => {
+                        ventasPorMes[año] = {};
+                        for (let mes = 1; mes <= 12; mes++) {
+                            ventasPorMes[año][mes] = 0;
+                        }
+                    });
+
+                    // Procesar citas
+                    citas.forEach(cita => {
+                        const monto = cita.metadata?.monto || 0;
+                        if (monto <= 0) return;
+
+                        if (!cita.inicio_gmt6) return;
+                        
+                        const diaInfo = extraerDiaGMT6(cita.inicio_gmt6);
+                        if (!diaInfo) return;
+
+                        const año = diaInfo.año;
+                        const mes = diaInfo.mes;
+
+                        if (años.includes(año) && mes >= 1 && mes <= 12) {
+                            ventasPorMes[año][mes] += monto;
+                        }
+                    });
+
+                    // Función helper para oscurecer un color RGB
+                    function oscurecerColor(colorString) {
+                        // Soporta tanto rgb() como rgba()
+                        const match = colorString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+                        if (!match) return '#333333';
+                        
+                        const r = Math.max(0, parseInt(match[1]) - 40);
+                        const g = Math.max(0, parseInt(match[2]) - 40);
+                        const b = Math.max(0, parseInt(match[3]) - 40);
+                        
+                        return `rgb(${r}, ${g}, ${b})`;
+                    }
+
+                    // Función para generar color en degradado desde gris (2023) hasta azul oscuro (2025)
+                    function obtenerColorPorAño(año) {
+                        // Paleta de colores diferenciada según especificación
+                        // 2023: Gris oscuro
+                        if (año === 2023) {
+                            return `rgb(97, 97, 97)`; // Gris oscuro
+                        }
+                        // 2024: Celeste
+                        else if (año === 2024) {
+                            return `rgb(135, 206, 250)`; // Celeste (sky blue)
+                        }
+                        // 2025: Azul oscuro (protagonista principal)
+                        else if (año === 2025) {
+                            return `rgb(25, 118, 210)`; // Azul oscuro Material Design
+                        }
+                        // 2026: Verde oscuro (protagonista secundario)
+                        else if (año === 2026) {
+                            return `rgb(27, 94, 32)`; // Verde oscuro Material Design
+                        }
+                        // Años futuros: usar un color neutro
+                        else if (año > 2026) {
+                            return `rgb(156, 39, 176)`; // Púrpura suave para años futuros
+                        }
+                        // Años anteriores a 2023: gris más apagado
+                        else {
+                            return `rgb(158, 158, 158)`; // Gris medio
+                        }
+                    }
+
+                    // Preparar datos para Chart.js
+                    const datasets = años.map(año => {
+                        const data = [];
+                        for (let mes = 1; mes <= 12; mes++) {
+                            data.push(ventasPorMes[año][mes]);
+                        }
+
+                        // Dar protagonismo a 2025 y 2026
+                        const esPrincipal = año === 2025 || año === 2026;
+                        
+                        // Colores sólidos con degradado desde gris (2023) hasta azul oscuro (2025)
+                        const backgroundColor = obtenerColorPorAño(año);
+                        
+                        return {
+                            label: año.toString(),
+                            data: data,
+                            backgroundColor: backgroundColor,
+                            borderWidth: 0,
+                            barThickness: esPrincipal ? 'flex' : 20,
+                            maxBarThickness: esPrincipal ? 50 : 30,
+                            // Color para las etiquetas (más oscuro que la barra)
+                            datalabelsColor: oscurecerColor(backgroundColor)
+                        };
+                    });
+
+                    // Crear o actualizar gráfico
+                    const canvas = document.getElementById('graficoVentasPorMes');
+                    if (!canvas) return;
+
+                    const ctx = canvas.getContext('2d');
+
+                    if (graficoVentasPorMes) {
+                        graficoVentasPorMes.destroy();
+                    }
+
+                    graficoVentasPorMes = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: meses,
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        color: '#000000',
+                                        font: {
+                                            size: 12
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const valor = context.parsed.y;
+                                            return `${context.dataset.label}: ₡${(valor / 1000000).toFixed(1)}M`;
+                                        }
+                                    }
+                                },
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'top',
+                                    offset: 4,
+                                    formatter: function(value, context) {
+                                        if (value === 0) return ''; // No mostrar etiqueta si es 0
+                                        if (value >= 1000000) {
+                                            return `₡${(value / 1000000).toFixed(1)}M`;
+                                        } else if (value >= 1000) {
+                                            return `₡${(value / 1000).toFixed(0)}K`;
+                                        } else {
+                                            return `₡${value}`;
+                                        }
+                                    },
+                                    color: function(context) {
+                                        // Usar el color oscurecido de cada dataset
+                                        const datasetIndex = context.datasetIndex;
+                                        return datasets[datasetIndex].datalabelsColor;
+                                    },
+                                    font: {
+                                        weight: 'bold',
+                                        size: 11
+                                    },
+                                    padding: {
+                                        top: 2,
+                                        bottom: 2
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    stacked: false,
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#000000',
+                                        font: {
+                                            size: 12
+                                        }
+                                    },
+                                    border: {
+                                        color: '#000000'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#000000',
+                                        font: {
+                                            size: 12
+                                        },
+                                        callback: function(value) {
+                                            return `₡${(value / 1000000).toFixed(1)}M`;
+                                        }
+                                    },
+                                    border: {
+                                        color: '#000000'
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    console.log('✅ Gráfico de ventas por mes creado');
+
+                } catch (error) {
+                    console.error('❌ Error cargando ventas por mes:', error);
+                }
+            }
+
+            // Función para formatear mes en formato corto (Ene-2025)
+            function formatearMesCorto(año, mes) {
+                const mesesCortos = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                                     'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                return `${mesesCortos[mes - 1]}-${año}`;
+            }
+
+            // Función para cargar meses disponibles (solo meses con ventas)
+            async function cargarMesesDisponibles() {
+                const container = document.getElementById('botonesMeses');
+                if (!container) return;
+
+                try {
+                    container.innerHTML = '<div class="text-muted small">Buscando meses con datos...</div>';
+
+                    // Consultar todas las citas para encontrar meses con ventas
+                    const q = query(collection(db, 'citas'), orderBy('inicio_gmt6', 'desc'));
+                    const querySnapshot = await getDocs(q);
+                    
+                    const mesesConData = new Set();
+                    
+                    querySnapshot.forEach(doc => {
+                        const cita = doc.data();
+                        const monto = cita.metadata?.monto || 0;
+                        if (monto <= 0) return; // Solo meses con ventas
+
+                        if (!cita.inicio_gmt6) return;
+                        const diaInfo = extraerDiaGMT6(cita.inicio_gmt6);
+                        if (!diaInfo) return;
+
+                        const mesKey = `${diaInfo.año}-${String(diaInfo.mes).padStart(2, '0')}`;
+                        mesesConData.add(mesKey);
+                    });
+
+                    // Obtener mes actual para pre-seleccionarlo
+                    const ahora = new Date();
+                    const mesActual = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+
+                    // Generar tabla 4 filas (años) x 12 columnas (meses)
+                    const años = [2023, 2024, 2025, 2026];
+                    const meses = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+                    const mesesNombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                                         'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+                    let tablaHTML = '<table class="table table-sm table-bordered mb-0" style="font-size: 0.85rem;">';
+                    tablaHTML += '<thead><tr><th style="width: 80px;">Año</th>';
+                    mesesNombres.forEach(mes => {
+                        tablaHTML += `<th class="text-center" style="min-width: 70px;">${mes}</th>`;
+                    });
+                    tablaHTML += '</tr></thead><tbody>';
+
+                    años.forEach(año => {
+                        tablaHTML += `<tr><td class="fw-bold">${año}</td>`;
+                        meses.forEach(mes => {
+                            const mesKey = `${año}-${String(mes).padStart(2, '0')}`;
+                            const tieneData = mesesConData.has(mesKey);
+                            const esActual = mesKey === mesActual;
+                            
+                            if (esActual && tieneData) {
+                                mesSeleccionado = mesKey;
+                            }
+
+                            const textoBoton = formatearMesCorto(año, mes);
+                            const disabled = !tieneData ? 'disabled' : '';
+                            const claseBtn = esActual && tieneData 
+                                ? 'btn-primary-modern' 
+                                : tieneData 
+                                    ? 'btn-outline-primary-modern' 
+                                    : 'btn-outline-secondary';
+                            const estilo = !tieneData ? 'opacity: 0.4; cursor: not-allowed;' : '';
+
+                            tablaHTML += `<td class="text-center p-1">
+                                <button 
+                                    type="button"
+                                    class="btn btn-sm ${claseBtn} btn-modern w-100 ${esActual && tieneData ? 'active' : ''}"
+                                    data-mes="${mesKey}"
+                                    ${disabled}
+                                    style="${estilo}"
+                                    ${tieneData ? `onclick="seleccionarMesVentas('${mesKey}')"` : ''}
+                                >
+                                    ${textoBoton}
+                                </button>
+                            </td>`;
+                        });
+                        tablaHTML += '</tr>';
+                    });
+
+                    tablaHTML += '</tbody></table>';
+                    container.innerHTML = tablaHTML;
+
+                    // Si hay mes actual, cargar automáticamente
+                    if (mesActual && mesesConData.has(mesActual)) {
+                        await cargarReporteTactico();
+                    } else if (mesesConData.size > 0) {
+                        // Cargar el primer mes disponible
+                        const primerMes = Array.from(mesesConData).sort()[0];
+                        mesSeleccionado = primerMes;
+                        await cargarReporteTactico();
+                    }
+
+                } catch (error) {
+                    console.error('Error cargando meses disponibles:', error);
+                    container.innerHTML = '<div class="text-danger small">Error cargando meses: ' + error.message + '</div>';
+                }
+            }
+
+            // Función para seleccionar mes en el gráfico de ventas
+            window.seleccionarMesVentas = function(mesKey) {
+                const container = document.getElementById('botonesMeses');
+                if (!container) return;
+
+                // Remover clase active de todos los botones
+                container.querySelectorAll('button').forEach(b => {
+                    b.classList.remove('active', 'btn-primary-modern');
+                    if (!b.disabled) {
+                        b.classList.add('btn-outline-primary-modern');
+                    }
+                });
+
+                // Agregar clase active al botón clickeado
+                const btn = container.querySelector(`button[data-mes="${mesKey}"]`);
+                if (btn && !btn.disabled) {
+                    btn.classList.remove('btn-outline-primary-modern');
+                    btn.classList.add('active', 'btn-primary-modern');
+                }
+
+                mesSeleccionado = mesKey;
+                cargarReporteTactico();
+            };
+
+            // Registrar plugin de datalabels
+            if (typeof Chart !== 'undefined' && Chart.register) {
+                // Intentar registrar el plugin si está disponible
+                if (typeof ChartDataLabels !== 'undefined') {
+                    Chart.register(ChartDataLabels);
+                    console.log('✅ Plugin datalabels registrado');
+                } else {
+                    console.warn('⚠️ Plugin datalabels no disponible');
+                }
+            }
+
+            // Función para formatear moneda
+            function formatearMoneda(valor) {
+                if (valor >= 1000000) {
+                    const millones = valor / 1000000;
+                    return `₡${millones.toFixed(1)}M`;
+                } else if (valor >= 1000) {
+                    const miles = valor / 1000;
+                    return `₡${miles.toFixed(1)}K`;
+                } else {
+                    return new Intl.NumberFormat('es-CR', {
+                        style: 'currency',
+                        currency: 'CRC',
+                        minimumFractionDigits: 0
+                    }).format(valor);
+                }
+            }
+
+            // Función para cargar reporte táctico
+            async function cargarReporteTactico() {
+                if (!mesSeleccionado) {
+                    console.warn('⚠️ No hay mes seleccionado');
+                    return;
+                }
+
+                try {
+                    const [año, mes] = mesSeleccionado.split('-').map(Number);
+                    // Crear fechas en hora local (medianoche) para evitar problemas de timezone
+                    const fechaInicio = new Date(año, mes - 1, 1, 0, 0, 0, 0);
+                    // Calcular último día del mes: new Date(año, mes, 0) da el último día del mes anterior
+                    // Para obtener el último día del mes actual, usar mes (sin restar 1) y día 0 del siguiente mes
+                    const ultimoDiaDelMes = new Date(año, mes, 0).getDate(); // Número del último día (28, 29, 30, o 31)
+                    const fechaFin = new Date(año, mes - 1, ultimoDiaDelMes, 23, 59, 59, 999);
+                    const ahora = new Date();
+                    
+                    const esMesActual = año === ahora.getFullYear() && mes === ahora.getMonth() + 1;
+                    // Si es el mes actual, usar hasta el final del día actual (23:59:59), no la hora actual
+                    let fechaHasta = fechaFin;
+                    if (esMesActual) {
+                        // Usar el final del día actual (23:59:59) en lugar de la hora actual
+                        const finDiaActual = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 23, 59, 59, 999);
+                        fechaHasta = finDiaActual;
+                        console.log('🔍 [DEBUG] Mes actual detectado:', {
+                            ahora: ahora.toISOString(),
+                            ahoraLocal: `${ahora.getFullYear()}-${ahora.getMonth() + 1}-${ahora.getDate()}`,
+                            finDiaActual: finDiaActual.toISOString(),
+                            fechaHasta: fechaHasta.toISOString(),
+                            ultimoDiaDelMes,
+                            fechaFin: fechaFin.toISOString()
+                        });
+                    }
+
+                    const inicioTimestamp = Timestamp.fromDate(fechaInicio);
+                    const finTimestamp = Timestamp.fromDate(fechaHasta);
+
+                    const q = query(
+                        collection(db, 'citas'),
+                        where('inicio_gmt6', '>=', inicioTimestamp),
+                        where('inicio_gmt6', '<=', finTimestamp)
+                    );
+
+                    const querySnapshot = await getDocs(q);
+                    const citas = [];
+                    querySnapshot.forEach(doc => {
+                        citas.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    console.log('📅 Filtro de fechas:', {
+                        mesSeleccionado: `${año}-${String(mes).padStart(2, '0')}`,
+                        fechaInicio: fechaInicio.toISOString(),
+                        fechaInicioLocal: `${fechaInicio.getFullYear()}-${fechaInicio.getMonth() + 1}-${fechaInicio.getDate()}`,
+                        fechaFin: fechaFin.toISOString(),
+                        fechaFinLocal: `${fechaFin.getFullYear()}-${fechaFin.getMonth() + 1}-${fechaFin.getDate()}`,
+                        fechaHasta: fechaHasta.toISOString(),
+                        fechaHastaLocal: `${fechaHasta.getFullYear()}-${fechaHasta.getMonth() + 1}-${fechaHasta.getDate()}`,
+                        esMesActual,
+                        diaActual: ahora.getDate(),
+                        ultimoDiaMes: ultimoDiaDelMes,
+                        totalCitas: citas.length
+                    });
+
+                    // Procesar ventas por día (solo del mes seleccionado)
+                    const ventasPorDia = {};
+                    const mesKey = `${año}-${String(mes).padStart(2, '0')}`;
+                    
+                    console.log(`📊 Procesando ${citas.length} citas para mes ${mesKey}`);
+                    
+                    // Estadísticas para diagnóstico
+                    let citasExcluidasMonto = 0;
+                    let citasExcluidasFecha = 0;
+                    let totalMontoExcluido = 0;
+                    let totalMontoIncluido = 0;
+                    let citasSinMetadata = 0;
+                    let citasConMontoCero = 0;
+                    let citasConMontoNegativo = 0;
+                    let totalMontoCero = 0;
+                    let totalMontoNegativo = 0;
+                    
+                    citas.forEach(cita => {
+                        const monto = cita.metadata?.monto || 0;
+                        
+                        // Verificar si tiene metadata
+                        if (!cita.metadata) {
+                            citasSinMetadata++;
+                            return;
+                        }
+                        
+                        if (monto <= 0) {
+                            citasExcluidasMonto++;
+                            if (monto === 0) {
+                                citasConMontoCero++;
+                            } else {
+                                citasConMontoNegativo++;
+                                totalMontoNegativo += monto;
+                            }
+                            return;
+                        }
+
+                        // Usar función helper para extraer día correcto en GMT-6
+                        let diaKey = null;
+                        if (cita.inicio_gmt6) {
+                            const diaInfo = extraerDiaGMT6(cita.inicio_gmt6);
+                            if (diaInfo) {
+                                diaKey = `${diaInfo.año}-${String(diaInfo.mes).padStart(2, '0')}-${String(diaInfo.dia).padStart(2, '0')}`;
+                                
+                                // Debug para días problemáticos
+                                if ((diaInfo.dia === 31 && diaInfo.mes === 12 && diaInfo.año === 2025) || 
+                                    (diaInfo.dia === 30 && diaInfo.mes === 11 && diaInfo.año === 2025)) {
+                                    console.log('🔍 [DEBUG] Cita encontrada:', {
+                                        citaId: cita.id,
+                                        diaInfo,
+                                        diaKey,
+                                        mesKey,
+                                        coincide: diaKey.startsWith(mesKey),
+                                        fechaOriginal: diaInfo.fechaOriginal.toISOString(),
+                                        fechaAjustada: diaInfo.fechaAjustada.toISOString(),
+                                        monto
+                                    });
+                                }
+                            }
+                        }
+                        
+                        // Si no se pudo extraer el día, usar fallback
+                        if (!diaKey) {
+                            const fechaInicio = cita.inicio_gmt6?.toDate() || new Date();
+                            const añoCita = fechaInicio.getFullYear();
+                            const mesCita = fechaInicio.getMonth() + 1;
+                            const diaCita = fechaInicio.getDate();
+                            diaKey = `${añoCita}-${String(mesCita).padStart(2, '0')}-${String(diaCita).padStart(2, '0')}`;
+                            console.warn('⚠️ Usando fallback para fecha:', { citaId: cita.id, diaKey });
+                        }
+                        
+                        // Filtrar solo días del mes seleccionado
+                        if (!diaKey.startsWith(mesKey)) {
+                            citasExcluidasFecha++;
+                            totalMontoExcluido += monto;
+                            console.log(`⚠️ Saltando día fuera del mes: ${diaKey} (mes seleccionado: ${mesKey}), monto: ${monto}`);
+                            return;
+                        }
+                        
+                        if (!ventasPorDia[diaKey]) {
+                            ventasPorDia[diaKey] = 0;
+                        }
+                        ventasPorDia[diaKey] += monto;
+                        totalMontoIncluido += monto;
+                    });
+                    
+                    // Mostrar estadísticas de diagnóstico
+                    console.log('📊 [DIAGNÓSTICO] Estadísticas de procesamiento:', {
+                        totalCitas: citas.length,
+                        citasIncluidas: citas.length - citasExcluidasMonto - citasExcluidasFecha - citasSinMetadata,
+                        citasExcluidasMonto,
+                        citasConMontoCero,
+                        citasConMontoNegativo,
+                        citasExcluidasFecha,
+                        citasSinMetadata,
+                        totalMontoIncluido: totalMontoIncluido,
+                        totalMontoIncluidoFormateado: `₡${(totalMontoIncluido / 1000000).toFixed(1)}M`,
+                        totalMontoExcluido: totalMontoExcluido,
+                        totalMontoExcluidoFormateado: `₡${(totalMontoExcluido / 1000000).toFixed(1)}M`,
+                        totalMontoTodasLasCitas: totalMontoIncluido + totalMontoExcluido,
+                        totalMontoTodasLasCitasFormateado: `₡${((totalMontoIncluido + totalMontoExcluido) / 1000000).toFixed(1)}M`,
+                        diferencia: totalMontoExcluido,
+                        diferenciaFormateada: `₡${(totalMontoExcluido / 1000000).toFixed(1)}M`
+                    });
+                    
+                    console.log(`✅ Días con ventas encontrados:`, Object.keys(ventasPorDia).sort());
+
+                    // Ordenar por fecha y filtrar solo días del mes seleccionado
+                    const ventasOrdenadas = Object.entries(ventasPorDia)
+                        .filter(([dia]) => dia.startsWith(mesKey)) // Filtro adicional por seguridad
+                        .sort(([a], [b]) => a.localeCompare(b))
+                        .map(([dia, ventas]) => ({ dia, ventas }));
+
+                    // Calcular total de ventas
+                    const totalVentas = ventasOrdenadas.reduce((sum, { ventas }) => sum + ventas, 0);
+                    
+                    // Actualizar título con total
+                    const totalVentasEl = document.getElementById('totalVentasGrafico');
+                    if (totalVentasEl) {
+                        totalVentasEl.textContent = `Total: ${formatearMoneda(totalVentas)}`;
+                    }
+                    
+                    // Actualizar gráfico
+                    actualizarGraficoVentasPorDia(ventasOrdenadas);
+
+                } catch (error) {
+                    console.error('Error cargando reporte táctico:', error);
+                    alert('Error cargando reporte: ' + error.message);
+                }
+            }
+
+            // Función para actualizar gráfico de ventas por día (timeseries)
+            function actualizarGraficoVentasPorDia(ventasPorDia) {
+                const canvas = document.getElementById('graficoVentasPorDia');
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+
+                if (graficoVentasPorDia) {
+                    graficoVentasPorDia.destroy();
+                }
+
+                // Crear etiquetas usando fecha local para evitar problemas de timezone
+                const labels = ventasPorDia.map(({ dia }) => {
+                    // Parsear YYYY-MM-DD manualmente para evitar problemas de timezone
+                    const [año, mes, diaNum] = dia.split('-').map(Number);
+                    const fecha = new Date(año, mes - 1, diaNum);
+                    // Formato: día + mes abreviado (ej: "1 dic", "31 dic")
+                    return fecha.toLocaleDateString('es-CR', { day: 'numeric', month: 'short' });
+                });
+                const datos = ventasPorDia.map(({ ventas }) => ventas);
+
+                console.log('📊 Datos para gráfico:', {
+                    totalDias: ventasPorDia.length,
+                    primerDia: ventasPorDia[0]?.dia,
+                    ultimoDia: ventasPorDia[ventasPorDia.length - 1]?.dia,
+                    primerLabel: labels[0],
+                    ultimoLabel: labels[labels.length - 1],
+                    todosLosDias: ventasPorDia.map(({ dia }) => dia)
+                });
+
+                // Función para formatear como millones con coma y un decimal
+                function formatearMillones(valor) {
+                    const millones = valor / 1000000;
+                    return millones.toFixed(1).replace('.', ',') + 'M';
+                }
+
+                graficoVentasPorDia = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Ventas',
+                            data: datos,
+                            backgroundColor: 'rgb(102, 126, 234)',
+                            borderWidth: 0,
+                            borderRadius: 4,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleFont: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Ventas: ' + formatearMoneda(context.parsed.y);
+                                    }
+                                }
+                            },
+                            // Plugin para mostrar valores en la parte externa de las barras
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                formatter: function(value) {
+                                    if (value >= 1000000) {
+                                        return formatearMillones(value);
+                                    } else {
+                                        // Si es menor a 1M, mostrar en miles
+                                        const miles = value / 1000;
+                                        return miles.toFixed(1).replace('.', ',') + 'K';
+                                    }
+                                },
+                                font: {
+                                    size: 10,
+                                    weight: 'bold'
+                                },
+                                color: '#333',
+                                padding: {
+                                    top: 4
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#000000',
+                                    font: {
+                                        size: 12
+                                    },
+                                    callback: function(value) {
+                                        return formatearMoneda(value);
+                                    }
+                                },
+                                border: {
+                                    color: '#000000'
+                                }
+                            },
+                            x: {
+                                type: 'category', // Forzar tipo category para que use las etiquetas exactas
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#000000',
+                                    font: {
+                                        size: 12
+                                    },
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    // Mostrar todas las etiquetas (no saltar ninguna)
+                                    autoSkip: false,
+                                    // Usar las etiquetas exactas que proporcionamos, sin interpretarlas como fechas
+                                    callback: function(value, index) {
+                                        return labels[index] || '';
+                                    }
+                                },
+                                border: {
+                                    color: '#000000'
+                                },
+                                // Prevenir que Chart.js agregue días adicionales
+                                min: undefined,
+                                max: undefined
+                            }
+                        },
+                        animation: {
+                            duration: 1000,
+                            easing: 'easeOutQuart'
+                        }
+                    }
+                });
+            }
+
+            // Variable global para el mes seleccionado
+            let mesSeleccionadoRecurrencia = null;
+            // Variable global para el porcentaje seleccionado (0 = 0%, null = sin filtro)
+            let porcentajeSeleccionadoRecurrencia = 0; // Default: 0%
+            // Variable global para el vendedor seleccionado
+            let vendedorSeleccionadoRecurrencia = null;
+            // Variable global para almacenar empleados (para mapear username a nombre)
+            let empleadosMapRecurrencia = {};
+
+            // Función para generar botones de meses (tabla 4x12)
+            async function generarBotonesMesesRecurrencia() {
+                const container = document.getElementById('botonesMesRecurrencia');
+                if (!container) return;
+
+                try {
+                    container.innerHTML = '<div class="text-muted small">Cargando meses...</div>';
+
+                    // Consultar todas las citas para encontrar meses con datos
+                    const q = query(collection(db, 'citas'), orderBy('inicio_gmt6', 'desc'));
+                    const querySnapshot = await getDocs(q);
+                    
+                    const mesesConData = new Set();
+                    
+                    querySnapshot.forEach(doc => {
+                        const cita = doc.data();
+                        const monto = cita.metadata?.monto || 0;
+                        if (monto <= 0) return;
+
+                        if (!cita.inicio_gmt6) return;
+                        const diaInfo = extraerDiaGMT6(cita.inicio_gmt6);
+                        if (!diaInfo) return;
+
+                        const mesKey = `${diaInfo.año}-${String(diaInfo.mes).padStart(2, '0')}`;
+                        mesesConData.add(mesKey);
+                    });
+
+                    const ahora = new Date();
+                    const mesActual = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+                    
+                    // Seleccionar el mes actual por defecto
+                    if (!mesSeleccionadoRecurrencia) {
+                        mesSeleccionadoRecurrencia = mesActual;
+                    }
+
+                    // Generar tabla 4 filas (años) x 12 columnas (meses)
+                    const años = [2023, 2024, 2025, 2026];
+                    const meses = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+                    const mesesNombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
+                                         'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+                    let tablaHTML = '<table class="table table-sm table-bordered mb-0" style="font-size: 0.85rem;">';
+                    tablaHTML += '<thead><tr><th style="width: 80px;">Año</th>';
+                    mesesNombres.forEach(mes => {
+                        tablaHTML += `<th class="text-center" style="min-width: 70px;">${mes}</th>`;
+                    });
+                    tablaHTML += '</tr></thead><tbody>';
+
+                    años.forEach(año => {
+                        tablaHTML += `<tr><td class="fw-bold">${año}</td>`;
+                        meses.forEach(mes => {
+                            const mesKey = `${año}-${String(mes).padStart(2, '0')}`;
+                            const tieneData = mesesConData.has(mesKey);
+                            const esSeleccionado = mesKey === mesSeleccionadoRecurrencia;
+
+                            const textoBoton = formatearMesCorto(año, mes);
+                            const disabled = !tieneData ? 'disabled' : '';
+                            const claseBtn = esSeleccionado && tieneData 
+                                ? 'btn-primary' 
+                                : tieneData 
+                                    ? 'btn-outline-primary' 
+                                    : 'btn-outline-secondary';
+                            const estilo = !tieneData ? 'opacity: 0.4; cursor: not-allowed;' : '';
+
+                            tablaHTML += `<td class="text-center p-1">
+                                <button 
+                                    type="button"
+                                    class="btn btn-sm ${claseBtn} w-100 ${esSeleccionado && tieneData ? 'active' : ''}"
+                                    data-mes="${mesKey}"
+                                    ${disabled}
+                                    style="${estilo}"
+                                    ${tieneData ? `onclick="seleccionarMesRecurrencia('${mesKey}')"` : ''}
+                                >
+                                    ${textoBoton}
+                                </button>
+                            </td>`;
+                        });
+                        tablaHTML += '</tr>';
+                    });
+
+                    tablaHTML += '</tbody></table>';
+                    container.innerHTML = tablaHTML;
+
+                } catch (error) {
+                    console.error('Error generando botones de meses recurrencia:', error);
+                    container.innerHTML = '<div class="text-danger small">Error cargando meses</div>';
+                }
+            }
+
+            // Función para generar botones de porcentaje
+            function generarBotonesPorcentajeRecurrencia() {
+                const container = document.getElementById('botonesPorcentajeRecurrencia');
+                if (!container) return;
+
+                const porcentajes = [
+                    { valor: 0, label: '0%' },
+                    { valor: 20, label: '20%' },
+                    { valor: 40, label: '40%' },
+                    { valor: 60, label: '60%' },
+                    { valor: 80, label: '80%' },
+                    { valor: 100, label: '100%' },
+                    { valor: null, label: 'Sin filtro' }
+                ];
+
+                const botonesHTML = porcentajes.map(p => {
+                    const esSeleccionado = p.valor === porcentajeSeleccionadoRecurrencia;
+                    const valorAttr = p.valor === null ? 'null' : p.valor;
+                    return `
+                        <button 
+                            class="btn btn-sm ${esSeleccionado ? 'btn-success' : 'btn-outline-success'}" 
+                            data-porcentaje="${valorAttr}"
+                            onclick="seleccionarPorcentajeRecurrencia(${valorAttr === 'null' ? 'null' : valorAttr})"
+                        >
+                            ${p.label}
+                        </button>
+                    `;
+                });
+
+                container.innerHTML = botonesHTML.join('');
+            }
+
+            // Función para seleccionar mes
+            window.seleccionarMesRecurrencia = function(mesKey) {
+                mesSeleccionadoRecurrencia = mesKey;
+                
+                // Actualizar estilos de botones
+                document.querySelectorAll('#botonesMesRecurrencia button').forEach(btn => {
+                    if (btn.disabled) return; // No modificar botones deshabilitados
+                    
+                    if (btn.dataset.mes === mesKey) {
+                        btn.className = 'btn btn-sm btn-primary active';
+                    } else {
+                        btn.className = 'btn btn-sm btn-outline-primary';
+                    }
+                });
+
+                // Re-analizar con el nuevo mes
+                analizarRecurrenciaSinDiciembre();
+            };
+
+            // Función para seleccionar porcentaje
+            window.seleccionarPorcentajeRecurrencia = function(porcentaje) {
+                porcentajeSeleccionadoRecurrencia = porcentaje;
+                
+                // Actualizar estilos de botones
+                document.querySelectorAll('#botonesPorcentajeRecurrencia button').forEach(btn => {
+                    if (btn.dataset.porcentaje === String(porcentaje === null ? 'null' : porcentaje)) {
+                        btn.className = 'btn btn-sm btn-success';
+                    } else {
+                        btn.className = 'btn btn-sm btn-outline-success';
+                    }
+                });
+
+                // Re-analizar con el nuevo porcentaje
+                analizarRecurrenciaSinDiciembre();
+            };
+
+            // Función para cargar empleados y generar selector de vendedores
+            async function cargarVendedoresRecurrencia() {
+                try {
+                    const empleadosSnapshot = await getDocs(collection(db, 'empleados'));
+                    empleadosMapRecurrencia = {};
+                    const vendedoresSet = new Set();
+                    
+                    empleadosSnapshot.forEach(doc => {
+                        const empleado = doc.data();
+                        empleadosMapRecurrencia[doc.id] = empleado.nombre || doc.id;
+                    });
+
+                    // Generar opciones del select
+                    const select = document.getElementById('filtroVendedorRecurrencia');
+                    if (!select) return;
+
+                    // Limpiar opciones existentes (excepto "Todos")
+                    select.innerHTML = '<option value="">Todos los vendedores</option>';
+
+                    // Obtener lista única de vendedores de las citas procesadas
+                    // Esto se actualizará después de cargar las citas
+                } catch (error) {
+                    console.error('Error cargando empleados:', error);
+                }
+            }
+
+            // Función para actualizar el selector de vendedores con los vendedores encontrados
+            function actualizarSelectorVendedores(vendedoresEncontrados) {
+                const select = document.getElementById('filtroVendedorRecurrencia');
+                if (!select) return;
+
+                // Guardar la opción seleccionada actual
+                const valorActual = select.value;
+
+                // Limpiar y agregar opción "Todos"
+                select.innerHTML = '<option value="">Todos los vendedores</option>';
+
+                // Ordenar vendedores por nombre
+                const vendedoresOrdenados = Array.from(vendedoresEncontrados).sort((a, b) => {
+                    const nombreA = empleadosMapRecurrencia[a] || a;
+                    const nombreB = empleadosMapRecurrencia[b] || b;
+                    return nombreA.localeCompare(nombreB);
+                });
+
+                // Agregar opciones
+                vendedoresOrdenados.forEach(vendedorUsername => {
+                    const nombreVendedor = empleadosMapRecurrencia[vendedorUsername] || vendedorUsername;
+                    const option = document.createElement('option');
+                    option.value = vendedorUsername;
+                    option.textContent = nombreVendedor;
+                    select.appendChild(option);
+                });
+
+                // Restaurar selección si existe
+                if (valorActual && Array.from(select.options).some(opt => opt.value === valorActual)) {
+                    select.value = valorActual;
+                    vendedorSeleccionadoRecurrencia = valorActual;
+                }
+            }
+
+            // Función para aplicar filtro de vendedor
+            window.aplicarFiltroVendedorRecurrencia = function() {
+                const select = document.getElementById('filtroVendedorRecurrencia');
+                vendedorSeleccionadoRecurrencia = select.value || null;
+                
+                // Mostrar/ocultar indicador de filtro activo
+                const indicador = document.getElementById('indicadorFiltroVendedor');
+                const textoFiltro = document.getElementById('textoFiltroVendedor');
+                
+                if (vendedorSeleccionadoRecurrencia) {
+                    const nombreVendedor = empleadosMapRecurrencia[vendedorSeleccionadoRecurrencia] || vendedorSeleccionadoRecurrencia;
+                    textoFiltro.textContent = `Filtrado por: ${nombreVendedor}`;
+                    indicador.style.display = 'block';
+                } else {
+                    indicador.style.display = 'none';
+                }
+                
+                analizarRecurrenciaSinDiciembre();
+            };
+
+            // Función para limpiar filtro de vendedor
+            window.limpiarFiltroVendedor = function() {
+                const select = document.getElementById('filtroVendedorRecurrencia');
+                select.value = '';
+                vendedorSeleccionadoRecurrencia = null;
+                
+                const indicador = document.getElementById('indicadorFiltroVendedor');
+                indicador.style.display = 'none';
+                
+                analizarRecurrenciaSinDiciembre();
+            };
+
+            // Función para analizar clientes con recurrencia sin facturación en mes seleccionado
+            async function analizarRecurrenciaSinDiciembre() {
+                const container = document.getElementById('tablaRecurrenciaContainer');
+                if (!container) return;
+
+                if (!mesSeleccionadoRecurrencia) {
+                    // Default: mes actual
+                    const ahora = new Date();
+                    mesSeleccionadoRecurrencia = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+                }
+
+                try {
+                    container.innerHTML = '<div class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin me-2"></i>Analizando recurrencia...</div>';
+
+                    // Calcular ventana móvil: 6 meses previos al mes seleccionado + el mes seleccionado
+                    const [añoSel, mesSel] = mesSeleccionadoRecurrencia.split('-').map(Number);
+                    
+                    // Nota: mesSel está en formato 1-12, pero new Date() usa 0-11, así que restamos 1
+                    const mesSelIndex = mesSel - 1; // Convertir a formato 0-11
+                    
+                    // Mes inicial: 6 meses antes del mes seleccionado (incluyendo el primer día del mes)
+                    const fechaInicio = new Date(añoSel, mesSelIndex - 6, 1, 0, 0, 0, 0);
+                    
+                    // Mes final: fin del segundo mes posterior al mes seleccionado (para incluir datos informativos)
+                    // Calcular el segundo mes posterior
+                    const segundoMesPosterior = mesSelIndex + 2; // mesSelIndex está en formato 0-11
+                    const añoFin = segundoMesPosterior >= 12 ? añoSel + 1 : añoSel;
+                    const mesFinIndex = segundoMesPosterior >= 12 ? segundoMesPosterior - 12 : segundoMesPosterior;
+                    // new Date(año, mes, 0) da el último día del mes anterior a 'mes'
+                    // Entonces new Date(añoFin, mesFinIndex + 1, 0) da el último día del segundo mes posterior
+                    const ultimoDiaMesPosterior = new Date(añoFin, mesFinIndex + 1, 0).getDate();
+                    const fechaFin = new Date(añoFin, mesFinIndex, ultimoDiaMesPosterior, 23, 59, 59, 999);
+
+                    console.log(`🔍 [RANGO_FECHAS] Mes seleccionado: ${mesSeleccionadoRecurrencia} (añoSel=${añoSel}, mesSel=${mesSel}, mesSelIndex=${mesSelIndex})`);
+                    console.log(`🔍 [RANGO_FECHAS] Fecha inicio: ${fechaInicio.toISOString()} (${fechaInicio.toLocaleDateString('es-CR')})`);
+                    console.log(`🔍 [RANGO_FECHAS] Fecha fin (incluye 2 meses posteriores): ${fechaFin.toISOString()} (${fechaFin.toLocaleDateString('es-CR')})`);
+                    console.log(`🔍 [RANGO_FECHAS] Segundo mes posterior: ${añoFin}-${String(mesFinIndex + 1).padStart(2, '0')}, último día: ${ultimoDiaMesPosterior}`);
+
+                    const inicioTimestamp = Timestamp.fromDate(fechaInicio);
+                    const finTimestamp = Timestamp.fromDate(fechaFin);
+
+                    // Consultar todas las citas de la ventana móvil (6 meses previos + mes seleccionado + 2 meses posteriores)
+                    const q = query(
+                        collection(db, 'citas'),
+                        where('inicio_gmt6', '>=', inicioTimestamp),
+                        where('inicio_gmt6', '<=', finTimestamp)
+                    );
+
+                    const querySnapshot = await getDocs(q);
+                    const citas = [];
+                    querySnapshot.forEach(doc => {
+                        citas.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    console.log(`📊 Analizando ${citas.length} citas de la ventana móvil (6 meses previos a ${mesSeleccionadoRecurrencia})`);
+
+                    // Agrupar por teléfono y mes, y rastrear la última cita de cada teléfono
+                    const telefonosMap = {};
+                    const ultimaCitaPorTelefono = {}; // Para almacenar la última cita de cada teléfono
+
+                    citas.forEach(cita => {
+                        const monto = cita.metadata?.monto || 0;
+                        if (monto <= 0) return; // Solo facturaciones
+
+                        const telefono = cita.telefono || '';
+                        if (!telefono) return;
+
+                        // Normalizar teléfono
+                        let telefonoNormalizado = telefono.replace(/\D/g, '');
+                        if (telefonoNormalizado.startsWith('506')) {
+                            telefonoNormalizado = telefonoNormalizado.substring(3);
+                        }
+
+                        // Extraer mes de la fecha
+                        if (!cita.inicio_gmt6) return;
+                        const diaInfo = extraerDiaGMT6(cita.inicio_gmt6);
+                        if (!diaInfo) return;
+
+                        const mesKey = `${diaInfo.año}-${String(diaInfo.mes).padStart(2, '0')}`;
+
+                        if (!telefonosMap[telefonoNormalizado]) {
+                            telefonosMap[telefonoNormalizado] = {
+                                telefono: telefonoNormalizado,
+                                telefonoCompleto: telefono,
+                                meses: new Set(),
+                                totalFacturado: 0,
+                                facturacionPorMes: {}
+                            };
+                        }
+
+                        telefonosMap[telefonoNormalizado].meses.add(mesKey);
+                        telefonosMap[telefonoNormalizado].totalFacturado += monto;
+                        
+                        if (!telefonosMap[telefonoNormalizado].facturacionPorMes[mesKey]) {
+                            telefonosMap[telefonoNormalizado].facturacionPorMes[mesKey] = 0;
+                        }
+                        telefonosMap[telefonoNormalizado].facturacionPorMes[mesKey] += monto;
+
+                        // Rastrear la última cita (por timestamp)
+                        if (!ultimaCitaPorTelefono[telefonoNormalizado] || 
+                            cita.inicio_gmt6.toMillis() > ultimaCitaPorTelefono[telefonoNormalizado].inicio_gmt6.toMillis()) {
+                            ultimaCitaPorTelefono[telefonoNormalizado] = cita;
+                        }
+                    });
+
+                    // Asociar vendedor y cliente de la última cita a cada teléfono
+                    Object.keys(telefonosMap).forEach(telefonoKey => {
+                        const ultimaCita = ultimaCitaPorTelefono[telefonoKey];
+                        if (ultimaCita) {
+                            // Obtener el primer vendedor del array si existe
+                            const vendedores = ultimaCita.metadata?.vendedores || [];
+                            telefonosMap[telefonoKey].vendedor = vendedores.length > 0 ? vendedores[0] : null;
+                            
+                            // Obtener el nombre del cliente
+                            telefonosMap[telefonoKey].clienteNombre = ultimaCita.metadata?.cliente_nombre || 'Sin nombre';
+                        } else {
+                            telefonosMap[telefonoKey].vendedor = null;
+                            telefonosMap[telefonoKey].clienteNombre = 'Sin nombre';
+                        }
+                    });
+
+                    // Generar lista de los 6 meses previos al mes seleccionado (excluyendo el mes seleccionado)
+                    const mesesPrevios = [];
+                    let intentos = 0;
+                    let mesActual = mesSel - 6; // Empezar 6 meses antes
+                    
+                    while (mesesPrevios.length < 6 && intentos < 12) {
+                        // Manejar desbordamiento de año
+                        let añoCalculado = añoSel;
+                        let mesCalculado = mesActual;
+                        
+                        if (mesCalculado <= 0) {
+                            mesCalculado += 12;
+                            añoCalculado -= 1;
+                        } else if (mesCalculado > 12) {
+                            mesCalculado -= 12;
+                            añoCalculado += 1;
+                        }
+                        
+                        const mesKey = `${añoCalculado}-${String(mesCalculado).padStart(2, '0')}`;
+                        
+                        // Asegurar que no se incluya el mes seleccionado
+                        if (mesKey !== mesSeleccionadoRecurrencia && !mesesPrevios.includes(mesKey)) {
+                            mesesPrevios.push(mesKey);
+                        }
+                        
+                        mesActual += 1;
+                        intentos += 1;
+                    }
+                    
+                    // Verificar que tengamos exactamente 6 meses previos
+                    if (mesesPrevios.length !== 6) {
+                        console.warn(`⚠️ Solo se encontraron ${mesesPrevios.length} meses previos, se esperaban 6. Meses encontrados:`, mesesPrevios);
+                    }
+
+                    // Obtener nombre del mes seleccionado para mostrar (formato corto)
+                    const nombreMesSeleccionado = formatearMesCorto(añoSel, mesSel);
+
+                    // Calcular los 2 meses posteriores al mes seleccionado (solo para visualización informativa)
+                    // Nota: mesSel está en formato 1-12, pero new Date() usa 0-11, así que restamos 1
+                    const mesesPosteriores = [];
+                    for (let i = 1; i <= 2; i++) {
+                        const fechaMes = new Date(añoSel, mesSel - 1 + i, 1); // mesSel - 1 convierte a formato 0-11
+                        const añoMes = fechaMes.getFullYear();
+                        const mesMes = fechaMes.getMonth() + 1; // getMonth() devuelve 0-11, sumamos 1 para formato 1-12
+                        const mesKey = `${añoMes}-${String(mesMes).padStart(2, '0')}`;
+                        mesesPosteriores.push({
+                            key: mesKey,
+                            nombre: formatearMesCorto(añoMes, mesMes)
+                        });
+                    }
+
+                    console.log(`📅 Mes seleccionado: ${mesSeleccionadoRecurrencia}, Meses previos (${mesesPrevios.length}):`, mesesPrevios);
+                    console.log(`📅 Meses posteriores (2):`, mesesPosteriores.map(m => m.key));
+
+                    // Preparar mesesColumnas (6 meses previos + mes seleccionado + 2 meses posteriores) para usar en cálculos y tabla
+                    const mesesColumnas = [];
+                    
+                    // Agregar los 6 meses previos
+                    mesesPrevios.forEach(mesKey => {
+                        const [año, mes] = mesKey.split('-').map(Number);
+                        mesesColumnas.push({
+                            key: mesKey,
+                            nombre: formatearMesCorto(año, mes),
+                            tipo: 'previo'
+                        });
+                    });
+                    
+                    // Agregar el mes seleccionado
+                    mesesColumnas.push({
+                        key: mesSeleccionadoRecurrencia,
+                        nombre: nombreMesSeleccionado,
+                        tipo: 'seleccionado'
+                    });
+                    
+                    // Agregar los 2 meses posteriores (solo para visualización)
+                    mesesPosteriores.forEach(mesInfo => {
+                        mesesColumnas.push({
+                            key: mesInfo.key,
+                            nombre: mesInfo.nombre,
+                            tipo: 'posterior'
+                        });
+                    });
+
+                    // Calcular promedio de facturación por cliente (solo de los 6 meses previos, excluyendo el mes seleccionado)
+                    // y filtrar según el porcentaje seleccionado
+                    const clientesConPromedio = Object.values(telefonosMap)
+                        .filter(tel => {
+                            // Debe tener facturación en al menos 2 de los 6 meses previos
+                            const mesesPreviosConFacturacion = mesesPrevios.filter(mesKey => 
+                                tel.facturacionPorMes[mesKey] && tel.facturacionPorMes[mesKey] > 0
+                            );
+                            return mesesPreviosConFacturacion.length >= 2;
+                        })
+                        .map(tel => {
+                            // Calcular promedio solo de los 6 meses previos (excluyendo el mes seleccionado)
+                            const facturacionesPrevias = mesesPrevios
+                                .map(mesKey => tel.facturacionPorMes[mesKey] || 0)
+                                .filter(m => m > 0);
+                            
+                            const promedioFacturacion = facturacionesPrevias.length > 0 
+                                ? facturacionesPrevias.reduce((sum, m) => sum + m, 0) / facturacionesPrevias.length 
+                                : 0;
+                            
+                            // Facturación del mes seleccionado
+                            const facturacionMesSeleccionado = tel.facturacionPorMes[mesSeleccionadoRecurrencia] || 0;
+                            
+                            // Calcular porcentaje del promedio
+                            const porcentajeDelPromedio = promedioFacturacion > 0 
+                                ? (facturacionMesSeleccionado / promedioFacturacion) * 100 
+                                : (facturacionMesSeleccionado === 0 ? 0 : Infinity);
+                            
+                            return {
+                                ...tel,
+                                promedioFacturacion,
+                                facturacionMesSeleccionado,
+                                porcentajeDelPromedio,
+                                mesesPreviosConFacturacion: facturacionesPrevias.length
+                            };
+                        });
+
+                    // Filtrar según el porcentaje seleccionado
+                    let clientesRecurrencia = clientesConPromedio;
+                    
+                    if (porcentajeSeleccionadoRecurrencia !== null) {
+                        clientesRecurrencia = clientesConPromedio.filter(tel => {
+                            return tel.porcentajeDelPromedio <= porcentajeSeleccionadoRecurrencia;
+                        });
+                    }
+
+                    // Filtrar por vendedor si está seleccionado
+                    if (vendedorSeleccionadoRecurrencia) {
+                        clientesRecurrencia = clientesRecurrencia.filter(tel => {
+                            return tel.vendedor === vendedorSeleccionadoRecurrencia;
+                        });
+                    }
+
+                    // Obtener lista de vendedores únicos para actualizar el selector
+                    const vendedoresEncontrados = new Set();
+                    clientesConPromedio.forEach(tel => {
+                        if (tel.vendedor) {
+                            vendedoresEncontrados.add(tel.vendedor);
+                        }
+                    });
+                    actualizarSelectorVendedores(vendedoresEncontrados);
+
+                    // Actualizar indicador de filtro activo
+                    const indicador = document.getElementById('indicadorFiltroVendedor');
+                    const textoFiltro = document.getElementById('textoFiltroVendedor');
+                    if (vendedorSeleccionadoRecurrencia && indicador && textoFiltro) {
+                        const nombreVendedor = empleadosMapRecurrencia[vendedorSeleccionadoRecurrencia] || vendedorSeleccionadoRecurrencia;
+                        textoFiltro.textContent = `Filtrado por: ${nombreVendedor}`;
+                        indicador.style.display = 'block';
+                    } else if (indicador) {
+                        indicador.style.display = 'none';
+                    }
+
+                    // Calcular total facturado y meses previos con facturación para cada cliente
+                    clientesRecurrencia.forEach(cliente => {
+                        // Total facturado de los 7 meses (6 previos + mes seleccionado) - EXCLUYENDO meses posteriores
+                        cliente.totalFacturado7Meses = mesesColumnas
+                            .filter(m => m.tipo === 'previo' || m.tipo === 'seleccionado')
+                            .reduce((sum, m) => {
+                                return sum + (cliente.facturacionPorMes[m.key] || 0);
+                            }, 0);
+                        
+                        // Meses previos con facturación (solo de los 6 meses previos, no incluye el mes seleccionado)
+                        cliente.mesesPreviosConFacturacion = mesesPrevios.filter(mesKey => 
+                            cliente.facturacionPorMes[mesKey] && cliente.facturacionPorMes[mesKey] > 0
+                        ).length;
+                    });
+
+                    // Ordenar: primero por cantidad de meses previos con facturación (descendente), luego por total facturado (descendente)
+                    clientesRecurrencia.sort((a, b) => {
+                        // Primero ordenar por cantidad de meses previos con facturación (descendente)
+                        if (b.mesesPreviosConFacturacion !== a.mesesPreviosConFacturacion) {
+                            return b.mesesPreviosConFacturacion - a.mesesPreviosConFacturacion;
+                        }
+                        // Si hay empate, ordenar por facturación total de los 7 meses (descendente)
+                        return b.totalFacturado7Meses - a.totalFacturado7Meses;
+                    });
+
+                    const textoFiltroPorcentaje = porcentajeSeleccionadoRecurrencia === null 
+                        ? 'sin filtro' 
+                        : `≤${porcentajeSeleccionadoRecurrencia}% del promedio`;
+                    
+                    console.log(`✅ Clientes con recurrencia (${textoFiltroPorcentaje}) en ${nombreMesSeleccionado}: ${clientesRecurrencia.length}`);
+
+                    // Renderizar tabla
+                    if (clientesRecurrencia.length === 0) {
+                        container.innerHTML = '<div class="text-center text-muted py-3">No se encontraron clientes con estas características.</div>';
+                        return;
+                    }
+
+                    // mesesColumnas ya está declarado arriba
+
+                    let tablaHTML = `
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="position: sticky; left: 0; background: #f8f9fa; z-index: 10; min-width: 120px;">Teléfono</th>
+                                        <th style="position: sticky; left: 120px; background: #f8f9fa; z-index: 9; min-width: 200px;">Cliente</th>
+                                        <th class="text-center" style="min-width: 100px;">Vendedor</th>
+                                        <th class="text-center" style="min-width: 80px;">Meses</th>
+                                        <th class="text-center" style="min-width: 120px;">Total (7 Meses)</th>
+                                        ${mesesColumnas.map(m => {
+                                            return `<th class="text-center" style="min-width: 100px; font-size: 0.75rem;">${m.nombre}</th>`;
+                                        }).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    // Función helper para calcular el color según el valor relativo
+                    function calcularColorFacturacion(monto, maxMonto, esMejorMes) {
+                        if (monto === 0) {
+                            return { bg: '#e0e0e0', color: '#757575' }; // Gris para 0
+                        }
+                        
+                        if (esMejorMes) {
+                            return { bg: '#2e7d32', color: '#ffffff' }; // Verde fuerte para mejor mes
+                        }
+                        
+                        if (maxMonto === 0) {
+                            return { bg: '#f5f5f5', color: '#757575' }; // Gris tenue si no hay máximo
+                        }
+                        
+                        // Calcular porcentaje relativo (0 a 1)
+                        const porcentaje = monto / maxMonto;
+                        
+                        // Si es muy bajo (< 5% del máximo), gris tenue
+                        if (porcentaje < 0.05) {
+                            return { bg: '#f5f5f5', color: '#757575' };
+                        }
+                        
+                        // Gradiente lineal desde gris tenue (#f5f5f5) hasta verde medio (#81c784)
+                        // Interpolación lineal del color
+                        const r1 = 245, g1 = 245, b1 = 245; // #f5f5f5 (gris tenue)
+                        const r2 = 129, g2 = 199, b2 = 132; // #81c784 (verde medio)
+                        
+                        const r = Math.round(r1 + (r2 - r1) * porcentaje);
+                        const g = Math.round(g1 + (g2 - g1) * porcentaje);
+                        const b = Math.round(b1 + (b2 - b1) * porcentaje);
+                        
+                        return { 
+                            bg: `rgb(${r}, ${g}, ${b})`, 
+                            color: porcentaje > 0.5 ? '#ffffff' : '#212529' // Texto blanco si fondo oscuro, negro si claro
+                        };
+                    }
+
+                    clientesRecurrencia.forEach(cliente => {
+                        // Usar valores ya calculados en el sort
+                        const totalFacturado7Meses = cliente.totalFacturado7Meses || 0;
+                        const mesesPreviosConFacturacion = cliente.mesesPreviosConFacturacion || 0;
+                        
+                        // Encontrar el máximo de facturación para este cliente (solo de los 7 meses, excluyendo meses posteriores)
+                        const mesesParaAnalisis = mesesColumnas.filter(m => m.tipo === 'previo' || m.tipo === 'seleccionado');
+                        const maxFacturacion = Math.max(...mesesParaAnalisis.map(m => cliente.facturacionPorMes[m.key] || 0));
+                        
+                        // Identificar el mejor mes (puede haber empates) - solo de los 7 meses
+                        const mejorMes = mesesParaAnalisis.find(m => cliente.facturacionPorMes[m.key] === maxFacturacion && maxFacturacion > 0);
+                        
+                        // Formatear teléfono sin el prefijo 506
+                        const telefonoFormateado = cliente.telefono || cliente.telefonoCompleto?.replace(/^506/, '') || '';
+                        
+                        // Obtener nombre del vendedor
+                        const vendedorNombre = cliente.vendedor 
+                            ? (empleadosMapRecurrencia[cliente.vendedor] || cliente.vendedor)
+                            : 'Sin vendedor';
+                        
+                        // Obtener nombre del cliente
+                        const clienteNombre = cliente.clienteNombre || 'Sin nombre';
+                        
+                        tablaHTML += `
+                            <tr>
+                                <td style="position: sticky; left: 0; background: white; font-weight: 600; min-width: 120px;">${telefonoFormateado}</td>
+                                <td style="position: sticky; left: 120px; background: white; min-width: 200px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${clienteNombre}">${clienteNombre}</td>
+                                <td class="text-center">${vendedorNombre}</td>
+                                <td class="text-center"><span class="badge bg-info">${mesesPreviosConFacturacion}/6</span></td>
+                                <td class="text-center"><strong>${formatearMoneda(totalFacturado7Meses)}</strong></td>
+                        `;
+
+                        // Agregar facturación por cada mes (7 meses + 2 meses posteriores informativos)
+                        mesesColumnas.forEach(mesCol => {
+                            const monto = cliente.facturacionPorMes[mesCol.key] || 0;
+                            const esMesSeleccionado = mesCol.key === mesSeleccionadoRecurrencia;
+                            const esMejorMes = mejorMes && mesCol.key === mejorMes.key && monto === maxFacturacion && maxFacturacion > 0;
+                            const esMesPosterior = mesCol.tipo === 'posterior';
+                            
+                            // Calcular color según facturación relativa (para todos los meses, incluyendo posteriores)
+                            // Para meses posteriores, no considerar el mejor mes (solo para los 7 meses)
+                            const esMejorMesParaCalcular = esMesPosterior ? false : esMejorMes;
+                            const colorInfo = calcularColorFacturacion(monto, maxFacturacion, esMejorMesParaCalcular);
+                            
+                            // Estilo base
+                            let estilo = `background-color: ${colorInfo.bg}; color: ${colorInfo.color};`;
+                            
+                            // Solo el mes seleccionado se resalta con borde especial
+                            if (esMesSeleccionado) {
+                                // Resaltar el mes seleccionado con borde y fondo más intenso
+                                estilo += ' border: 3px solid #1976d2; font-weight: 600;';
+                                if (monto === 0) {
+                                    // Si es 0, también resaltar en rojo
+                                    estilo = 'background-color: #ffebee; color: #c62828; border: 3px solid #d32f2f; font-weight: 600;';
+                                }
+                            } else if (esMejorMes && !esMesPosterior) {
+                                // Mejor mes solo para los 7 meses (no para posteriores)
+                                estilo += ' font-weight: 600;';
+                            }
+                            
+                            tablaHTML += `<td class="text-center" style="${estilo}">${monto > 0 ? formatearMoneda(monto) : '-'}</td>`;
+                        });
+
+                        tablaHTML += `</tr>`;
+                    });
+
+                    tablaHTML += `
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>Total clientes:</strong> ${clientesRecurrencia.length} | 
+                                <strong>Ventana móvil:</strong> 6 meses previos a ${nombreMesSeleccionado} | 
+                                <strong>Criterio:</strong> 2+ meses con facturación en los 6 meses previos | 
+                                <strong>Filtro:</strong> ${textoFiltroPorcentaje} del promedio en ${nombreMesSeleccionado}
+                            </small>
+                        </div>
+                    `;
+
+                    container.innerHTML = tablaHTML;
+
+                } catch (error) {
+                    console.error('Error analizando recurrencia:', error);
+                    container.innerHTML = `<div class="text-danger py-3">Error: ${error.message}</div>`;
+                }
+            }
+
+            // Esperar a que la autenticación esté lista antes de cargar gráficos
+            async function inicializarGraficos() {
+                // Esperar un momento para asegurar que auth esté disponible
+                let intentos = 0;
+                while (intentos < 50) {
+                    const auth = window.firebaseAuth || window.authManager?.auth;
+                    if (auth?.currentUser) {
+                        break;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    intentos++;
+                }
+                
+                // Cargar gráfico de ventas por año (solo para socios)
+                await cargarVentasPorAño();
+                
+                // Cargar gráfico de ventas por mes (comparativo anual)
+                await cargarVentasPorMes();
+            }
+            
+            // Ejecutar cuando el DOM esté listo
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', inicializarGraficos);
+            } else {
+                inicializarGraficos();
+            }
+            
+            // Cargar meses disponibles al iniciar
+            await cargarMesesDisponibles();
+            
+            // Generar botones de meses para análisis de recurrencia
+            await generarBotonesMesesRecurrencia();
+            
+            // Generar botones de porcentaje para análisis de recurrencia
+            generarBotonesPorcentajeRecurrencia();
+            
+            // Cargar empleados para mapeo de vendedores
+            await cargarVendedoresRecurrencia();
+            
+            // Cargar análisis de recurrencia
+            await analizarRecurrenciaSinDiciembre();
+            
+        } catch (error) {
+            console.error('❌ Error al cargar Firebase:', error);
+            alert('Error al cargar Firebase. Verifica la consola para más detalles.');
+        }
+    </script>
+
+    <script>
+        window.addEventListener('load', async function() {
+            if (!checkPagePermissions()) {
+                return;
+            }
+            if (document.body && !document.body.classList.contains('authenticated')) {
+                console.log('⏳ [REPORTE_TACTICO_SECURE] Esperando verificación de autenticación del head...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                if (!document.body.classList.contains('authenticated')) {
+                    if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
+                        console.log('❌ [REPORTE_TACTICO_SECURE] No autenticado, redirigiendo...');
+                        if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                            window.location.replace('iniciar_sesion.html');
+                        }
+                        return;
+                    } else {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

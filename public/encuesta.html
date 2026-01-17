@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuesta de Satisfacción - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
+    <link href="eco-plagas-styles.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .encuesta-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .encuesta-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .encuesta-header h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+        
+        .encuesta-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        
+        .encuesta-body {
+            padding: 25px 20px;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .encuesta-header {
+                padding: 25px 15px;
+            }
+            
+            .encuesta-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .encuesta-body {
+                padding: 20px 15px;
+            }
+        }
+        
+        .pregunta-grupo {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .pregunta-grupo.cumplimiento {
+            border-left-color: #28a745;
+        }
+        
+        .pregunta-grupo:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .pregunta-titulo {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+        
+        .opciones-radio {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .opcion-radio {
+            min-width: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .pregunta-grupo {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .pregunta-titulo {
+                font-size: 1rem;
+                margin-bottom: 15px;
+            }
+            
+            .opciones-radio {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+        }
+        
+        .opcion-radio input[type="radio"] {
+            display: none;
+        }
+        
+        .opcion-radio label {
+            display: block;
+            padding: 14px 18px;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #495057;
+            font-size: 0.95rem;
+        }
+        
+        .opcion-radio label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Colores para opciones de calidad */
+        .opcion-calidad label[for*="_muy"]:hover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .opcion-calidad input[type="radio"]:checked + label[for*="_muy"] {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-color: #28a745;
+        }
+        
+        .opcion-calidad label[for*="_bueno"]:hover {
+            border-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        .opcion-calidad input[type="radio"]:checked + label[for*="_bueno"] {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            border-color: #17a2b8;
+        }
+        
+        .opcion-calidad label[for*="_regular"]:hover {
+            border-color: #ffc107;
+            background: #fff3cd;
+        }
+        .opcion-calidad input[type="radio"]:checked + label[for*="_regular"] {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: white;
+            border-color: #ffc107;
+        }
+        
+        .opcion-calidad label[for*="_malo"]:hover {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        .opcion-calidad input[type="radio"]:checked + label[for*="_malo"] {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border-color: #dc3545;
+        }
+        
+        /* Colores para opciones de cumplimiento */
+        .opcion-cumplimiento label[for*="_si"]:hover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .opcion-cumplimiento input[type="radio"]:checked + label[for*="_si"] {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-color: #28a745;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .opcion-cumplimiento label[for*="_no"]:hover {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        .opcion-cumplimiento input[type="radio"]:checked + label[for*="_no"] {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border-color: #dc3545;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+        
+        /* Colores para opciones de puntualidad (Q12) */
+        .opcion-puntualidad label[for="p12_puntual"]:hover {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .opcion-puntualidad input[type="radio"]:checked + label[for="p12_puntual"] {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-color: #28a745;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .opcion-puntualidad label[for="p12_conversado"]:hover {
+            border-color: #ffc107;
+            background: #fff3cd;
+        }
+        .opcion-puntualidad input[type="radio"]:checked + label[for="p12_conversado"] {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: white;
+            border-color: #ffc107;
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        }
+        
+        .opcion-puntualidad label[for="p12_impuntual"]:hover {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        .opcion-puntualidad input[type="radio"]:checked + label[for="p12_impuntual"] {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border-color: #dc3545;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+        
+        .comentarios-campo {
+            margin-top: 15px;
+        }
+        
+        .comentarios-campo textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s ease;
+        }
+        
+        .comentarios-campo textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .comentarios-campo label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .seccion-titulo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 40px 0 25px 0;
+            padding: 15px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .seccion-calidad {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            color: #1976d2;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .seccion-cumplimiento {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            color: #2e7d32;
+            border-left: 5px solid #4caf50;
+        }
+        
+        .seccion-titulo:first-child {
+            margin-top: 0;
+        }
+        
+        .btn-enviar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            width: 100%;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-enviar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-enviar:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-badge {
+            background: #e7f3ff;
+            color: #0066cc;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .info-badge i {
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .encuesta-body {
+                padding: 20px 15px;
+            }
+            
+            .pregunta-grupo {
+                padding: 20px 15px;
+            }
+            
+            .opciones-radio {
+                flex-direction: column;
+            }
+            
+            .opcion-radio {
+                min-width: 100%;
+            }
+            
+            .encuesta-header h1 {
+                font-size: 1.4rem;
+            }
+            
+            .encuesta-header p {
+                font-size: 0.9rem;
+            }
+            
+            .seccion-titulo {
+                font-size: 1.3rem;
+                padding: 15px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="encuesta-container">
+        <div class="encuesta-header">
+            <h1><i class="fas fa-clipboard-check me-2"></i>Encuesta de Satisfacción</h1>
+            <p>Su opinión es muy importante para nosotros</p>
+        </div>
+        
+        <!-- Disclaimer -->
+        <div class="alert alert-info m-0 border-0 rounded-0" style="background: #e3f2fd; border-left: 4px solid #2196f3 !important;">
+            <div class="container py-3">
+                <p class="mb-0" style="font-size: 0.9rem; line-height: 1.6;">
+                    <i class="fas fa-info-circle me-2"></i><strong>Nota:</strong> Su opinión es muy valiosa para nosotros. Usamos esta encuesta únicamente para mejorar nuestro servicio y ofrecerle una mejor experiencia cada vez. Cada respuesta se asocia a un código interno único del servicio, sin exponer datos personales, y la información se analiza de forma general. Si detectamos que algo no salió como esperábamos, podríamos contactarle únicamente para darle seguimiento, aprender de la situación y mejorar.
+                </p>
+            </div>
+        </div>
+        
+        <div class="encuesta-body">
+            <div id="mensajeExito" class="alert alert-success" style="display: none;">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>¡Gracias por su tiempo!</strong> Su encuesta ha sido enviada exitosamente.
+            </div>
+            
+            <div id="mensajeError" class="alert alert-danger" style="display: none;">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Error al enviar la encuesta.</strong>
+                <span id="mensajeErrorTexto"></span>
+            </div>
+            
+            <form id="formEncuesta">
+                <!-- SECCIÓN A: CALIDAD -->
+                <h2 class="seccion-titulo seccion-calidad">
+                    <span>⭐</span>
+                    <span>Calidad del Servicio</span>
+                </h2>
+                
+                <!-- Q1 -->
+                <div class="pregunta-grupo">
+                    <div class="pregunta-titulo">
+                        <strong>Q1.</strong> ¿Cómo califica el servicio del técnico en general?
+                    </div>
+                    <div class="opciones-radio opcion-calidad">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta1" id="p1_muy" value="Muy bueno" required>
+                            <label for="p1_muy">✅ Muy bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta1" id="p1_bueno" value="Bueno" required>
+                            <label for="p1_bueno">👍 Bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta1" id="p1_regular" value="Regular" required>
+                            <label for="p1_regular">😐 Regular</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta1" id="p1_malo" value="Malo" required>
+                            <label for="p1_malo">❌ Malo</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario1">
+                            <i class="fas fa-comment me-1"></i>Comentarios adicionales
+                            <span class="optional-badge">Opcional</span>
+                        </label>
+                        <textarea id="comentario1" name="comentario1" placeholder="Si desea agregar algo más, puede hacerlo aquí..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Q2 -->
+                <div class="pregunta-grupo">
+                    <div class="pregunta-titulo">
+                        <strong>Q2.</strong> ¿Cómo califica el trato y respeto del técnico durante la visita?
+                    </div>
+                    <div class="opciones-radio opcion-calidad">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta2" id="p2_muy" value="Muy bueno" required>
+                            <label for="p2_muy">✅ Muy bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta2" id="p2_bueno" value="Bueno" required>
+                            <label for="p2_bueno">👍 Bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta2" id="p2_regular" value="Regular" required>
+                            <label for="p2_regular">😐 Regular</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta2" id="p2_malo" value="Malo" required>
+                            <label for="p2_malo">❌ Malo</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario2"><i class="fas fa-comment me-1"></i>Comentarios (opcional):</label>
+                        <textarea id="comentario2" name="comentario2" placeholder="Explique su respuesta..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Q3 -->
+                <div class="pregunta-grupo">
+                    <div class="pregunta-titulo">
+                        <strong>Q3.</strong> ¿Cómo califica la presentación personal del técnico?
+                    </div>
+                    <div class="opciones-radio opcion-calidad">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta3" id="p3_muy" value="Muy bueno" required>
+                            <label for="p3_muy">✅ Muy bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta3" id="p3_bueno" value="Bueno" required>
+                            <label for="p3_bueno">👍 Bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta3" id="p3_regular" value="Regular" required>
+                            <label for="p3_regular">😐 Regular</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta3" id="p3_malo" value="Malo" required>
+                            <label for="p3_malo">❌ Malo</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario3">
+                            <i class="fas fa-comment me-1"></i>Comentarios adicionales
+                            <span class="optional-badge">Opcional</span>
+                        </label>
+                        <textarea id="comentario3" name="comentario3" placeholder="Si desea agregar algo más, puede hacerlo aquí..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Q4 -->
+                <div class="pregunta-grupo">
+                    <div class="pregunta-titulo">
+                        <strong>Q4.</strong> ¿Cómo califica el tiempo que duró el servicio?
+                    </div>
+                    <div class="opciones-radio opcion-calidad">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta4" id="p4_muy" value="Muy bueno" required>
+                            <label for="p4_muy">✅ Muy bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta4" id="p4_bueno" value="Bueno" required>
+                            <label for="p4_bueno">👍 Bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta4" id="p4_regular" value="Regular" required>
+                            <label for="p4_regular">😐 Regular</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta4" id="p4_malo" value="Malo" required>
+                            <label for="p4_malo">❌ Malo</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario4">
+                            <i class="fas fa-comment me-1"></i>Comentarios adicionales
+                            <span class="optional-badge">Opcional</span>
+                        </label>
+                        <textarea id="comentario4" name="comentario4" placeholder="Si desea agregar algo más, puede hacerlo aquí..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Q5 -->
+                <div class="pregunta-grupo">
+                    <div class="pregunta-titulo">
+                        <strong>Q5.</strong> ¿Cómo califica la explicación del técnico sobre lo que hizo durante el servicio?
+                    </div>
+                    <div class="opciones-radio opcion-calidad">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta5" id="p5_muy" value="Muy bueno" required>
+                            <label for="p5_muy">✅ Muy bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta5" id="p5_bueno" value="Bueno" required>
+                            <label for="p5_bueno">👍 Bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta5" id="p5_regular" value="Regular" required>
+                            <label for="p5_regular">😐 Regular</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta5" id="p5_malo" value="Malo" required>
+                            <label for="p5_malo">❌ Malo</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario5">
+                            <i class="fas fa-comment me-1"></i>Comentarios adicionales
+                            <span class="optional-badge">Opcional</span>
+                        </label>
+                        <textarea id="comentario5" name="comentario5" placeholder="Si desea agregar algo más, puede hacerlo aquí..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Q6 -->
+                <div class="pregunta-grupo">
+                    <div class="pregunta-titulo">
+                        <strong>Q6.</strong> ¿Cómo califica las medidas preventivas aplicadas o explicadas para proteger mascotas y personas sensibles?
+                    </div>
+                    <div class="opciones-radio opcion-calidad">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta6" id="p6_muy" value="Muy bueno" required>
+                            <label for="p6_muy">✅ Muy bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta6" id="p6_bueno" value="Bueno" required>
+                            <label for="p6_bueno">👍 Bueno</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta6" id="p6_regular" value="Regular" required>
+                            <label for="p6_regular">😐 Regular</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta6" id="p6_malo" value="Malo" required>
+                            <label for="p6_malo">❌ Malo</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario6"><i class="fas fa-comment me-1"></i>Comentarios (opcional):</label>
+                        <textarea id="comentario6" name="comentario6" placeholder="Explique su respuesta..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- SECCIÓN B: CUMPLIMIENTO OPERATIVO -->
+                <h2 class="seccion-titulo seccion-cumplimiento">
+                    <span>✅</span>
+                    <span>Cumplimiento Operativo</span>
+                </h2>
+                
+                <!-- Q7 -->
+                <div class="pregunta-grupo cumplimiento">
+                    <div class="pregunta-titulo">
+                        <strong>Q7.</strong> ¿El técnico limpió el área y retiró los excesos de producto al finalizar el servicio?
+                    </div>
+                    <div class="opciones-radio opcion-cumplimiento">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta7" id="p7_si" value="Sí" required>
+                            <label for="p7_si">✅ Sí</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta7" id="p7_no" value="No" required>
+                            <label for="p7_no">❌ No</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario7">
+                            <i class="fas fa-comment me-1"></i>Comentarios adicionales
+                            <span class="optional-badge">Opcional</span>
+                        </label>
+                        <textarea id="comentario7" name="comentario7" placeholder="Si desea agregar algo más, puede hacerlo aquí..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Q8 -->
+                <div class="pregunta-grupo cumplimiento">
+                    <div class="pregunta-titulo">
+                        <strong>Q8.</strong> ¿El técnico aplicó puntos de gel durante el servicio?
+                    </div>
+                    <div class="opciones-radio opcion-cumplimiento">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta8" id="p8_si" value="Sí" required>
+                            <label for="p8_si">✅ Sí</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta8" id="p8_no" value="No" required>
+                            <label for="p8_no">❌ No</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario8"><i class="fas fa-comment me-1"></i>Comentarios (opcional):</label>
+                        <textarea id="comentario8" name="comentario8" placeholder="Explique su respuesta..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Q9 -->
+                <div class="pregunta-grupo cumplimiento">
+                    <div class="pregunta-titulo">
+                        <strong>Q9.</strong> ¿El técnico aplicó tratamiento en tuberías, desagües y cajas de registro?
+                    </div>
+                    <div class="opciones-radio opcion-cumplimiento">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta9" id="p9_si" value="Sí" required>
+                            <label for="p9_si">✅ Sí</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta9" id="p9_no" value="No" required>
+                            <label for="p9_no">❌ No</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario9">
+                            <i class="fas fa-comment me-1"></i>Comentarios adicionales
+                            <span class="optional-badge">Opcional</span>
+                        </label>
+                        <textarea id="comentario9" name="comentario9" placeholder="Si desea agregar algo más, puede hacerlo aquí..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Q10 -->
+                <div class="pregunta-grupo cumplimiento">
+                    <div class="pregunta-titulo">
+                        <strong>Q10.</strong> ¿El técnico al finalizar le preguntó si necesitaba algún otro servicio o detalle adicional?
+                    </div>
+                    <div class="opciones-radio opcion-cumplimiento">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta10" id="p10_si" value="Sí" required>
+                            <label for="p10_si">✅ Sí</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta10" id="p10_no" value="No" required>
+                            <label for="p10_no">❌ No</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario10"><i class="fas fa-comment me-1"></i>Comentarios (opcional):</label>
+                        <textarea id="comentario10" name="comentario10" placeholder="Explique su respuesta..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Q11 -->
+                <div class="pregunta-grupo cumplimiento">
+                    <div class="pregunta-titulo">
+                        <strong>Q11.</strong> ¿El técnico le informó los métodos de pago disponibles al finalizar el servicio?
+                    </div>
+                    <div class="opciones-radio opcion-cumplimiento">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta11" id="p11_si" value="Sí" required>
+                            <label for="p11_si">✅ Sí</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta11" id="p11_no" value="No" required>
+                            <label for="p11_no">❌ No</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario11">
+                            <i class="fas fa-comment me-1"></i>Comentarios adicionales
+                            <span class="optional-badge">Opcional</span>
+                        </label>
+                        <textarea id="comentario11" name="comentario11" placeholder="Si desea agregar algo más, puede hacerlo aquí..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Q12 -->
+                <div class="pregunta-grupo cumplimiento">
+                    <div class="pregunta-titulo">
+                        <strong>Q12.</strong> ¿Cómo fue la puntualidad del técnico con respecto al horario acordado?
+                    </div>
+                    <div class="opciones-radio opcion-cumplimiento opcion-puntualidad">
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta12" id="p12_puntual" value="Puntual" required>
+                            <label for="p12_puntual">✅ Puntual</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta12" id="p12_conversado" value="No fue puntual, pero se conversó oportunamente" required>
+                            <label for="p12_conversado">⚠️ No fue puntual, pero se conversó oportunamente</label>
+                        </div>
+                        <div class="opcion-radio">
+                            <input type="radio" name="pregunta12" id="p12_impuntual" value="Impuntual y sin avisar" required>
+                            <label for="p12_impuntual">❌ Impuntual y sin avisar</label>
+                        </div>
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentario12">
+                            <i class="fas fa-comment me-1"></i>Comentarios adicionales
+                            <span class="optional-badge">Opcional</span>
+                        </label>
+                        <textarea id="comentario12" name="comentario12" placeholder="Si desea agregar algo más, puede hacerlo aquí..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Comentarios Generales -->
+                <div class="pregunta-grupo" style="background: #fff3cd; border-left-color: #ffc107;">
+                    <div class="pregunta-titulo">
+                        <i class="fas fa-comments me-2"></i>Comentarios o Observaciones Generales
+                    </div>
+                    <div class="comentarios-campo">
+                        <label for="comentariosGenerales">
+                            <i class="fas fa-comments me-1"></i>Comentarios generales
+                            <span class="optional-badge">Opcional</span>
+                        </label>
+                        <textarea id="comentariosGenerales" name="comentariosGenerales" placeholder="Comparta cualquier comentario adicional, sugerencia o observación que considere importante..." style="min-height: 80px; max-height: 150px;"></textarea>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-enviar" id="btnEnviar">
+                    <i class="fas fa-paper-plane me-2"></i>Enviar Encuesta
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, collection, setDoc, doc, getDoc, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        
+        // Configuración de Firebase
+        const firebaseConfig = {
+            projectId: "cursorwebapp-f376d",
+            appId: "1:719990096116:web:07c1ff697e7655b2cd9ea1",
+            databaseURL: "https://cursorwebapp-f376d-default-rtdb.firebaseio.com",
+            storageBucket: "cursorwebapp-f376d.firebasestorage.app",
+            apiKey: "AIzaSyC-IQj0yHR8cELr-mw-v2xlnw6LlJYFUyk",
+            authDomain: "cursorwebapp-f376d.firebaseapp.com",
+            messagingSenderId: "719990096116",
+            measurementId: "G-DJXLKFR7CD"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Obtener id_encuesta de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramE = urlParams.get('e'); // Parámetro que contiene el id_encuesta (alfanumérico)
+        
+        // Variable global para id_encuesta
+        let idEncuesta = null;
+        
+        // Procesar parámetro (debe ser alfanumérico, máximo 9 caracteres, base36: 0-9, a-z)
+        if (paramE) {
+            // Validar que sea alfanumérico (base36) y tenga máximo 9 caracteres
+            if (/^[0-9a-z]{1,9}$/.test(paramE)) {
+                idEncuesta = paramE;
+                console.log('✅ ID de encuesta recibido:', idEncuesta);
+            } else {
+                console.error('❌ ID de encuesta inválido (debe ser alfanumérico, máximo 9 caracteres):', paramE);
+            }
+        }
+        
+        // Si no hay parámetro válido, mostrar error
+        if (!idEncuesta) {
+            document.getElementById('formEncuesta').style.display = 'none';
+            document.getElementById('mensajeExito').innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Enlace inválido</strong><br>
+                Por favor, use el enlace completo proporcionado para acceder a la encuesta.
+            `;
+            document.getElementById('mensajeExito').className = 'alert alert-warning';
+            document.getElementById('mensajeExito').style.display = 'block';
+        }
+        
+        // Configuración de preguntas con pesos
+        const questionsConfig = [
+            {id: 'Q1', type: 'calidad', weight: 2, text: '¿Cómo califica el servicio del técnico en general?'},
+            {id: 'Q2', type: 'calidad', weight: 1, text: '¿Cómo califica el trato y respeto del técnico durante la visita?'},
+            {id: 'Q3', type: 'calidad', weight: 1, text: '¿Cómo califica la presentación personal del técnico?'},
+            {id: 'Q4', type: 'calidad', weight: 1, text: '¿Cómo califica el tiempo que duró el servicio?'},
+            {id: 'Q5', type: 'calidad', weight: 1, text: '¿Cómo califica la explicación del técnico sobre lo que hizo durante el servicio?'},
+            {id: 'Q6', type: 'calidad', weight: 1, text: '¿Cómo califica las medidas preventivas aplicadas o explicadas para proteger mascotas y personas sensibles?'},
+            {id: 'Q7', type: 'cumplimiento', weight: 2, text: '¿El técnico limpió el área y retiró los excesos de producto al finalizar el servicio?'},
+            {id: 'Q8', type: 'cumplimiento', weight: 1, text: '¿El técnico aplicó puntos de gel durante el servicio?'},
+            {id: 'Q9', type: 'cumplimiento', weight: 1, text: '¿El técnico aplicó tratamiento en tuberías, desagües y cajas de registro?'},
+            {id: 'Q10', type: 'cumplimiento', weight: 1, text: '¿El técnico al finalizar le preguntó si necesitaba algún otro servicio o detalle adicional?'},
+            {id: 'Q11', type: 'cumplimiento', weight: 3, text: '¿El técnico le informó los métodos de pago disponibles al finalizar el servicio?'},
+            {id: 'Q12', type: 'puntualidad', weight: 2, text: '¿Cómo fue la puntualidad del técnico con respecto al horario acordado?'}
+        ];
+        
+        // Función para mapear respuesta a puntos
+        function pointsForAnswer(qType, answer) {
+            if (!answer) return null;
+            
+            const normalized = answer.trim();
+            
+            if (qType === 'calidad') {
+                const map = {
+                    'Muy bueno': 3,
+                    'Bueno': 2,
+                    'Regular': 1,
+                    'Malo': 0
+                };
+                return map[normalized] !== undefined ? map[normalized] : null;
+            } else if (qType === 'cumplimiento') {
+                const map = {
+                    'Sí': 3,
+                    'No': 0
+                };
+                return map[normalized] !== undefined ? map[normalized] : null;
+            } else if (qType === 'puntualidad') {
+                // Q12: Puntualidad
+                // "Puntual" = 3 puntos
+                // "No fue puntual, pero se conversó oportunamente" = 3 puntos
+                // "Impuntual y sin avisar" = 0 puntos
+                if (normalized === 'Puntual' || normalized === 'No fue puntual, pero se conversó oportunamente') {
+                    return 3;
+                } else if (normalized === 'Impuntual y sin avisar') {
+                    return 0;
+                }
+                return null;
+            }
+            
+            return null;
+        }
+        
+        // Función para calcular scores
+        function computeScores(questions) {
+            const results = {
+                questions: [],
+                sectionA: { totalWeighted: 0, maxWeighted: 0, percent: 0 },
+                sectionB: { totalWeighted: 0, maxWeighted: 0, percent: 0 },
+                global: { totalWeighted: 0, maxWeighted: 0, percent: 0, label: '' }
+            };
+            
+            // Calcular score por pregunta
+            questions.forEach((q, index) => {
+                const points = pointsForAnswer(q.type, q.answer);
+                if (points === null) {
+                    console.warn(`⚠️ Respuesta inválida para ${q.id}:`, q.answer);
+                    return;
+                }
+                
+                const scoreRaw = points;
+                const scoreWeighted = scoreRaw * q.weight;
+                const maxWeighted = 3 * q.weight;
+                const scorePercent = (scoreWeighted / maxWeighted) * 100;
+                
+                results.questions.push({
+                    id: q.id,
+                    type: q.type,
+                    weight: q.weight,
+                    answer: q.answer,
+                    scoreRaw: scoreRaw,
+                    scoreWeighted: scoreWeighted,
+                    maxWeighted: maxWeighted,
+                    scorePercent: scorePercent
+                });
+                
+                // Acumular por sección
+                if (index < 6) { // Q1-Q6: Sección A (Calidad)
+                    results.sectionA.totalWeighted += scoreWeighted;
+                    results.sectionA.maxWeighted += maxWeighted;
+                } else { // Q7-Q12: Sección B (Cumplimiento + Puntualidad)
+                    results.sectionB.totalWeighted += scoreWeighted;
+                    results.sectionB.maxWeighted += maxWeighted;
+                }
+                
+                // Acumular global
+                results.global.totalWeighted += scoreWeighted;
+                results.global.maxWeighted += maxWeighted;
+            });
+            
+            // Calcular porcentajes por sección
+            if (results.sectionA.maxWeighted > 0) {
+                results.sectionA.percent = (results.sectionA.totalWeighted / results.sectionA.maxWeighted) * 100;
+            }
+            if (results.sectionB.maxWeighted > 0) {
+                results.sectionB.percent = (results.sectionB.totalWeighted / results.sectionB.maxWeighted) * 100;
+            }
+            
+            // Calcular porcentaje global
+            if (results.global.maxWeighted > 0) {
+                results.global.percent = (results.global.totalWeighted / results.global.maxWeighted) * 100;
+            }
+            
+            // Aplicar reglas "hard fail"
+            // Regla 1: Q11 == "No" -> cap a 70%
+            const q11Answer = questions.find(q => q.id === 'Q11')?.answer;
+            if (q11Answer === 'No') {
+                results.global.percent = Math.min(results.global.percent, 70);
+            }
+            
+            // Regla 2: Q7 == "No" -> cap a 80%
+            const q7Answer = questions.find(q => q.id === 'Q7')?.answer;
+            if (q7Answer === 'No') {
+                results.global.percent = Math.min(results.global.percent, 80);
+            }
+            
+            // Clasificación final
+            if (results.global.percent >= 90) {
+                results.global.label = 'Excelente';
+            } else if (results.global.percent >= 75) {
+                results.global.label = 'Bueno';
+            } else if (results.global.percent >= 60) {
+                results.global.label = 'Aceptable';
+            } else {
+                results.global.label = 'Requiere atención';
+            }
+            
+            return results;
+        }
+        
+        // Las funciones de generación de hash ya no son necesarias
+        // El hash viene directamente de la URL
+        
+        // Manejar envío del formulario
+        document.getElementById('formEncuesta').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btnEnviar = document.getElementById('btnEnviar');
+            const originalText = btnEnviar.innerHTML;
+            
+            try {
+                // Deshabilitar botón
+                btnEnviar.disabled = true;
+                btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Enviando...';
+                
+                // Recopilar datos del formulario
+                const formData = new FormData(e.target);
+                
+                // Construir array de preguntas con respuestas
+                const questions = questionsConfig.map((config, index) => {
+                    const preguntaNum = index + 1;
+                    const answer = formData.get(`pregunta${preguntaNum}`);
+                    return {
+                        id: config.id,
+                        type: config.type,
+                        weight: config.weight,
+                        text: config.text,
+                        answer: answer || ''
+                    };
+                });
+                
+                // Validar que todas las preguntas tengan respuesta
+                const missingAnswers = questions.filter(q => !q.answer);
+                if (missingAnswers.length > 0) {
+                    alert('Por favor, responda todas las preguntas antes de enviar la encuesta.');
+                    btnEnviar.disabled = false;
+                    btnEnviar.innerHTML = originalText;
+                    return;
+                }
+                
+                // Calcular scores
+                const scores = computeScores(questions);
+                
+                // Validar que tenemos id_encuesta (alfanumérico)
+                if (!idEncuesta || !/^[0-9a-z]{1,9}$/.test(idEncuesta)) {
+                    alert('Error: No se pudo identificar el servicio. Por favor, use el enlace completo proporcionado.');
+                    btnEnviar.disabled = false;
+                    btnEnviar.innerHTML = originalText;
+                    return;
+                }
+                
+                // Preparar datos para Firestore
+                // NOTA: No incluimos teléfono ni fecha aquí, esos datos están en encuestas_id
+                // El id_encuesta es suficiente para hacer el JOIN en los reportes
+                const datos = {
+                    // ID de encuesta (usado para hacer JOIN con encuestas_id)
+                    id_encuesta: idEncuesta,
+                    
+                    // Respuestas de preguntas
+                    pregunta1: formData.get('pregunta1'),
+                    comentario1: formData.get('comentario1') || '',
+                    pregunta2: formData.get('pregunta2'),
+                    comentario2: formData.get('comentario2') || '',
+                    pregunta3: formData.get('pregunta3'),
+                    comentario3: formData.get('comentario3') || '',
+                    pregunta4: formData.get('pregunta4'),
+                    comentario4: formData.get('comentario4') || '',
+                    pregunta5: formData.get('pregunta5'),
+                    comentario5: formData.get('comentario5') || '',
+                    pregunta6: formData.get('pregunta6'),
+                    comentario6: formData.get('comentario6') || '',
+                    pregunta7: formData.get('pregunta7'),
+                    comentario7: formData.get('comentario7') || '',
+                    pregunta8: formData.get('pregunta8'),
+                    comentario8: formData.get('comentario8') || '',
+                    pregunta9: formData.get('pregunta9'),
+                    comentario9: formData.get('comentario9') || '',
+                    pregunta10: formData.get('pregunta10'),
+                    comentario10: formData.get('comentario10') || '',
+                    pregunta11: formData.get('pregunta11'),
+                    comentario11: formData.get('comentario11') || '',
+                    pregunta12: formData.get('pregunta12'),
+                    comentario12: formData.get('comentario12') || '',
+                    
+                    // Comentarios generales
+                    comentarios_generales: formData.get('comentariosGenerales') || '',
+                    
+                    // Scores calculados
+                    scores: {
+                        questions: scores.questions,
+                        sectionA: scores.sectionA,
+                        sectionB: scores.sectionB,
+                        global: scores.global
+                    },
+                    
+                    // Metadatos
+                    fecha_envio: serverTimestamp(),
+                    fecha_envio_local: new Date().toISOString(),
+                    user_agent: navigator.userAgent,
+                    url_completa: window.location.href
+                };
+                
+                // Log para debugging (sin datos sensibles)
+                console.log('📤 Intentando guardar encuesta:', {
+                    idEncuesta: idEncuesta,
+                    tienePreguntas: !!datos.pregunta1 && !!datos.pregunta12,
+                    tieneScores: !!datos.scores
+                });
+                
+                // Crear referencia al documento usando id_encuesta como ID
+                // Firestore Rules validará que este id_encuesta existe en encuestas_id
+                const encuestaRef = doc(db, 'encuestas', idEncuesta);
+                
+                // Guardar en Firestore con merge para permitir actualizaciones
+                // Si el documento existe, actualiza; si no, crea
+                await setDoc(encuestaRef, datos, { merge: true });
+                
+                console.log('✅ Encuesta guardada exitosamente con ID:', idEncuesta);
+                
+                // Ocultar formulario y mostrar mensaje de éxito
+                document.getElementById('formEncuesta').style.display = 'none';
+                document.getElementById('mensajeExito').style.display = 'block';
+                
+                // Scroll al inicio
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('❌ Error guardando encuesta:', error);
+                console.error('❌ Detalles del error:', {
+                    code: error.code,
+                    message: error.message,
+                    stack: error.stack,
+                    idEncuesta: idEncuesta
+                });
+                
+                // Mostrar error detallado al usuario
+                let errorMessage = 'Error al enviar la encuesta. Por favor, intente nuevamente.';
+                if (error.code === 'permission-denied') {
+                    errorMessage = 'Error de permisos. Por favor, verifique que el enlace sea correcto y que no haya expirado. Si el problema persiste, contacte al servicio técnico.';
+                } else if (error.code === 'failed-precondition') {
+                    errorMessage = 'El enlace de la encuesta no es válido o ha expirado. Por favor, solicite un nuevo enlace.';
+                } else if (error.message) {
+                    errorMessage = `Error: ${error.message}`;
+                }
+                
+                // Mostrar mensaje más amigable
+                const mensajeError = document.getElementById('mensajeError');
+                const mensajeErrorTexto = document.getElementById('mensajeErrorTexto');
+                if (mensajeError && mensajeErrorTexto) {
+                    mensajeErrorTexto.textContent = errorMessage;
+                    mensajeError.style.display = 'block';
+                    // Ocultar formulario si hay error crítico
+                    if (error.code === 'permission-denied' || error.code === 'failed-precondition') {
+                        document.getElementById('formEncuesta').style.display = 'none';
+                    }
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    alert(errorMessage);
+                }
+                
+                // Restaurar botón
+                btnEnviar.disabled = false;
+                btnEnviar.innerHTML = originalText;
+            }
+        });
+        
+        console.log('✅ Encuesta post-servicio inicializada');
+    </script>
+</body>
+</html>

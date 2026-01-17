@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Eco Plagas - Sistema Seguro</title>
+    <link rel="icon" type="image/png" href="Logo Eco Plagas.png">
+    <link rel="shortcut icon" type="image/png" href="Logo Eco Plagas.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Estilos para la página de redirección */
+        .redirect-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .redirect-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .redirect-icon {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .redirect-title {
+            color: #333;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .redirect-message {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        .redirect-spinner {
+            margin-top: 20px;
+        }
+
+        .security-badge {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 8px;
+            color: #28a745;
+            font-size: 0.85rem;
+        }
+
+        .security-badge i {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .redirect-card {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+            
+            .redirect-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Redirección automática -->
+        <div class="redirect-container">
+            <div class="redirect-card">
+                <div class="redirect-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="redirect-title">Sistema Seguro</h3>
+                <p class="redirect-message">
+                    Verificando autenticación...
+                </p>
+                <div class="redirect-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+                <div class="security-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    Autenticación segura con Firebase
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+
+        // Función para esperar a que secureAuthManager esté disponible
+        function waitForSecureAuthManager() {
+            return new Promise((resolve) => {
+                const checkAuth = () => {
+                    if (window.secureAuthManager) {
+                        resolve(true);
+                    } else {
+                        setTimeout(checkAuth, 100);
+                    }
+                };
+                checkAuth();
+            });
+        }
+
+        // Función para esperar a que auth.currentUser esté disponible
+        function waitForAuthUser() {
+            return new Promise((resolve) => {
+                let retries = 0;
+                const maxRetries = 30; // 3 segundos máximo
+                const checkAuth = () => {
+                    if (auth.currentUser) {
+                        resolve(true);
+                    } else if (retries < maxRetries) {
+                        retries++;
+                        setTimeout(checkAuth, 100);
+                    } else {
+                        resolve(false);
+                    }
+                };
+                checkAuth();
+            });
+        }
+
+        // Esperar a que el DOM esté listo
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🔒 [SECURE] Verificando autenticación...');
+            
+            // Verificar si ya estamos en iniciar_sesion.html (evitar loop)
+            if (window.location.pathname.includes('iniciar_sesion.html')) {
+                console.log('⚠️ [SECURE] Ya estamos en iniciar_sesion.html, evitando loop');
+                return;
+            }
+
+            // Esperar a que secureAuthManager esté disponible
+            await waitForSecureAuthManager();
+            console.log('✅ [SECURE] secureAuthManager disponible');
+
+            // Esperar a que auth.currentUser esté disponible (puede tardar un momento)
+            const hasAuthUser = await waitForAuthUser();
+            if (!hasAuthUser) {
+                console.log('❌ [SECURE] Usuario no autenticado en Firebase después de esperar, redirigiendo a login...');
+                // Solo redirigir si no estamos ya en loginsecure
+                if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                    window.location.replace('iniciar_sesion.html');
+                }
+                return;
+            }
+
+            console.log('✅ [SECURE] Usuario autenticado en Firebase:', auth.currentUser.email);
+
+            // Esperar a que los datos se carguen desde Firestore
+            // Esto puede tardar un momento, así que esperamos con retry
+            let retries = 0;
+            const maxRetries = 30; // 3 segundos máximo
+            
+            // Primero intentar cargar desde sessionStorage
+            window.secureAuthManager.loadUserFromStorage();
+            
+            // Si no hay datos en sessionStorage, esperar a que se carguen desde Firestore
+            while (retries < maxRetries) {
+                const currentUser = window.secureAuthManager.getCurrentUser();
+                if (!currentUser) {
+                    console.log(`🔄 [SECURE] Esperando carga de datos... (${retries + 1}/${maxRetries})`);
+                    // Intentar refrescar permisos
+                    await window.secureAuthManager.refreshUserPermissions();
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    retries++;
+                } else {
+                    console.log('✅ [SECURE] Datos cargados correctamente');
+                    break;
+                }
+            }
+
+            // Verificar autenticación en el manager
+            if (!window.secureAuthManager.isAuthenticated()) {
+                console.log('❌ [SECURE] Usuario no autenticado en manager después de esperar, redirigiendo...');
+                // Solo redirigir si no estamos ya en loginsecure
+                if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                    window.location.replace('iniciar_sesion.html');
+                }
+                return;
+            }
+
+            // Obtener usuario actual
+            const user = window.secureAuthManager.getCurrentUser();
+            if (!user) {
+                console.error('❌ [SECURE] No se pudo obtener información del usuario después de esperar');
+                // Solo redirigir si no estamos ya en loginsecure
+                if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                    window.location.replace('iniciar_sesion.html');
+                }
+                return;
+            }
+
+            console.log('✅ [SECURE] Usuario autenticado:', user.username);
+
+            // Primero verificar si hay una URL de redirección post-login guardada
+            let targetModule = null;
+            try {
+                const postLoginRedirect = sessionStorage.getItem('postLoginRedirect');
+                if (postLoginRedirect) {
+                    // Extraer solo el pathname de la URL completa
+                    const url = new URL(postLoginRedirect, window.location.origin);
+                    const pathname = url.pathname;
+                    
+                    // Whitelist de páginas secure permitidas
+                    const whitelist = [
+                        'calendario.html',
+                        'empleados.html',
+                        'tickets.html',
+                        'registro_horas.html',
+                        'edicion_horas.html',
+                        'reportes_gerenciales.html',
+                        'recursos_humanos_modulos.html',
+                        'operario_bodega.html',
+                        'auditoria_stock.html',
+                        'administrador_bodega.html',
+                        'admin_inventario_bodegas.html',
+                        'admin_inventario_productos.html',
+                        'admin_inventario_transacciones.html',
+                        'admin_inventario_transferencias.html',
+                        'admin_inventario_dashboard.html',
+                        'admin_inventario_reportes.html',
+                        'admin_inventario_auditoria.html',
+                        'admin_inventario_revisar_gastos.html',
+                        'admin_inventario_liquidar_especiales.html',
+                        'admin_inventario_pedidos_especiales.html',
+                        'admin_inventario_cuentas_gasto.html',
+                        'admin_inventario_proveedores.html',
+                        'admin_inventario_instructivo.html'
+                    ];
+                    
+                    // Extraer nombre del archivo del pathname
+                    const filename = pathname.split('/').pop() || pathname;
+                    
+                    // Verificar que esté en la whitelist
+                    if (whitelist.includes(filename)) {
+                        targetModule = filename;
+                        if (window.safeLogger) {
+                            window.safeLogger.info('URL de redirección post-login validada');
+                        } else {
+                            console.log('🎯 [SECURE] Usando URL de redirección post-login:', targetModule);
+                        }
+                        // Limpiar el postLoginRedirect después de usarlo
+                        sessionStorage.removeItem('postLoginRedirect');
+                    } else {
+                        if (window.safeLogger) {
+                            window.safeLogger.warn('URL de redirección no está en whitelist', { filename });
+                        } else {
+                            console.warn('⚠️ [SECURE] URL de redirección no está en whitelist:', filename);
+                        }
+                        // Limpiar el postLoginRedirect inválido
+                        sessionStorage.removeItem('postLoginRedirect');
+                    }
+                }
+            } catch (e) {
+                if (window.safeLogger) {
+                    window.safeLogger.error('Error al leer postLoginRedirect', e);
+                } else {
+                    console.error('❌ [SECURE] Error al leer postLoginRedirect:', e);
+                }
+            }
+
+            // Si no hay postLoginRedirect, determinar módulo según permisos
+            if (!targetModule) {
+                targetModule = getFirstAvailableModule(user.permisos);
+                console.log('🎯 [SECURE] Módulo por defecto según permisos:', targetModule);
+            }
+
+            // Redirección con delay para mostrar el mensaje
+            setTimeout(() => {
+                window.location.href = targetModule;
+            }, 1500);
+        });
+
+        // Función para determinar el primer módulo disponible según permisos
+        function getFirstAvailableModule(permisos) {
+            // Prioridad 1: Registro de horas (más común para empleados)
+            if (permisos.registro_horas === true) {
+                console.log('🎯 [SECURE] Módulo por defecto: registro_horas.html');
+                return 'registro_horas.html';
+            }
+            
+            // Prioridad 2: Reportes gerenciales (para gerentes)
+            if (permisos.reportes_gerenciales === true) {
+                console.log('🎯 [SECURE] Módulo por defecto: reportes_gerenciales.html');
+                return 'reportes_gerenciales.html';
+            }
+            
+            // Prioridad 3: Tickets (menos común como página inicial)
+            if (permisos.tickets === true) {
+                console.log('🎯 [SECURE] Módulo por defecto: tickets.html');
+                return 'tickets.html';
+            }
+
+            // Si no tiene permiso de registro_horas, buscar otros módulos disponibles
+            const modulePriority = [
+                { module: 'calendario.html', permission: 'calendario' },
+                { module: 'edicion_horas.html', permission: 'edicion_horas' },
+                { module: 'empleados.html', permission: 'empleados' },
+                { module: 'reporte_ventas.html', permission: 'ventas' }
+            ];
+
+            for (const { module, permission } of modulePriority) {
+                if (permisos[permission] === true) {
+                    console.log(`🎯 [SECURE] Módulo seleccionado: ${module} (permiso: ${permission})`);
+                    return module;
+                }
+            }
+
+            // Si no tiene permisos para ningún módulo, mostrar mensaje
+            console.warn('⚠️ [SECURE] Usuario sin permisos para ningún módulo');
+            // Por ahora redirigir a login si no tiene permisos
+            return 'iniciar_sesion.html';
+        }
+    </script>
+</body>
+</html>
+

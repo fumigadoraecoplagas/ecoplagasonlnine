@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<!-- ============================================ -->
+<!-- MÓDULO SECURE: admin_inventario_herramientas_movimientos -->
+<!-- ============================================ -->
+<!-- Este módulo es parte del sistema SECURE -->
+<!-- Usa autenticación Firebase Auth (auth-secure.js) -->
+<!-- URL: admin_inventario_herramientas_movimientos.html (SECURE) -->
+<!-- ============================================ -->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Movimientos de Herramientas - Eco Plagas (Secure)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        window.firebaseAuth = auth;
+        
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            
+            if (document.body) document.body.style.display = 'none';
+
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken) {
+                if (document.body) {
+                    document.body.style.display = 'block';
+                    document.body.classList.add('authenticated');
+                }
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            let retries = 0;
+            const maxRetries = 40;
+            
+            while (retries < maxRetries) {
+                if (auth.currentUser) {
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', {
+                        detail: { page: 'admin_inventario_herramientas_movimientos', timestamp: Date.now() }
+                    }));
+                    
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            if (!hasSessionToken) {
+                window.location.replace('iniciar_sesion.html');
+            }
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-2 px-3">
+        <!-- Header Principal -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-exchange-alt inventory-icon"></i> Gestión de Movimientos de Herramientas</h1>
+            <a href="administrador_bodega.html" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+            </a>
+        </div>
+
+        <!-- Contenido Principal: Movimientos de Herramientas -->
+        <div class="section-content">
+            <div class="consolidado-section">
+                <h3><i class="fas fa-tools"></i> Movimientos de Herramientas</h3>
+                <div>
+                    <!-- Botones de Acción -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-center gap-3">
+                                <button class="btn btn-warning btn-lg" data-bs-toggle="modal" data-bs-target="#modalRegistrarCompraHerramienta">
+                                    <i class="fas fa-plus me-2"></i>Registrar Compra
+                                </button>
+                                <button class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#modalReversarGastoHerramienta">
+                                    <i class="fas fa-undo me-2"></i>Reversar Gasto/Compra
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de transferencia -->
+                    <div class="section-card mb-4" style="background: linear-gradient(135deg, #fbc02d 0%, #f57f17 100%); border: none; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+                        <div class="section-header" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: none;">
+                            <h5 style="color: white; margin: 0;"><i class="fas fa-exchange-alt me-2"></i>Nueva Transferencia de Herramienta</h5>
+                        </div>
+                        <div class="section-body" style="padding: 2rem;">
+                            <form id="formTransferenciaHerramienta">
+                                <!-- Bodega Origen -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-warehouse me-2"></i>Bodega Origen *
+                                    </label>
+                                    <select class="form-select form-select-lg" id="bodegaOrigenHerramienta" required style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                                        <option value="">Selecciona la bodega origen...</option>
+                                    </select>
+                                </div>
+
+                                <!-- Destino -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-arrow-right me-2"></i>Destino *
+                                    </label>
+                                    <select class="form-select form-select-lg" id="bodegaDestinoHerramienta" required style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                                        <option value="">Selecciona el destino...</option>
+                                    </select>
+                                </div>
+
+                                <!-- Campo de búsqueda de herramienta -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-search me-2"></i>Buscar Herramienta *
+                                    </label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text" style="background: rgba(255,255,255,0.9); border: 2px solid rgba(255,255,255,0.3);">
+                                            <i class="fas fa-search text-warning"></i>
+                                        </span>
+                                        <input type="text" 
+                                               class="form-control form-control-lg" 
+                                               id="buscarHerramientaTransferencia" 
+                                               placeholder="Escribe el nombre o código de la herramienta..."
+                                               style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); border-radius: 0; font-size: 1.1rem;">
+                                        <button class="btn btn-outline-light" type="button" onclick="limpiarBusquedaHerramientaTransferencia()" style="border: 2px solid rgba(255,255,255,0.3);">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <select class="form-select form-select-lg mt-3" id="herramientaTransferencia" required style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                                        <option value="">Primero selecciona bodega origen y destino...</option>
+                                    </select>
+                                </div>
+
+                                <!-- Cantidad -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-hashtag me-2"></i>Cantidad *
+                                    </label>
+                                    <div class="input-group input-group-lg">
+                                        <button class="btn btn-outline-light" type="button" onclick="decrementarCantidadHerramientaTransferencia()" style="border: 2px solid rgba(255,255,255,0.3);">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" 
+                                               class="form-control form-control-lg text-center" 
+                                               id="cantidadHerramientaTransferencia" 
+                                               required min="1" 
+                                               value="1"
+                                               style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.2rem; font-weight: bold;">
+                                        <button class="btn btn-outline-light" type="button" onclick="incrementarCantidadHerramientaTransferencia()" style="border: 2px solid rgba(255,255,255,0.3);">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Motivo -->
+                                <div class="mb-4" id="motivoHerramientaTransferenciaContainer">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-comment me-2"></i>Motivo
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control form-control-lg" 
+                                           id="motivoHerramientaTransferencia" 
+                                           placeholder="Describe el motivo de la transferencia..."
+                                           style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                                </div>
+
+                                <!-- Recibo -->
+                                <div class="mb-4" id="reciboHerramientaTransferenciaContainer" style="display: none;">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-receipt me-2"></i>Recibo *
+                                    </label>
+                                    <input type="number" 
+                                           class="form-control form-control-lg" 
+                                           id="reciboHerramientaTransferencia" 
+                                           min="1" 
+                                           step="1"
+                                           placeholder="Número de recibo (entero)"
+                                           style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                                </div>
+
+                                <!-- Observaciones -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold text-white mb-2">
+                                        <i class="fas fa-sticky-note me-2"></i>Observaciones
+                                    </label>
+                                    <textarea class="form-control form-control-lg" 
+                                              id="observacionesHerramientaTransferencia" 
+                                              rows="3" 
+                                              placeholder="Observaciones adicionales..."
+                                              style="border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.9); font-size: 1.1rem; resize: vertical;"></textarea>
+                                </div>
+
+                                <!-- Botón de envío -->
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-light btn-lg py-3" style="font-size: 1.2rem; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                                        <i class="fas fa-paper-plane me-2"></i>Registrar Transferencia
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de Historial de Movimientos -->
+            <div class="section-card mt-4">
+                <div class="section-header">
+                    <h3><i class="fas fa-history"></i> Historial de Movimientos</h3>
+                    <div class="section-badge">
+                        <span class="badge bg-warning text-dark">Últimos 100 movimientos</span>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <!-- Filtros -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Tipo de Movimiento</label>
+                            <select class="form-select" id="filtroTipoMovimiento">
+                                <option value="">Todos</option>
+                                <option value="compra">Compra</option>
+                                <option value="transferencia">Transferencia</option>
+                                <option value="gasto">Gasto</option>
+                                <option value="reversion">Reversión</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Herramienta</label>
+                            <input type="text" class="form-control" id="filtroHerramienta" placeholder="Buscar herramienta...">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Bodega</label>
+                            <select class="form-select" id="filtroBodega">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button class="btn btn-outline-secondary" onclick="limpiarFiltros()">
+                                    <i class="fas fa-times me-2"></i>Limpiar Filtros
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Historial -->
+                    <div class="table-responsive">
+                        <table class="table table-modern table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Herramienta</th>
+                                    <th>Origen</th>
+                                    <th>Destino</th>
+                                    <th>Cantidad</th>
+                                    <th>Total</th>
+                                    <th>Empleado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaHistorialMovimientos">
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-3">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Cargando movimientos...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registrar Compra de Herramienta -->
+    <div class="modal fade" id="modalRegistrarCompraHerramienta" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar Compra de Herramienta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCompraHerramienta">
+                        <div class="mb-3">
+                            <label class="form-label">Herramienta *</label>
+                            <select class="form-select" id="herramientaCompra" required>
+                                <option value="">Seleccionar herramienta...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bodega Destino *</label>
+                            <select class="form-select" id="bodegaCompraHerramienta" required>
+                                <option value="">Seleccionar bodega...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cantidad *</label>
+                            <input type="number" class="form-control" id="cantidadCompraHerramienta" required min="1" step="1">
+                        </div>
+                        <div class="mb-3">
+                            <div class="alert alert-info border-info" id="alertActualizarPrecioHerramientaCompra" style="display: none;">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="actualizarPrecioHerramientaCompra" checked style="cursor: pointer;">
+                                    <label class="form-check-label fw-bold" for="actualizarPrecioHerramientaCompra" style="cursor: pointer;">
+                                        <i class="fas fa-sync-alt me-1"></i>Actualizar precio en catálogo
+                                    </label>
+                                </div>
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Si está activado, el precio de la herramienta se actualizará y afectará la valorización de <strong>todo el inventario</strong> existente.
+                                </small>
+                                <small class="text-muted d-block mt-1" id="precioActualHerramientaCompra" style="display: none;">
+                                    <i class="fas fa-tag me-1"></i>Precio actual en catálogo: <strong id="precioActualHerramientaCompraValor"></strong>
+                                </small>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Precio Unitario de Compra *</label>
+                            <input type="number" class="form-control" id="precioCompraHerramienta" required min="0" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Total</label>
+                            <input type="number" class="form-control" id="totalCompraHerramienta" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Número de Factura *</label>
+                            <input type="text" class="form-control" id="facturaCompraHerramienta" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Proveedor *</label>
+                            <select class="form-select" id="proveedorCompraHerramienta" required>
+                                <option value="">Seleccionar proveedor...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" id="observacionesCompraHerramienta"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" onclick="registrarCompraHerramienta()">Registrar Compra</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reversar Gasto de Herramienta -->
+    <div class="modal fade" id="modalReversarGastoHerramienta" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reversar Gasto o Compra de Herramienta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Reversar Gasto o Compra:</strong> Convierte un gasto o compra registrado de vuelta a stock de bodega.
+                    </div>
+                    <form id="formReversarGastoHerramienta">
+                        <div class="mb-3">
+                            <label class="form-label">Gasto o Compra a Reversar *</label>
+                            <select class="form-select" id="gastoReversarHerramienta" required>
+                                <option value="">Seleccionar gasto o compra...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bodega Destino *</label>
+                            <select class="form-select" id="bodegaDestinoReversionHerramienta" required>
+                                <option value="">Seleccionar bodega...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Motivo de la Reversión *</label>
+                            <input type="text" class="form-control" id="motivoReversionHerramienta" required placeholder="Ej: Error en registro, Devolución">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea class="form-control" id="observacionesReversionHerramienta" placeholder="Detalles adicionales..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" onclick="reversarGastoHerramienta()">Reversar Movimiento</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="admin_inventario_herramientas_movimientos.js"></script>
+</body>
+</html>
