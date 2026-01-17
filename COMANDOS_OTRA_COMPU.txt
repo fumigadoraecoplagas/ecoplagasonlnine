@@ -1,0 +1,52 @@
+# COPIA Y PEGA ESTOS COMANDOS EN CURSOR AI DE LA OTRA COMPUTADORA
+
+# ============================================
+# INFORMACIÓN DE ACCESO
+# ============================================
+# Usuario: fumigadoraecoplagas
+# Token: [CONSULTA AL ADMINISTRADOR DEL PROYECTO]
+# Repositorio: https://github.com/fumigadoraecoplagas/ecoplagasonlnine.git
+
+# ============================================
+# PASO 1: CLONAR EL REPOSITORIO
+# ============================================
+cd ~/Documents
+git clone https://[TOKEN]@github.com/fumigadoraecoplagas/ecoplagasonlnine.git cursor_ai
+cd cursor_ai
+
+# ============================================
+# PASO 2: CONFIGURAR GIT
+# ============================================
+git config --global user.name "Fumigadora EcoPlagas"
+git config --global user.email "fumigadoraecoplagas@users.noreply.github.com"
+
+# ============================================
+# PASO 3: ACTUALIZAR REMOTE (REMOVER TOKEN)
+# ============================================
+git remote set-url origin https://github.com/fumigadoraecoplagas/ecoplagasonlnine.git
+
+# ============================================
+# PASO 4: CONFIGURAR KEYCHAIN (OPCIONAL)
+# ============================================
+git config --global credential.helper osxkeychain
+
+# ============================================
+# LISTO - VERIFICAR
+# ============================================
+git status
+git remote -v
+echo "✅ Proyecto clonado y configurado"
+
+# ============================================
+# COMANDOS PARA TRABAJO DIARIO
+# ============================================
+
+# AL INICIAR EL DÍA (obtener cambios):
+# cd ~/Documents/cursor_ai && git pull origin main
+
+# AL FINALIZAR EL DÍA (guardar cambios):
+# cd ~/Documents/cursor_ai
+# git add .
+# git commit -m "Descripción de cambios"
+# git push origin main
+# (Si pide credenciales: usuario=fumigadoraecoplagas, password=[CONSULTA AL ADMINISTRADOR])
