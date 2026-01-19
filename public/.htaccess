@@ -1,4 +1,4 @@
-# Configuración para evitar caché en desarrollo
+﻿# Configuración para evitar caché en desarrollo
 <IfModule mod_headers.c>
     # Deshabilitar caché para archivos HTML
     <FilesMatch "\.(html)$">
