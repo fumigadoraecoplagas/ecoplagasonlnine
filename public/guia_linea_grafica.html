@@ -352,6 +352,354 @@
             font-weight: 700;
             background: #f5f5f5;
         }
+
+        /* Estilos para Certificados de Fumigación */
+        .certificate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .certificate {
+            background: white;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            page-break-inside: avoid;
+        }
+
+        .certificate-title {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .certificate-info {
+            font-size: 0.85rem;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .certificate .client-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 30px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .treatment-date {
+            text-align: center;
+            font-size: 1rem;
+            margin-bottom: 40px;
+            color: #333;
+        }
+
+        .signatures-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 50px;
+            margin-bottom: 30px;
+        }
+
+        .signature-box {
+            flex: 1;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 2px solid #333;
+            width: 200px;
+            margin: 60px auto 10px;
+            height: 1px;
+        }
+
+        .signature-name {
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .signature-details {
+            font-size: 0.75rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .logo-center {
+            flex: 0 0 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .logo-text {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .certificate .footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        /* Diseño 1: Original con bordes rojos */
+        .cert-1 {
+            border-top: 4px solid #d32f2f;
+            border-bottom: 4px solid #d32f2f;
+            position: relative;
+        }
+
+        .cert-1::before,
+        .cert-1::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #d32f2f;
+            border-radius: 50%;
+        }
+
+        .cert-1::before {
+            top: -10px;
+            left: 20px;
+        }
+
+        .cert-1::after {
+            top: -10px;
+            right: 20px;
+        }
+
+        .cert-1 .certificate-title {
+            color: #d32f2f;
+        }
+
+        .cert-1 .client-name {
+            color: #d32f2f;
+        }
+
+        .cert-1 .logo-circle {
+            background: #ffeb3b;
+            border: 3px solid #d32f2f;
+        }
+
+        .cert-1 .logo-text:first-child {
+            color: #4caf50;
+        }
+
+        .cert-1 .logo-text:last-child {
+            color: #d32f2f;
+        }
+
+        .cert-1 .logo-banner {
+            background: #d32f2f;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        /* Diseño 2: Moderno con sombras */
+        .cert-2 {
+            border: 2px solid #1976d2;
+            border-radius: 8px;
+        }
+
+        .cert-2 .certificate-title {
+            color: #1976d2;
+            border-bottom: 3px solid #1976d2;
+            padding-bottom: 15px;
+        }
+
+        .cert-2 .client-name {
+            color: #1976d2;
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .cert-2 .logo-circle {
+            background: linear-gradient(135deg, #1976d2, #42a5f5);
+            color: white;
+        }
+
+        .cert-2 .logo-text {
+            color: white;
+        }
+
+        /* Diseño 3: Elegante con marco decorativo */
+        .cert-3 {
+            border: 3px double #6a1b9a;
+            position: relative;
+        }
+
+        .cert-3::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px solid #6a1b9a;
+            pointer-events: none;
+        }
+
+        .cert-3 .certificate-title {
+            color: #6a1b9a;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cert-3 .client-name {
+            color: #6a1b9a;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cert-3 .logo-circle {
+            background: #9c27b0;
+            color: white;
+            border: 3px solid #6a1b9a;
+        }
+
+        .cert-3 .logo-text {
+            color: white;
+        }
+
+        /* Diseño 4: Minimalista */
+        .cert-4 {
+            border-left: 5px solid #f57c00;
+        }
+
+        .cert-4 .certificate-title {
+            color: #f57c00;
+            font-size: 1.8rem;
+        }
+
+        .cert-4 .client-name {
+            color: #f57c00;
+            border-left: 4px solid #f57c00;
+            padding-left: 15px;
+            text-align: left;
+        }
+
+        .cert-4 .logo-circle {
+            background: #fff3e0;
+            border: 2px solid #f57c00;
+        }
+
+        .cert-4 .logo-text:first-child {
+            color: #f57c00;
+        }
+
+        .cert-4 .logo-text:last-child {
+            color: #e65100;
+        }
+
+        /* Diseño 5: Clásico con ornamentos */
+        .cert-5 {
+            border: 2px solid #c62828;
+            background: #fffef7;
+        }
+
+        .cert-5 .certificate-title {
+            color: #c62828;
+            font-family: 'Times New Roman', serif;
+            border-top: 2px solid #c62828;
+            border-bottom: 2px solid #c62828;
+            padding: 15px 0;
+        }
+
+        .cert-5 .client-name {
+            color: #c62828;
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+        }
+
+        .cert-5 .logo-circle {
+            background: #ffd54f;
+            border: 3px solid #c62828;
+        }
+
+        .cert-5 .logo-text:first-child {
+            color: #2e7d32;
+        }
+
+        .cert-5 .logo-text:last-child {
+            color: #c62828;
+        }
+
+        /* Diseño 6: Profesional con gradiente */
+        .cert-6 {
+            background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+            border: 1px solid #dee2e6;
+        }
+
+        .cert-6 .certificate-title {
+            color: #dc3545;
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cert-6 .client-name {
+            color: #dc3545;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+
+        .cert-6 .logo-circle {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            border: 3px solid #dc3545;
+        }
+
+        .cert-6 .logo-text:first-child {
+            color: #28a745;
+        }
+
+        .cert-6 .logo-text:last-child {
+            color: #dc3545;
+        }
+
+        @media print {
+            .certificate {
+                page-break-after: always;
+                box-shadow: none;
+                margin: 0;
+            }
+
+            .certificate-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2508,6 +2856,268 @@
                 <li>Selección por clic en la opción</li>
                 <li>Cierre automático al seleccionar o hacer clic fuera</li>
             </ul>
+        </section>
+    </div>
+
+    <!-- Sección 13: Certificados de Fumigación -->
+    <div class="container" style="margin-top: 1rem;">
+        <section>
+            <h2>13. Certificados de Fumigación</h2>
+            <p>Diseños de certificados de fumigación siguiendo la línea gráfica de EcoPlagas. Estos certificados pueden ser impresos o exportados como PDF.</p>
+            
+            <div class="certificate-grid">
+                <!-- Diseño 1: Original con bordes rojos -->
+                <div class="certificate cert-1">
+                    <h2 class="certificate-title">CERTIFICADO DE FUMIGACIÓN</h2>
+                    <div class="certificate-info">
+                        Fumigadora EcoPlagas, autorizada por el Ministerio de Salud bajo la actividad CIIU 8129 bajo el permiso de funcionamiento No. MS-DRRSHC-DARSG-PSF-2024-0085 certifica que:
+                    </div>
+                    <div class="client-name">CREPERÍA Y CAFETERÍAS ENTRE NOUS</div>
+                    <div class="treatment-date">
+                        Ha sido tratado para el control de plagas el día 19 de Enero del 2026.
+                    </div>
+                    <div class="signatures-section">
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">ING. PABLO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Inscrito en Colegio de Ingenieros Agrónomos - Cod. 9260<br>
+                                pablo.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                        <div class="logo-center">
+                            <div class="logo-circle">
+                                <div class="logo-text">ECO</div>
+                                <div class="logo-text">PLAGAS</div>
+                            </div>
+                            <div class="logo-banner">Fumigadora</div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">MARIO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Administrador General<br>
+                                mario.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        Emitido por Ecofumigadora Hermanos Paniagua S.R.L. Tel: 62217000 - gerencia@ecoplagascr.com
+                    </div>
+                </div>
+
+                <!-- Diseño 2: Moderno con sombras -->
+                <div class="certificate cert-2">
+                    <h2 class="certificate-title">CERTIFICADO DE FUMIGACIÓN</h2>
+                    <div class="certificate-info">
+                        Fumigadora EcoPlagas, autorizada por el Ministerio de Salud bajo la actividad CIIU 8129 bajo el permiso de funcionamiento No. MS-DRRSHC-DARSG-PSF-2024-0085 certifica que:
+                    </div>
+                    <div class="client-name">CREPERÍA Y CAFETERÍAS ENTRE NOUS</div>
+                    <div class="treatment-date">
+                        Ha sido tratado para el control de plagas el día 19 de Enero del 2026.
+                    </div>
+                    <div class="signatures-section">
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">ING. PABLO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Inscrito en Colegio de Ingenieros Agrónomos - Cod. 9260<br>
+                                pablo.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                        <div class="logo-center">
+                            <div class="logo-circle">
+                                <div class="logo-text">ECO</div>
+                                <div class="logo-text">PLAGAS</div>
+                            </div>
+                            <div class="logo-banner" style="background: #1976d2; color: white; padding: 5px 15px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">Fumigadora</div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">MARIO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Administrador General<br>
+                                mario.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        Emitido por Ecofumigadora Hermanos Paniagua S.R.L. Tel: 62217000 - gerencia@ecoplagascr.com
+                    </div>
+                </div>
+
+                <!-- Diseño 3: Elegante con marco decorativo -->
+                <div class="certificate cert-3">
+                    <h2 class="certificate-title">CERTIFICADO DE FUMIGACIÓN</h2>
+                    <div class="certificate-info">
+                        Fumigadora EcoPlagas, autorizada por el Ministerio de Salud bajo la actividad CIIU 8129 bajo el permiso de funcionamiento No. MS-DRRSHC-DARSG-PSF-2024-0085 certifica que:
+                    </div>
+                    <div class="client-name">CREPERÍA Y CAFETERÍAS ENTRE NOUS</div>
+                    <div class="treatment-date">
+                        Ha sido tratado para el control de plagas el día 19 de Enero del 2026.
+                    </div>
+                    <div class="signatures-section">
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">ING. PABLO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Inscrito en Colegio de Ingenieros Agrónomos - Cod. 9260<br>
+                                pablo.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                        <div class="logo-center">
+                            <div class="logo-circle">
+                                <div class="logo-text">ECO</div>
+                                <div class="logo-text">PLAGAS</div>
+                            </div>
+                            <div class="logo-banner" style="background: #6a1b9a; color: white; padding: 5px 15px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">Fumigadora</div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">MARIO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Administrador General<br>
+                                mario.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        Emitido por Ecofumigadora Hermanos Paniagua S.R.L. Tel: 62217000 - gerencia@ecoplagascr.com
+                    </div>
+                </div>
+
+                <!-- Diseño 4: Minimalista -->
+                <div class="certificate cert-4">
+                    <h2 class="certificate-title">CERTIFICADO DE FUMIGACIÓN</h2>
+                    <div class="certificate-info">
+                        Fumigadora EcoPlagas, autorizada por el Ministerio de Salud bajo la actividad CIIU 8129 bajo el permiso de funcionamiento No. MS-DRRSHC-DARSG-PSF-2024-0085 certifica que:
+                    </div>
+                    <div class="client-name">CREPERÍA Y CAFETERÍAS ENTRE NOUS</div>
+                    <div class="treatment-date">
+                        Ha sido tratado para el control de plagas el día 19 de Enero del 2026.
+                    </div>
+                    <div class="signatures-section">
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">ING. PABLO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Inscrito en Colegio de Ingenieros Agrónomos - Cod. 9260<br>
+                                pablo.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                        <div class="logo-center">
+                            <div class="logo-circle">
+                                <div class="logo-text">ECO</div>
+                                <div class="logo-text">PLAGAS</div>
+                            </div>
+                            <div class="logo-banner" style="background: #f57c00; color: white; padding: 5px 15px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">Fumigadora</div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">MARIO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Administrador General<br>
+                                mario.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        Emitido por Ecofumigadora Hermanos Paniagua S.R.L. Tel: 62217000 - gerencia@ecoplagascr.com
+                    </div>
+                </div>
+
+                <!-- Diseño 5: Clásico con ornamentos -->
+                <div class="certificate cert-5">
+                    <h2 class="certificate-title">CERTIFICADO DE FUMIGACIÓN</h2>
+                    <div class="certificate-info">
+                        Fumigadora EcoPlagas, autorizada por el Ministerio de Salud bajo la actividad CIIU 8129 bajo el permiso de funcionamiento No. MS-DRRSHC-DARSG-PSF-2024-0085 certifica que:
+                    </div>
+                    <div class="client-name">CREPERÍA Y CAFETERÍAS ENTRE NOUS</div>
+                    <div class="treatment-date">
+                        Ha sido tratado para el control de plagas el día 19 de Enero del 2026.
+                    </div>
+                    <div class="signatures-section">
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">ING. PABLO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Inscrito en Colegio de Ingenieros Agrónomos - Cod. 9260<br>
+                                pablo.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                        <div class="logo-center">
+                            <div class="logo-circle">
+                                <div class="logo-text">ECO</div>
+                                <div class="logo-text">PLAGAS</div>
+                            </div>
+                            <div class="logo-banner" style="background: #c62828; color: white; padding: 5px 15px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">Fumigadora</div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">MARIO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Administrador General<br>
+                                mario.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        Emitido por Ecofumigadora Hermanos Paniagua S.R.L. Tel: 62217000 - gerencia@ecoplagascr.com
+                    </div>
+                </div>
+
+                <!-- Diseño 6: Profesional con gradiente -->
+                <div class="certificate cert-6">
+                    <h2 class="certificate-title">CERTIFICADO DE FUMIGACIÓN</h2>
+                    <div class="certificate-info">
+                        Fumigadora EcoPlagas, autorizada por el Ministerio de Salud bajo la actividad CIIU 8129 bajo el permiso de funcionamiento No. MS-DRRSHC-DARSG-PSF-2024-0085 certifica que:
+                    </div>
+                    <div class="client-name">CREPERÍA Y CAFETERÍAS ENTRE NOUS</div>
+                    <div class="treatment-date">
+                        Ha sido tratado para el control de plagas el día 19 de Enero del 2026.
+                    </div>
+                    <div class="signatures-section">
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">ING. PABLO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Inscrito en Colegio de Ingenieros Agrónomos - Cod. 9260<br>
+                                pablo.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                        <div class="logo-center">
+                            <div class="logo-circle">
+                                <div class="logo-text">ECO</div>
+                                <div class="logo-text">PLAGAS</div>
+                            </div>
+                            <div class="logo-banner" style="background: #dc3545; color: white; padding: 5px 15px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">Fumigadora</div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-name">MARIO PANIAGUA SOTO</div>
+                            <div class="signature-details">
+                                Administrador General<br>
+                                mario.paniagua@ecoplagascr.com<br>
+                                Representante Legal
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        Emitido por Ecofumigadora Hermanos Paniagua S.R.L. Tel: 62217000 - gerencia@ecoplagascr.com
+                    </div>
+                </div>
+            </div>
         </section>
     </div>
 
