@@ -590,27 +590,39 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         }
         
         .ruta-contenido-blanco {
-            background: white;
+            background: linear-gradient(to bottom, rgba(33, 150, 243, 0.05) 0%, rgba(33, 150, 243, 0.05) 28px, rgba(255, 152, 0, 0.05) 31px, rgba(255, 152, 0, 0.05) 100%);
+            border-left: 3px solid #2196F3;
             padding: 4px;
-            flex: 0 0 103px; /* Altura fija: 50px (vehículos) + 50px (técnicos) + 3px (gap) = 103px */
+            flex: 0 0 auto; /* Altura automática para ajustarse al contenido */
             display: flex;
             flex-direction: column;
             gap: 3px;
             overflow: hidden; /* Evitar desbordamiento */
-            min-height: 103px; /* Altura mínima fija */
-            height: 103px; /* Altura fija para mantener consistencia */
-            max-height: 103px; /* Altura máxima fija */
+            min-height: 81px; /* Altura mínima: 28px (vehículos) + 50px (técnicos) + 3px (gap) = 81px */
+            position: relative;
+        }
+        
+        /* Asegurar que el borde izquierdo naranja también se vea desde el inicio de técnicos */
+        .ruta-contenido-blanco::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 31px; /* Inicio después de vehículos (28px) + gap (3px) */
+            bottom: 0;
+            width: 3px;
+            background: #FF9800;
+            z-index: 1;
         }
         
         .ruta-info-row {
             font-size: clamp(0.5rem, 1vw, 0.55rem);
             text-align: center;
-            padding: 4px;
+            padding: 1px 4px;
             border-top: 1px solid rgba(0,0,0,0.1);
             margin-top: 0;
-            min-height: 50px; /* Altura mínima fija siempre visible */
-            height: 50px; /* Altura fija para mantener consistencia */
-            max-height: 50px; /* Altura máxima para evitar desbordamiento */
+            min-height: 28px; /* Altura mínima fija siempre visible */
+            height: 28px; /* Altura fija para mantener consistencia */
+            max-height: 28px; /* Altura máxima para evitar desbordamiento */
             word-wrap: break-word;
             overflow-wrap: break-word;
             hyphens: auto;
@@ -623,7 +635,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             justify-content: center;
             overflow: hidden; /* Evitar desbordamiento */
             position: relative;
-            flex: 0 0 50px; /* Altura fija de 50px, no crecer ni reducir */
+            flex: 0 0 28px; /* Altura fija de 28px para vehículos, técnicos tienen flex auto */
         }
         
         .ruta-info-row[data-tipo-fila="vehiculo"] {
@@ -641,6 +653,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         .ruta-info-row[data-tipo-fila="tecnico"] {
             background: rgba(255, 152, 0, 0.05);
             border-left: 3px solid #FF9800;
+            min-height: 50px !important; /* Altura suficiente para múltiples técnicos */
+            height: auto !important; /* Altura automática para que crezca con el contenido */
+            max-height: none !important; /* Sin límite máximo para permitir múltiples filas */
+            flex: 0 0 auto !important; /* Flex automático para ajustarse al contenido */
         }
         
         /* Cuando está vacío, hacer más visible el área de drop para técnicos */
@@ -1256,6 +1272,57 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         .dropdown-item:active {
             background-color: #e0e0e0;
         }
+        
+        /* Estilos para botones de días del mes */
+        .btn-dia-mes {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 70px;
+            text-align: center;
+            color: #333;
+            white-space: nowrap;
+        }
+        
+        .btn-dia-mes:hover {
+            background: #f0f0f0;
+            border-color: #4CAF50;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .btn-dia-mes.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+            font-weight: 600;
+        }
+        
+        .btn-dia-mes.today {
+            border-color: #4CAF50;
+            border-width: 2px;
+        }
+        
+        .btn-dia-mes.domingo {
+            background: #9E9E9E !important;
+            color: white !important;
+            border-color: #757575 !important;
+        }
+        
+        .btn-dia-mes.domingo:hover {
+            background: #757575 !important;
+            border-color: #616161 !important;
+        }
+        
+        .btn-dia-mes.domingo.active {
+            background: #616161 !important;
+            border-color: #424242 !important;
+        }
     </style>
 </head>
 <body>
@@ -1268,21 +1335,32 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 <div class="d-flex gap-2 align-items-center flex-wrap">
                     <!-- Filtro de fecha y botón Vista Total -->
                     <div class="date-filter-container" style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;">
-                        <button id="btnPrevDayCronograma" class="btn-date-nav" style="background: #f5f5f5; border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #4CAF50;" onmouseover="this.style.background='#4CAF50'; this.style.color='white';" onmouseout="this.style.background='#f5f5f5'; this.style.color='#4CAF50';">
+                        <button id="btnPrevMonthCronograma" class="btn-date-nav" style="background: #f5f5f5; border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #4CAF50;" onmouseover="this.style.background='#4CAF50'; this.style.color='white';" onmouseout="this.style.background='#f5f5f5'; this.style.color='#4CAF50';">
                             <i class="fas fa-chevron-left" style="font-size: 0.9rem;"></i>
-                    </button>
-                        <div style="position: relative; display: flex; align-items: center;">
-                            <i class="fas fa-calendar-alt" style="position: absolute; left: 12px; color: #4CAF50; z-index: 1; font-size: 0.9rem;"></i>
-                            <input type="date" id="datePicker" class="form-control form-control-modern" style="padding-left: 40px; padding-right: 12px; padding-top: 8px; padding-bottom: 8px; border: 2px solid #e0e0e0; border-radius: 8px; font-weight: 500; font-size: 0.95rem; min-width: 160px; transition: all 0.2s;" onfocus="this.style.borderColor='#4CAF50'; this.style.boxShadow='0 0 0 3px rgba(76, 175, 80, 0.1)';" onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none';">
+                        </button>
+                        <div id="datePickerContainer" style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 600px; overflow-x: auto; padding: 4px;">
+                            <!-- Los botones de días se generarán dinámicamente -->
                         </div>
-                        <button id="btnNextDayCronograma" class="btn-date-nav" style="background: #f5f5f5; border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #4CAF50;" onmouseover="this.style.background='#4CAF50'; this.style.color='white';" onmouseout="this.style.background='#f5f5f5'; this.style.color='#4CAF50';">
+                        <button id="btnNextMonthCronograma" class="btn-date-nav" style="background: #f5f5f5; border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #4CAF50;" onmouseover="this.style.background='#4CAF50'; this.style.color='white';" onmouseout="this.style.background='#f5f5f5'; this.style.color='#4CAF50';">
                             <i class="fas fa-chevron-right" style="font-size: 0.9rem;"></i>
-                    </button>
+                        </button>
+                        <!-- Input oculto para mantener compatibilidad -->
+                        <input type="date" id="datePicker" style="display: none;">
                         <div style="width: 1px; height: 28px; background: #e0e0e0; margin: 0 4px;"></div>
                         <button id="btnToggleVistaCompacta" class="btn btn-sm active" style="background: #4CAF50; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 500; font-size: 0.9rem; height: 36px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='#45a049';" onmouseout="this.style.background='#4CAF50';">
                             <i class="fas fa-expand-alt" style="font-size: 0.85rem;"></i>
                             <span>Vista Total</span>
                         </button>
+                        <!-- Botones de navegación de semana (solo visibles en vista compacta) -->
+                        <div id="navegacionSemana" style="display: none; align-items: center; gap: 8px;">
+                            <button id="btnSemanaAnterior" class="btn-date-nav" style="background: #f5f5f5; border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #4CAF50;" onmouseover="this.style.background='#4CAF50'; this.style.color='white';" onmouseout="this.style.background='#f5f5f5'; this.style.color='#4CAF50';">
+                                <i class="fas fa-chevron-left" style="font-size: 0.9rem;"></i>
+                            </button>
+                            <span id="rangoSemana" style="font-size: 0.9rem; font-weight: 500; color: #333; min-width: 200px; text-align: center;"></span>
+                            <button id="btnSemanaSiguiente" class="btn-date-nav" style="background: #f5f5f5; border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #4CAF50;" onmouseover="this.style.background='#4CAF50'; this.style.color='white';" onmouseout="this.style.background='#f5f5f5'; this.style.color='#4CAF50';">
+                                <i class="fas fa-chevron-right" style="font-size: 0.9rem;"></i>
+                            </button>
+                        </div>
                 </div>
                     <div class="ms-auto position-relative">
                         <button id="btnMenuHamburguesa" class="btn btn-outline-secondary" style="font-size: 1.2rem; padding: 8px 12px;" title="Menú">
@@ -1673,13 +1751,30 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     <input type="text" id="editCostoServicio" class="form-control" placeholder="20000" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
                                     <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Costo estimado</small>
                                 </div>
+                                
+                                <!-- Servicios -->
+                                <div class="col-12" style="margin-top: 0.75rem;">
+                                    <hr style="margin: 0.75rem 0; border-color: #e0e0e0; border-width: 1px;">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
+                                        Servicios
+                                    </label>
+                                    <div class="dropdown-container" style="position: relative; z-index: 10000;">
+                                        <input type="text" id="editServicioSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar servicio" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                        <div class="dropdown-menu" id="editServiciosDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 10000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
+                                            <div class="dropdown-item text-muted" id="noResultsEditServicio" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
+                                        </div>
+                                    </div>
+                                    <div id="editServiciosSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                </div>
             </div>
         </div>
     </div>
 
                     <!-- Información Adicional -->
                     <div class="card mb-2" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px;">
-                        <div class="card-header adicional-toggle" id="toggleAdicionalEdit" style="background: #fbdc02; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem; border-radius: 8px 8px 0 0; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2);">
+                        <div class="card-header adicional-toggle" id="toggleAdicionalEdit" style="background: #fbdc02; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem; border-radius: 8px 8px 0 0; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2); z-index: 1;">
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <h6 class="mb-0" style="font-size: 1rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Adicional</h6>
                                 <i class="fas fa-chevron-down icon-expand-pulse" style="font-size: 1.8rem; color: #000000;"></i>
@@ -1699,18 +1794,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     </div>
                                     <div id="editVendedoresSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
                         </div>
-                                <div class="col-12">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
-                                        Servicios
-                                    </label>
-                                    <div class="dropdown-container" style="position: relative;">
-                                        <input type="text" id="editServicioSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar servicio" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
-                                        <div class="dropdown-menu" id="editServiciosDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
-                                            <div class="dropdown-item text-muted" id="noResultsEditServicio" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
-                                        </div>
-                                    </div>
-                                    <div id="editServiciosSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
-                                </div>
                                 <div class="col-12">
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
                                         Productos de Inventario
@@ -2103,13 +2186,30 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     <input type="text" id="newCostoServicio" class="form-control" placeholder="20000" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
                                     <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Costo estimado</small>
                                 </div>
+                                
+                                <!-- Servicios -->
+                                <div class="col-12" style="margin-top: 0.75rem;">
+                                    <hr style="margin: 0.75rem 0; border-color: #e0e0e0; border-width: 1px;">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
+                                        Servicios
+                                    </label>
+                                    <div class="dropdown-container" style="position: relative; z-index: 10000;">
+                                        <input type="text" id="newServicioSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar servicio" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                        <div class="dropdown-menu" id="newServiciosDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 10000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
+                                            <div class="dropdown-item text-muted" id="noResultsNewServicio" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
+                                        </div>
+                                    </div>
+                                    <div id="newServiciosSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                </div>
                                         </div>
                         </div>
                     </div>
 
                     <!-- Información Adicional -->
                     <div class="card mb-2" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px;">
-                        <div class="card-header adicional-toggle" id="toggleAdicionalNew" style="background: #fbdc02; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem; border-radius: 8px 8px 0 0; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2);">
+                        <div class="card-header adicional-toggle" id="toggleAdicionalNew" style="background: #fbdc02; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem; border-radius: 8px 8px 0 0; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2); z-index: 1;">
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <h6 class="mb-0" style="font-size: 1rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Adicional</h6>
                                 <i class="fas fa-chevron-down icon-expand-pulse" style="font-size: 1.8rem; color: #000000;"></i>
@@ -2129,18 +2229,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     </div>
                                     <div id="newVendedoresSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
                                         </div>
-                                <div class="col-12">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
-                                        Servicios
-                                    </label>
-                                    <div class="dropdown-container" style="position: relative;">
-                                        <input type="text" id="newServicioSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar servicio" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
-                                        <div class="dropdown-menu" id="newServiciosDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
-                                            <div class="dropdown-item text-muted" id="noResultsNewServicio" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
-                                        </div>
-                                    </div>
-                                    <div id="newServiciosSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
-                                </div>
                                 <div class="col-12">
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
                                         Productos de Inventario
@@ -2558,6 +2646,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         let selectedCita = null;
         let currentDate = new Date();
         let diaSeleccionado = new Date();
+        let semanaActual = new Date(); // Fecha del lunes de la semana actual en vista compacta
         // Mapas de encuestas:
         // - mapaLinksEncuestas: links generados (encuestas_id) - clave = "telefono_fechaServicio"
         // - mapaRespuestasEncuestas: respuestas recibidas (encuestas) - clave = "id_encuesta"
@@ -3577,21 +3666,177 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             return `${year}-${month}-${day}`;
         }
         
+        // Función para formatear montos grandes (220k, 300k, 1M, etc.)
+        function formatearMontoGrande(monto) {
+            if (!monto || monto === 0) {
+                return '0';
+            }
+            if (monto >= 1000000) {
+                const millones = (monto / 1000000).toFixed(1);
+                return millones.endsWith('.0') ? millones.replace('.0', '') + 'M' : millones + 'M';
+            } else if (monto >= 1000) {
+                const miles = (monto / 1000).toFixed(0);
+                return miles + 'k';
+            }
+            return monto.toString();
+        }
+        
+        // Función para calcular ventas totales de un día
+        function calcularVentasDia(year, month, day) {
+            if (!window.todasLasCitas || window.todasLasCitas.length === 0) {
+                return 0;
+            }
+            
+            let totalVentas = 0;
+            window.todasLasCitas.forEach(cita => {
+                if (!window.obtenerInicio) return;
+                
+                const inicioCita = window.obtenerInicio(cita);
+                if (!inicioCita) return;
+                
+                const fechaCita = window.formatearFecha(inicioCita);
+                if (!fechaCita) return;
+                
+                if (fechaCita.getFullYear() === year &&
+                    fechaCita.getMonth() === month &&
+                    fechaCita.getDate() === day) {
+                    const monto = window.obtenerMonto(cita) || 0;
+                    totalVentas += monto;
+                }
+            });
+            
+            return totalVentas;
+        }
+        
+        // Función para generar botones de días del mes
+        function generarBotonesDiasMes(fecha) {
+            const container = document.getElementById('datePickerContainer');
+            if (!container) return;
+            
+            // Verificar si estamos en vista compacta
+            const btnToggle = document.getElementById('btnToggleVistaCompacta');
+            const estaEnVistaCompacta = btnToggle && !btnToggle.classList.contains('active');
+            
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            
+            const diasSemana = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+            const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+            
+            let diasAMostrar = [];
+            
+            if (estaEnVistaCompacta) {
+                // Vista compacta: solo mostrar días de la semana actual
+                if (!semanaActual) {
+                    semanaActual = obtenerLunesSemana(new Date());
+                }
+                diasAMostrar = obtenerDiasSemana(semanaActual);
+            } else {
+                // Vista total: mostrar todos los días del mes
+                const year = fecha.getFullYear();
+                const month = fecha.getMonth();
+                const diasEnMes = new Date(year, month + 1, 0).getDate();
+                for (let dia = 1; dia <= diasEnMes; dia++) {
+                    diasAMostrar.push(new Date(year, month, dia));
+                }
+            }
+            
+            let html = '';
+            diasAMostrar.forEach(fechaDia => {
+                const year = fechaDia.getFullYear();
+                const month = fechaDia.getMonth();
+                const day = fechaDia.getDate();
+                const diaSemana = diasSemana[fechaDia.getDay()];
+                const mesAbrev = meses[month];
+                const fechaString = formatearFechaParaInput(fechaDia);
+                
+                const esHoy = fechaDia.getTime() === hoy.getTime();
+                const esSeleccionado = diaSeleccionado && formatearFechaParaInput(diaSeleccionado) === fechaString;
+                const esDomingo = fechaDia.getDay() === 0;
+                
+                // Calcular ventas del día
+                const ventasDia = calcularVentasDia(year, month, day);
+                const ventasFormateadas = formatearMontoGrande(ventasDia);
+                
+                html += `
+                    <button class="btn-dia-mes ${esHoy ? 'today' : ''} ${esSeleccionado ? 'active' : ''} ${esDomingo ? 'domingo' : ''}" 
+                            data-fecha="${fechaString}"
+                            onclick="seleccionarDia('${fechaString}')">
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.7rem; font-weight: 600;">${diaSemana} ${day} ${mesAbrev}</div>
+                            <div style="font-size: 0.65rem; margin-top: 2px; font-weight: 500;">${ventasFormateadas}</div>
+                        </div>
+                    </button>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // Función para seleccionar un día
+        window.seleccionarDia = async function(fechaString) {
+            const [year, month, day] = fechaString.split('-').map(Number);
+            const nuevaFecha = new Date(year, month - 1, day, 12, 0, 0);
+            currentDate = nuevaFecha;
+            diaSeleccionado = nuevaFecha;
+            
+            // Actualizar input oculto
+            const datePicker = document.getElementById('datePicker');
+            if (datePicker) {
+                datePicker.value = fechaString;
+            }
+            
+            // Actualizar botones activos
+            document.querySelectorAll('.btn-dia-mes').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.fecha === fechaString) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            if (vistaActual === 'cronograma') {
+                await generarCronograma();
+            }
+        };
+        
         // Sincronizar datePicker con diaSeleccionado cuando cambien los botones
-        if (btnPrevDayCronograma && datePicker) {
-            btnPrevDayCronograma.addEventListener('click', async () => {
-                diaSeleccionado.setDate(diaSeleccionado.getDate() - 1);
-                datePicker.value = formatearFechaParaInput(diaSeleccionado);
+        const btnPrevMonthCronograma = document.getElementById('btnPrevMonthCronograma');
+        const btnNextMonthCronograma = document.getElementById('btnNextMonthCronograma');
+        
+        if (btnPrevMonthCronograma) {
+            btnPrevMonthCronograma.addEventListener('click', async () => {
+                const nuevaFecha = new Date(diaSeleccionado);
+                nuevaFecha.setMonth(nuevaFecha.getMonth() - 1);
+                diaSeleccionado = nuevaFecha;
+                generarBotonesDiasMes(nuevaFecha);
                 if (vistaActual === 'cronograma') {
                     await generarCronograma();
                 }
             });
-            // Agregar efecto visual al hacer clic
-            btnPrevDayCronograma.addEventListener('mousedown', function() {
-                this.style.transform = 'scale(0.95)';
+        }
+        
+        if (btnNextMonthCronograma) {
+            btnNextMonthCronograma.addEventListener('click', async () => {
+                const nuevaFecha = new Date(diaSeleccionado);
+                nuevaFecha.setMonth(nuevaFecha.getMonth() + 1);
+                diaSeleccionado = nuevaFecha;
+                generarBotonesDiasMes(nuevaFecha);
+                if (vistaActual === 'cronograma') {
+                    await generarCronograma();
+                }
             });
-            btnPrevDayCronograma.addEventListener('mouseup', function() {
-                this.style.transform = 'scale(1)';
+        }
+        
+        // Mantener compatibilidad con el código anterior (si los botones antiguos aún existen)
+        // Nota: btnPrevDayCronograma y btnNextDayCronograma ya están declarados arriba
+        if (btnPrevDayCronograma && datePicker) {
+            btnPrevDayCronograma.addEventListener('click', async () => {
+                diaSeleccionado.setDate(diaSeleccionado.getDate() - 1);
+                datePicker.value = formatearFechaParaInput(diaSeleccionado);
+                generarBotonesDiasMes(diaSeleccionado);
+                if (vistaActual === 'cronograma') {
+                    await generarCronograma();
+                }
             });
         }
         
@@ -3599,6 +3844,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             btnNextDayCronograma.addEventListener('click', async () => {
                 diaSeleccionado.setDate(diaSeleccionado.getDate() + 1);
                 datePicker.value = formatearFechaParaInput(diaSeleccionado);
+                generarBotonesDiasMes(diaSeleccionado);
                 if (vistaActual === 'cronograma') {
                     await generarCronograma();
                 }
@@ -5113,19 +5359,24 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         // Variable global para almacenar equipo
         window.todosLosEquipos = [];
         
-        // Función para cargar equipo desde Firestore
+        // Función para cargar herramientas desde Firestore (solo herramientas, no productos)
         window.cargarEquipo = async function() {
             try {
-                const q = query(collection(window.db, 'equipo'), orderBy('nombre', 'asc'));
+                // Cargar solo herramientas desde la colección 'herramientas'
+                const q = query(collection(window.db, 'herramientas'), orderBy('nombre', 'asc'));
                 const querySnapshot = await getDocs(q);
                 window.todosLosEquipos = [];
                 querySnapshot.forEach(doc => {
-                    window.todosLosEquipos.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    // Solo agregar herramientas activas (si tienen campo activo)
+                    if (data.activo !== false) {
+                        window.todosLosEquipos.push({ id: doc.id, ...data });
+                    }
                 });
-                console.log('✅ Equipo cargado:', window.todosLosEquipos.length);
+                console.log('✅ Herramientas cargadas:', window.todosLosEquipos.length);
                 return window.todosLosEquipos;
             } catch (error) {
-                console.error('❌ Error cargando equipo:', error);
+                console.error('❌ Error cargando herramientas:', error);
                 return [];
             }
         };
@@ -7425,12 +7676,22 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         });
                     }
                     
+                    // Determinar si es fumigación para aplicar color
+                    const departamento = (t.departamento || '').trim().toLowerCase();
+                    const esFumigacion = departamento === 'fumigación' || departamento === 'fumigacion';
+                    
+                    // Si es fumigación, usar clase naranja (recurso-tecnico), si no, usar estilo gris
+                    const estiloColor = esFumigacion 
+                        ? '' 
+                        : 'background: #9E9E9E !important; color: white !important;';
+                    
                     const htmlGenerado = `
                     <div class="recurso-item recurso-tecnico" 
                          draggable="true" 
                          data-tipo="tecnico" 
                          data-username="${usernameEscapado}"
-                         data-nombre="${nombreEscapado}">
+                         data-nombre="${nombreEscapado}"
+                         ${estiloColor ? `style="${estiloColor}"` : ''}>
                         ${nombre}
                     </div>
                 `;
@@ -8147,7 +8408,16 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     
                     const rutaDestino = row.dataset.ruta;
                     
-                    // Obtener datos específicos según el tipo
+                    // Obtener fecha de la fila (vista compacta) o del día seleccionado (vista total)
+                    let fecha;
+                    if (row.dataset.fechaRuta) {
+                        fecha = row.dataset.fechaRuta;
+                    } else {
+                        // Vista total: usar el día seleccionado
+                        fecha = formatearFechaParaInput(diaSeleccionado);
+                    }
+                    
+                    // Obtener datos específicos según el tipo (guardar valores reales, no 'VACÍO')
                     let username = e.dataTransfer.getData('username');
                     const usernameText = e.dataTransfer.getData('text/username');
                     if (!username) username = usernameText;
@@ -8160,7 +8430,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     const vehiculoText = e.dataTransfer.getData('text/vehiculo');
                     if (!vehiculo) vehiculo = vehiculoText;
                     
-                    // Log completo de lo recibido en el drop
+                    // Log completo de lo recibido en el drop (solo para logging)
                     const datosRecibidos = {
                         tipo: tipo || 'VACÍO',
                         tipoTextPlain: tipoTextPlain || 'VACÍO',
@@ -8252,132 +8522,41 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         let nuevosVehiculos = [...vehiculosActuales];
                         
                         if (tipo === 'tecnico') {
-                            // Intentar leer primero de la variable global (más confiable)
-                            let username = datosRecursoArrastrando.username || 
-                                          e.dataTransfer.getData('username') ||
-                                          e.dataTransfer.getData('text/username') ||
-                                          '';
+                            // Usar las variables ya leídas en el Paso 4 (username y usernameText están disponibles en este scope)
+                            // username ya tiene el valor de usernameText si estaba vacío (línea 8173)
                             
-                            let nombre = datosRecursoArrastrando.nombre || 
-                                        e.dataTransfer.getData('nombre') ||
-                                        e.dataTransfer.getData('text/nombre') ||
-                                        'técnico desconocido';
-                            
-                            // Si aún no tenemos username, intentar obtenerlo del elemento arrastrado
+                            // Fallback a variable global si dataTransfer está vacío (como en el formulario)
                             if (!username || username.trim() === '') {
-                                const draggingElement = document.querySelector('.recurso-item.dragging, .ruta-badge-item.dragging');
-                                if (draggingElement) {
-                                    username = draggingElement.dataset.username || 
-                                               draggingElement.getAttribute('data-username') ||
-                                               '';
-                                    if (username) {
-                                        console.log('[DRAG&DROP] 📍 Username obtenido de elemento arrastrado (fila ruta)');
-                                    }
+                                if (datosRecursoArrastrando.username) {
+                                    username = datosRecursoArrastrando.username;
+                                    console.log('[DRAG&DROP] 📍 Username obtenido de variable global (fallback)');
                                 }
                             }
                             
-                            // Diagnóstico detallado de todas las fuentes de datos
-                            const diagnosticoFuentes = {
-                                variableGlobal: {
-                                    disponible: !!datosRecursoArrastrando.username,
-                                    valor: datosRecursoArrastrando.username || 'VACÍO',
-                                    nombre: datosRecursoArrastrando.nombre || 'VACÍO'
-                                },
-                                dataTransferUsername: {
-                                    disponible: !!(e.dataTransfer.getData('username')),
-                                    valor: e.dataTransfer.getData('username') || 'VACÍO'
-                                },
-                                dataTransferTextUsername: {
-                                    disponible: !!(e.dataTransfer.getData('text/username')),
-                                    valor: e.dataTransfer.getData('text/username') || 'VACÍO'
-                                },
-                                elementoArrastrado: {
-                                    encontrado: !!draggingElement,
-                                    dataUsername: draggingElement ? (draggingElement.dataset.username || 'VACÍO') : 'NO ENCONTRADO',
-                                    dataUsernameAttr: draggingElement ? (draggingElement.getAttribute('data-username') || 'VACÍO') : 'NO ENCONTRADO'
-                                },
-                                resultadoFinal: {
-                                    username: username || 'VACÍO',
-                                    nombre: nombre || 'VACÍO',
-                                    usernameValido: !!(username && username.trim() !== '')
-                                }
-                            };
-                            
-                            console.log('[DRAG&DROP] 📍 Drop Paso 5: Diagnóstico completo de fuentes de datos', {
-                                diagnosticoFuentes: diagnosticoFuentes,
-                                origen: rutaOrigen || 'sin asignar',
-                                destino: rutaDestino,
-                                ordenDeLectura: [
-                                    '1. Variable global datosRecursoArrastrando.username',
-                                    '2. dataTransfer.getData("username")',
-                                    '3. dataTransfer.getData("text/username")',
-                                    '4. Elemento arrastrado (dataset.username o getAttribute)'
-                                ]
-                            });
-                            
-                            // Validar que el username no esté vacío
                             if (!username || username.trim() === '') {
-                                // Determinar cuál fuente falló
-                                const fuentesFallidas = [];
-                                if (!datosRecursoArrastrando.username) fuentesFallidas.push('Variable global datosRecursoArrastrando');
-                                if (!e.dataTransfer.getData('username')) fuentesFallidas.push('dataTransfer.getData("username")');
-                                if (!e.dataTransfer.getData('text/username')) fuentesFallidas.push('dataTransfer.getData("text/username")');
-                                if (!draggingElement || !draggingElement.dataset.username) fuentesFallidas.push('Elemento arrastrado (dataset.username)');
-                                
-                                console.error('[DRAG&DROP] ❌ ========== ERROR CRÍTICO - USERNAME VACÍO EN DROP ==========', {
-                                    timestamp: new Date().toISOString(),
-                                    accion: 'Asignar técnico a ruta',
-                                    nombre: nombre || 'técnico desconocido',
-                                    origen: rutaOrigen || 'sin asignar',
-                                    destino: rutaDestino,
-                                    problema: 'TODAS las fuentes de datos están vacías',
-                                    fuentesFallidas: fuentesFallidas,
-                                    diagnosticoFuentes: diagnosticoFuentes,
-                                    dataTransferCompleto: {
-                                        effectAllowed: e.dataTransfer.effectAllowed,
-                                        dropEffect: e.dataTransfer.dropEffect,
-                                        types: Array.from(e.dataTransfer.types || []),
-                                        tipo: e.dataTransfer.getData('tipo'),
-                                        tipoTextPlain: e.dataTransfer.getData('text/plain'),
-                                        username: e.dataTransfer.getData('username') || 'VACÍO',
-                                        usernameText: e.dataTransfer.getData('text/username') || 'VACÍO',
-                                        nombre: e.dataTransfer.getData('nombre') || 'VACÍO',
-                                        nombreText: e.dataTransfer.getData('text/nombre') || 'VACÍO',
-                                        rutaOrigen: e.dataTransfer.getData('rutaOrigen') || 'VACÍO',
-                                        rutaOrigenText: e.dataTransfer.getData('text/rutaOrigen') || 'VACÍO'
+                                console.error('[DRAG&DROP] ❌ Username vacío en drop de ruta', {
+                                    dataTransfer: {
+                                        username: username,
+                                        usernameText: usernameText
                                     },
-                                    datosRecibidos: datosRecibidos,
-                                    contexto: {
-                                        tipoRecursoArrastrando: tipoRecursoArrastrando,
-                                        datosRecursoArrastrando: datosRecursoArrastrando,
-                                        sugerencia: 'Verifique los logs del dragstart (busque "Paso 8" y "Paso 9") para ver si el username se guardó correctamente.'
-                                    },
-                                    diagnostico: {
-                                        dragstartEjecutado: tipoRecursoArrastrando !== null,
-                                        tiposDisponibles: Array.from(e.dataTransfer.types || []).length,
-                                        tieneTipo: !!(e.dataTransfer.getData('tipo') || e.dataTransfer.getData('text/plain')),
-                                        tieneUsername: !!(e.dataTransfer.getData('username') || e.dataTransfer.getData('text/username')),
-                                        tieneNombre: !!(e.dataTransfer.getData('nombre') || e.dataTransfer.getData('text/nombre'))
-                                    }
+                                    variableGlobal: datosRecursoArrastrando.username
                                 });
-                                alert(`No se puede asignar el técnico "${nombre || 'técnico desconocido'}" porque no tiene un username válido. Por favor, verifique la configuración del empleado.`);
+                                alert('No se puede asignar el técnico porque no tiene un username válido.');
                                 return;
                             }
                             
-                            console.log('[DRAG&DROP] ✅ Asignando técnico', {
-                                nombre: nombre,
-                                username: username,
-                                origen: rutaOrigen || 'sin asignar',
-                                destino: rutaDestino
-                            });
-                            
-                            // Normalizar: convertir IDs a usernames si es necesario (igual que en guardarRuteador)
+                            // Normalizar username
                             const empleado = window.empleados?.find(e => e.id === username || e.username === username);
                             if (empleado) {
                                 username = empleado.username || empleado.id;
                             }
-                            // Asegurar que sea string y no esté vacío
                             username = String(username).trim();
+                            
+                            console.log('[DRAG&DROP] ✅ Asignando técnico', {
+                                username: username,
+                                origen: rutaOrigen || 'sin asignar',
+                                destino: rutaDestino
+                            });
                             // Si viene de otra ruta, removerlo de ahí primero
                             if (rutaOrigen && rutaOrigen !== rutaDestino) {
                                 const datosOrigen = await cargarRuteador(fecha, rutaOrigen);
@@ -8402,79 +8581,25 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                             if (!nuevosTecnicos.includes(username)) {
                                 nuevosTecnicos.push(username);
                             }
-                        } else {
-                            // Intentar leer el vehículo de múltiples fuentes
-                            let vehiculo = null;
+                        } else if (tipo === 'vehiculo') {
+                            // Leer vehículo de dataTransfer (simple, como en el formulario)
+                            let vehiculo = e.dataTransfer.getData('vehiculo');
+                            if (!vehiculo) vehiculo = e.dataTransfer.getData('text/vehiculo');
+                            if (!vehiculo) vehiculo = e.dataTransfer.getData('text/plain');
                             
-                            console.log('[DRAG&DROP] 📍 Drop en fila ruta - Estado de datos globales', {
-                                datosRecursoArrastrando: datosRecursoArrastrando,
-                                tipoRecursoArrastrando: tipoRecursoArrastrando,
-                                tieneVehiculo: !!datosRecursoArrastrando.vehiculo,
-                                vehiculo: datosRecursoArrastrando.vehiculo
-                            });
-                            
-                            // PRIMERO: Intentar desde dataTransfer (más confiable, no se limpia)
-                            vehiculo = e.dataTransfer.getData('vehiculo');
                             if (!vehiculo || vehiculo.trim() === '') {
-                                vehiculo = e.dataTransfer.getData('text/vehiculo');
-                            }
-                            if (!vehiculo || vehiculo.trim() === '') {
-                                vehiculo = e.dataTransfer.getData('text/plain');
-                            }
-                            if (vehiculo && vehiculo.trim() !== '') {
-                                console.log('[DRAG&DROP] 📍 Vehículo obtenido de dataTransfer (fila ruta)', { vehiculo });
-                            }
-                            
-                            // SEGUNDO: Si no está en dataTransfer, intentar desde variable global
-                            if (!vehiculo || vehiculo.trim() === '') {
-                                if (datosRecursoArrastrando.vehiculo) {
-                                    vehiculo = datosRecursoArrastrando.vehiculo;
-                                    console.log('[DRAG&DROP] 📍 Vehículo obtenido de variable global (fila ruta)', { vehiculo });
-                                }
-                            }
-                            
-                            // Si aún no se encuentra, intentar obtener del elemento que se arrastró
-                            if (!vehiculo || vehiculo.trim() === '') {
-                                const elementoArrastrado = document.querySelector('.recurso-item.dragging, .ruta-badge-item.dragging');
-                                if (elementoArrastrado) {
-                                    vehiculo = elementoArrastrado.dataset.vehiculo || 
-                                              elementoArrastrado.getAttribute('data-vehiculo') ||
-                                              elementoArrastrado.textContent?.trim() || '';
-                                    if (vehiculo) {
-                                        console.log('[DRAG&DROP] 📍 Vehículo obtenido del elemento (fila ruta)', { vehiculo });
-                                    }
-                                }
-                            }
-                            
-                            // Validar que el vehículo no esté vacío
-                            if (!vehiculo || vehiculo.trim() === '') {
-                                console.error('[DRAG&DROP] ❌ No se puede asignar vehículo - nombre vacío en drop', {
-                                    accion: 'Asignar vehículo a ruta',
-                                    origen: rutaOrigen || 'sin asignar',
-                                    destino: rutaDestino,
-                                    problema: 'El vehículo no se encontró en ninguna fuente',
-                                    datosGlobales: datosRecursoArrastrando,
-                                    dataTransfer: {
-                                        tipo: e.dataTransfer.getData('tipo'),
-                                        vehiculo: e.dataTransfer.getData('vehiculo') || 'VACÍO',
-                                        vehiculoText: e.dataTransfer.getData('text/vehiculo') || 'VACÍO',
-                                        textPlain: e.dataTransfer.getData('text/plain') || 'VACÍO',
-                                        rutaOrigen: e.dataTransfer.getData('rutaOrigen') || 'VACÍO'
-                                    },
-                                    elementoArrastrado: document.querySelector('.recurso-item.dragging, .ruta-badge-item.dragging')?.textContent,
-                                    solucion: 'El badge del vehículo no se creó correctamente. Verifique que el vehículo tenga un nombre válido.'
-                                });
+                                console.error('[DRAG&DROP] ❌ Vehículo vacío en drop de ruta');
                                 alert('No se puede asignar el vehículo porque no tiene un nombre válido.');
                                 return;
                             }
+                            
+                            vehiculo = String(vehiculo).trim();
                             
                             console.log('[DRAG&DROP] ✅ Asignando vehículo', {
                                 vehiculo: vehiculo,
                                 origen: rutaOrigen || 'sin asignar',
                                 destino: rutaDestino
                             });
-                            // Asegurar que el vehículo sea un string válido
-                            vehiculo = String(vehiculo).trim();
                             // Si viene de otra ruta, removerlo de ahí primero
                             if (rutaOrigen && rutaOrigen !== rutaDestino) {
                                 const datosOrigen = await cargarRuteador(fecha, rutaOrigen);
@@ -8560,7 +8685,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         setTimeout(() => notification.remove(), 2000);
                     } catch (error) {
                         console.error('Error asignando recurso:', error);
-                        alert('Error al asignar recurso: ' + error.message);
+                        const errorMessage = error.message || error.toString() || 'Error desconocido';
+                        alert('Error al asignar recurso: ' + errorMessage);
                     }
                 });
             });
@@ -9798,6 +9924,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 aplicarFiltros();
                 console.log('✅ Filtros aplicados, citas filtradas:', citasFiltradas.length);
                 
+                // Actualizar botones de días después de cargar datos
+                if (diaSeleccionado) {
+                    generarBotonesDiasMes(diaSeleccionado);
+                }
+                
                 console.log('🔍 Vista actual:', vistaActual);
                 
                 // Generar vista inicial
@@ -10758,8 +10889,66 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             console.log('✅ Arrastre para crear citas inicializado en', timelines.length, 'timelines');
         }
 
+        // Función para obtener el lunes de la semana de una fecha
+        function obtenerLunesSemana(fecha) {
+            const fechaCopia = new Date(fecha);
+            const dia = fechaCopia.getDay();
+            const diff = fechaCopia.getDate() - dia + (dia === 0 ? -6 : 1); // Ajustar para que lunes sea 0
+            return new Date(fechaCopia.setDate(diff));
+        }
+        
+        // Función para obtener los días de la semana (lunes a domingo)
+        function obtenerDiasSemana(fecha) {
+            const lunes = obtenerLunesSemana(fecha);
+            const dias = [];
+            for (let i = 0; i < 7; i++) {
+                const dia = new Date(lunes);
+                dia.setDate(lunes.getDate() + i);
+                dias.push(dia);
+            }
+            return dias;
+        }
+        
         // Función para generar cronograma
         async function generarCronograma() {
+            // Verificar si estamos en vista compacta
+            const btnToggle = document.getElementById('btnToggleVistaCompacta');
+            const estaEnVistaCompacta = btnToggle && !btnToggle.classList.contains('active');
+            
+            // Si está en vista compacta, usar la semana actual; si no, usar el día seleccionado
+            let diasAMostrar = [];
+            if (estaEnVistaCompacta) {
+                // Inicializar semanaActual si no está definida
+                if (!semanaActual) {
+                    semanaActual = obtenerLunesSemana(new Date());
+                }
+                diasAMostrar = obtenerDiasSemana(semanaActual);
+                
+                // Mostrar navegación de semana
+                const navegacionSemana = document.getElementById('navegacionSemana');
+                if (navegacionSemana) {
+                    navegacionSemana.style.display = 'flex';
+                }
+                
+                // Actualizar rango de semana
+                const rangoSemana = document.getElementById('rangoSemana');
+                if (rangoSemana) {
+                    const lunes = diasAMostrar[0];
+                    const domingo = diasAMostrar[6];
+                    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                    rangoSemana.textContent = `${lunes.getDate()} ${monthNames[lunes.getMonth()]} - ${domingo.getDate()} ${monthNames[domingo.getMonth()]}`;
+                }
+            } else {
+                // Vista total: solo el día seleccionado
+                diasAMostrar = [diaSeleccionado];
+                
+                // Ocultar navegación de semana
+                const navegacionSemana = document.getElementById('navegacionSemana');
+                if (navegacionSemana) {
+                    navegacionSemana.style.display = 'none';
+                }
+            }
+            
             const year = diaSeleccionado.getFullYear();
             const month = diaSeleccionado.getMonth();
             const day = diaSeleccionado.getDate();
@@ -10805,31 +10994,40 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 ejeHorasNocturnas.style.display = 'none';
             }
 
-            // Obtener citas del día laborable (5 AM del día seleccionado hasta 4:59 AM del día siguiente)
-            const fechaInicioDiaLaborable = new Date(year, month, day, 5, 0, 0); // 5:00 AM del día seleccionado
-            const fechaFinDiaLaborable = new Date(year, month, day + 1, 4, 59, 59); // 4:59 AM del día siguiente
+            // Obtener citas para todos los días a mostrar
+            const citasPorDia = {};
             
-            const citasDelDia = citasFiltradas.filter(cita => {
-                const fechaCita = window.formatearFecha(obtenerInicio(cita));
-                if (!fechaCita) return false;
+            diasAMostrar.forEach(fechaDia => {
+                const yearDia = fechaDia.getFullYear();
+                const monthDia = fechaDia.getMonth();
+                const dayDia = fechaDia.getDate();
                 
-                // Incluir citas que empiecen o terminen en el rango del día laborable
-                const duracion = obtenerDuracion(cita);
-                const fechaFinCita = new Date(fechaCita.getTime() + duracion * 60000);
+                // Obtener citas del día laborable (5 AM del día hasta 4:59 AM del día siguiente)
+                const fechaInicioDiaLaborable = new Date(yearDia, monthDia, dayDia, 5, 0, 0);
+                const fechaFinDiaLaborable = new Date(yearDia, monthDia, dayDia + 1, 4, 59, 59);
                 
-                // Verificar si la cita se superpone con el rango del día laborable
-                const estaEnRango = (fechaCita >= fechaInicioDiaLaborable && fechaCita <= fechaFinDiaLaborable) ||
-                                   (fechaFinCita >= fechaInicioDiaLaborable && fechaFinCita <= fechaFinDiaLaborable) ||
-                                   (fechaCita <= fechaInicioDiaLaborable && fechaFinCita >= fechaFinDiaLaborable);
+                const citasDelDia = citasFiltradas.filter(cita => {
+                    const fechaCita = window.formatearFecha(obtenerInicio(cita));
+                    if (!fechaCita) return false;
+                    
+                    // Incluir citas que empiecen o terminen en el rango del día laborable
+                    const duracion = obtenerDuracion(cita);
+                    const fechaFinCita = new Date(fechaCita.getTime() + duracion * 60000);
+                    
+                    // Verificar si la cita se superpone con el rango del día laborable
+                    const estaEnRango = (fechaCita >= fechaInicioDiaLaborable && fechaCita <= fechaFinDiaLaborable) ||
+                                       (fechaFinCita >= fechaInicioDiaLaborable && fechaFinCita <= fechaFinDiaLaborable) ||
+                                       (fechaCita <= fechaInicioDiaLaborable && fechaFinCita >= fechaFinDiaLaborable);
+                    
+                    return estaEnRango;
+                });
                 
-                return estaEnRango;
+                citasPorDia[`${yearDia}-${monthDia + 1}-${dayDia}`] = citasDelDia;
             });
             
-            console.log('🔍 Filtro de citas del día laborable:', {
-                diaSeleccionado: `${year}-${month + 1}-${day}`,
-                fechaInicioDiaLaborable: fechaInicioDiaLaborable.toString(),
-                fechaFinDiaLaborable: fechaFinDiaLaborable.toString(),
-                citasEncontradas: citasDelDia.length,
+            console.log('🔍 Filtro de citas:', {
+                diasAMostrar: diasAMostrar.length,
+                citasPorDia: Object.keys(citasPorDia).map(key => ({ dia: key, cantidad: citasPorDia[key].length })),
                 totalCitasFiltradas: citasFiltradas.length
             });
 
@@ -10842,20 +11040,29 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 'Ruta 16', 'Ruta 17', 'Ruta 18', 'Ruta 19', 'Ruta 20'
             ];
 
-            // Agrupar citas por ruta
-            const citasPorRuta = {};
-            rutasDisponibles.forEach(ruta => {
-                citasPorRuta[ruta] = [];
-            });
+            // Agrupar citas por día y por ruta
+            const citasPorDiaYRuta = {};
             
-            citasDelDia.forEach(cita => {
-                const ruta = obtenerRuta(cita);
-                if (citasPorRuta[ruta]) {
-                    citasPorRuta[ruta].push(cita);
-                } else {
-                    // Si la ruta no está en la lista, ponerla en "Sin asignar"
-                    citasPorRuta['Sin asignar'].push(cita);
-                }
+            diasAMostrar.forEach(fechaDia => {
+                const yearDia = fechaDia.getFullYear();
+                const monthDia = fechaDia.getMonth();
+                const dayDia = fechaDia.getDate();
+                const keyDia = `${yearDia}-${monthDia + 1}-${dayDia}`;
+                const citasDelDia = citasPorDia[keyDia] || [];
+                
+                citasPorDiaYRuta[keyDia] = {};
+                rutasDisponibles.forEach(ruta => {
+                    citasPorDiaYRuta[keyDia][ruta] = [];
+                });
+                
+                citasDelDia.forEach(cita => {
+                    const ruta = obtenerRuta(cita);
+                    if (citasPorDiaYRuta[keyDia][ruta]) {
+                        citasPorDiaYRuta[keyDia][ruta].push(cita);
+                    } else {
+                        citasPorDiaYRuta[keyDia]['Sin asignar'].push(cita);
+                    }
+                });
             });
 
             // Ordenar rutas: "Sin asignar" primero, luego rutas numéricamente
@@ -10868,18 +11075,66 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 return numA - numB;
             });
 
-            // Cargar datos de ruteador para todas las rutas
-            const fechaFormateada = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const datosRuteadorPromesas = rutasOrdenadas.map(async ruta => {
-                const datos = await cargarRuteador(fechaFormateada, ruta);
-                return { ruta, datos };
-            });
-            
-            const datosRuteadorArray = await Promise.all(datosRuteadorPromesas);
+            // Cargar datos de ruteador para todas las rutas y días
             const datosRuteadorMap = {};
-            datosRuteadorArray.forEach(({ ruta, datos }) => {
-                datosRuteadorMap[ruta] = datos;
-            });
+            
+            if (estaEnVistaCompacta) {
+                // Vista compacta: cargar datos para todos los días de la semana
+                const promesasRuteador = [];
+                diasAMostrar.forEach(fechaDia => {
+                    const yearDia = fechaDia.getFullYear();
+                    const monthDia = fechaDia.getMonth();
+                    const dayDia = fechaDia.getDate();
+                    const fechaFormateadaDia = `${yearDia}-${String(monthDia + 1).padStart(2, '0')}-${String(dayDia).padStart(2, '0')}`;
+                    
+                    rutasOrdenadas.forEach(ruta => {
+                        promesasRuteador.push(
+                            cargarRuteador(fechaFormateadaDia, ruta).then(datos => ({
+                                fecha: fechaFormateadaDia,
+                                ruta: ruta,
+                                datos: datos
+                            }))
+                        );
+                    });
+                });
+                
+                const resultadosRuteador = await Promise.all(promesasRuteador);
+                resultadosRuteador.forEach(({ fecha, ruta, datos }) => {
+                    const key = `${fecha}_${ruta}`;
+                    datosRuteadorMap[key] = datos;
+                });
+            } else {
+                // Vista total: cargar datos solo para el día seleccionado
+                const fechaFormateada = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const datosRuteadorPromesas = rutasOrdenadas.map(async ruta => {
+                    const datos = await cargarRuteador(fechaFormateada, ruta);
+                    return { ruta, datos };
+                });
+                
+                const datosRuteadorArray = await Promise.all(datosRuteadorPromesas);
+                datosRuteadorArray.forEach(({ ruta, datos }) => {
+                    datosRuteadorMap[ruta] = datos;
+                });
+            }
+            
+            // Definir fechaFormateada para usar en renderizarRecursosSinAsignar
+            // En vista compacta, usar el primer día de la semana; en vista total, usar el día seleccionado
+            let fechaFormateada;
+            if (estaEnVistaCompacta && semanaActual) {
+                const lunes = obtenerLunesSemana(semanaActual);
+                fechaFormateada = `${lunes.getFullYear()}-${String(lunes.getMonth() + 1).padStart(2, '0')}-${String(lunes.getDate()).padStart(2, '0')}`;
+            } else {
+                fechaFormateada = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            }
+            
+            // Crear citasPorRuta para la vista total (compatibilidad)
+            const citasPorRuta = {};
+            if (!estaEnVistaCompacta) {
+                const keyDia = `${year}-${month + 1}-${day}`;
+                rutasDisponibles.forEach(ruta => {
+                    citasPorRuta[ruta] = citasPorDiaYRuta[keyDia]?.[ruta] || [];
+                });
+            }
             
             // Recolectar todos los vehículos y técnicos disponibles para saber cuáles no están asignados
             const todosLosVehiculos = ['APV 01', 'APV 02', 'APV 03', 'APV 04', 'APV 05', 
@@ -10902,19 +11157,45 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const vehiculosAsignados = new Set();
             const tecnicosAsignados = new Set();
             
-            [...rutasDiurnas, ...rutasNocturnas].forEach(r => {
-                if (r !== 'Sin asignar') {
-                    const datos = datosRuteadorMap[r] || { tecnicos: [], vehiculos: [] };
-                    // Normalizar vehículos antes de agregarlos al Set (trim y convertir a string)
-                    datos.vehiculos.forEach(v => {
-                        const vNormalizado = v ? String(v).trim() : '';
-                        if (vNormalizado) {
-                            vehiculosAsignados.add(vNormalizado);
+            if (estaEnVistaCompacta) {
+                // Vista compacta: buscar en datosRuteadorMap con formato ${fecha}_${ruta}
+                diasAMostrar.forEach(fechaDia => {
+                    const yearDia = fechaDia.getFullYear();
+                    const monthDia = fechaDia.getMonth();
+                    const dayDia = fechaDia.getDate();
+                    const fechaFormateadaDia = `${yearDia}-${String(monthDia + 1).padStart(2, '0')}-${String(dayDia).padStart(2, '0')}`;
+                    
+                    [...rutasDiurnas, ...rutasNocturnas].forEach(r => {
+                        if (r !== 'Sin asignar') {
+                            const key = `${fechaFormateadaDia}_${r}`;
+                            const datos = datosRuteadorMap[key] || { tecnicos: [], vehiculos: [] };
+                            // Normalizar vehículos antes de agregarlos al Set (trim y convertir a string)
+                            datos.vehiculos.forEach(v => {
+                                const vNormalizado = v ? String(v).trim() : '';
+                                if (vNormalizado) {
+                                    vehiculosAsignados.add(vNormalizado);
+                                }
+                            });
+                            datos.tecnicos.forEach(t => tecnicosAsignados.add(t));
                         }
                     });
-                    datos.tecnicos.forEach(t => tecnicosAsignados.add(t));
-                }
-            });
+                });
+            } else {
+                // Vista total: buscar en datosRuteadorMap con formato ${ruta}
+                [...rutasDiurnas, ...rutasNocturnas].forEach(r => {
+                    if (r !== 'Sin asignar') {
+                        const datos = datosRuteadorMap[r] || { tecnicos: [], vehiculos: [] };
+                        // Normalizar vehículos antes de agregarlos al Set (trim y convertir a string)
+                        datos.vehiculos.forEach(v => {
+                            const vNormalizado = v ? String(v).trim() : '';
+                            if (vNormalizado) {
+                                vehiculosAsignados.add(vNormalizado);
+                            }
+                        });
+                        datos.tecnicos.forEach(t => tecnicosAsignados.add(t));
+                    }
+                });
+            }
             
             // Calcular vehículos y técnicos sin asignar
             // Normalizar también los vehículos de la lista hardcodeada para comparar correctamente
@@ -10948,18 +11229,31 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     return {
                         username: username, // SIEMPRE usar el username real del empleado, NO el nombre
                         id: e.id,
-                        nombre: nombreFormateado // El nombre es solo para mostrar en la UI
+                        nombre: nombreFormateado, // El nombre es solo para mostrar en la UI
+                        departamento: e.departamento || '' // Departamento del empleado para ordenamiento
                     };
                 })
-                .filter(t => t !== null && t.username && String(t.username).trim() !== ''); // Filtrar nulos y sin username
+                .filter(t => t !== null && t.username && String(t.username).trim() !== '') // Filtrar nulos y sin username
+                .sort((a, b) => {
+                    // Ordenar: empleados de Fumigación primero, luego el resto
+                    const depA = (a.departamento || '').trim().toLowerCase();
+                    const depB = (b.departamento || '').trim().toLowerCase();
+                    const esFumigacionA = depA === 'fumigación' || depA === 'fumigacion';
+                    const esFumigacionB = depB === 'fumigación' || depB === 'fumigacion';
+                    
+                    if (esFumigacionA && !esFumigacionB) return -1;
+                    if (!esFumigacionA && esFumigacionB) return 1;
+                    return 0; // Mantener el orden original para el resto
+                });
 
             // Renderizar cajas de recursos sin asignar
             renderizarRecursosSinAsignar(tecnicosSinAsignar, vehiculosSinAsignar, fechaFormateada);
             
             // Usar alturas fijas para mantener consistencia visual
-            // Las filas siempre tendrán 50px de altura, incluso cuando estén vacías
-            const alturaFijaVehiculos = 50;
-            const alturaFijaTecnicos = 50;
+            // Vehículos: 28px fijo (delgado)
+            // Técnicos: altura automática para permitir múltiples técnicos
+            const alturaFijaVehiculos = 28;
+            const alturaMinimaTecnicos = 50; // Altura mínima para permitir múltiples técnicos
             
             // Aplicar altura uniforme fija a todas las filas usando estilos dinámicos
             let styleElement = document.getElementById('estilos-filas-rutas');
@@ -10975,16 +11269,26 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     max-height: ${alturaFijaVehiculos}px !important; 
                 }
                 .ruta-info-row:nth-of-type(2) { 
-                    min-height: ${alturaFijaTecnicos}px !important; 
-                    height: ${alturaFijaTecnicos}px !important; 
-                    max-height: ${alturaFijaTecnicos}px !important; 
+                    min-height: ${alturaMinimaTecnicos}px !important; 
+                    height: auto !important; 
+                    max-height: none !important; 
                 }
             `;
 
             // Función auxiliar para generar HTML de una columna de ruta
-            const generarColumnaRuta = (ruta) => {
-                const citas = citasPorRuta[ruta];
-                const datosRuteador = datosRuteadorMap[ruta] || { tecnicos: [], vehiculos: [] };
+            const generarColumnaRuta = (ruta, citasParam = null, fechaParam = null) => {
+                // Si se pasan citas y fecha como parámetros, usarlas; si no, usar las globales
+                const citas = citasParam || citasPorRuta[ruta];
+                const fechaFormateadaParaRuta = fechaParam || (estaEnVistaCompacta ? null : `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+                
+                // Obtener datos del ruteador según la fecha
+                let datosRuteador = { tecnicos: [], vehiculos: [] };
+                if (estaEnVistaCompacta && fechaParam) {
+                    const key = `${fechaParam}_${ruta}`;
+                    datosRuteador = datosRuteadorMap[key] || { tecnicos: [], vehiculos: [] };
+                } else {
+                    datosRuteador = datosRuteadorMap[ruta] || { tecnicos: [], vehiculos: [] };
+                }
                 
                 // Calcular total de citas
                 const totalCitas = citas ? citas.length : 0;
@@ -11048,10 +11352,12 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 
                 // Almacenar citas en variable global para acceso desde el botón
                 const rutaId = ruta.replace(/[^a-zA-Z0-9]/g, '-');
+                const fechaKey = fechaFormateadaParaRuta ? fechaFormateadaParaRuta.replace(/-/g, '') : '';
+                const claveCompleta = fechaKey ? `${fechaKey}_${rutaId}` : rutaId;
                 if (!window.citasPorRutaRuta) {
                     window.citasPorRutaRuta = {};
                 }
-                window.citasPorRutaRuta[rutaId] = citas;
+                window.citasPorRutaRuta[claveCompleta] = citas;
                 
                 const tieneCitas = citas && citas.length > 0;
                 // "Sin asignar" siempre debe tener fondo blanco, nunca gris
@@ -11108,7 +11414,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                 <!-- Línea 3: Botones (todos del mismo tamaño y estilo) -->
                                 <div style="display: flex; justify-content: center; align-items: flex-start; gap: 3px; min-height: 48px; height: auto; flex-shrink: 0; flex-wrap: wrap; padding-top: 2px;">
                                     ${citasConUbicacion.length > 0 ? `
-                                    <button onclick="window.mostrarRutaVehiculo('${ruta.replace(/'/g, "\\'")}', '${rutaId}')" 
+                                    <button onclick="window.mostrarRutaVehiculo('${ruta.replace(/'/g, "\\'")}', '${claveCompleta}')" 
                                             style="background: ${ruta === 'Sin asignar' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.3)'}; border: 1px solid ${ruta === 'Sin asignar' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.5)'}; color: ${ruta === 'Sin asignar' ? '#000000' : 'white'}; padding: 3px 6px; border-radius: 4px; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 22px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; white-space: nowrap;" 
                                             onmouseover="this.style.background='${ruta === 'Sin asignar' ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.4)'}'; this.style.transform='scale(1.05)'" 
                                             onmouseout="this.style.background='${ruta === 'Sin asignar' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.3)'}'; this.style.transform='scale(1)'"
@@ -11116,17 +11422,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                         <i class="fas fa-map-marked-alt" style="font-size: 0.65rem; margin-right: 2px;"></i>Ruta
                                     </button>
                                     ` : ''}
-                                    ${ruta !== 'Sin asignar' ? `
-                                    <button onclick="window.editarRuteador('${ruta.replace(/'/g, "\\'")}', '${fechaFormateada}')" 
-                                            style="background: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.5); color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 22px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; white-space: nowrap;" 
-                                            onmouseover="this.style.background='rgba(255,255,255,0.4)'; this.style.transform='scale(1.05)'" 
-                                            onmouseout="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='scale(1)'"
-                                            title="Editar técnicos y vehículos">
-                                        <i class="fas fa-edit" style="font-size: 0.65rem; margin-right: 2px;"></i>Editar
-                                    </button>
-                                    ` : ''}
                                     ${citas.length > 0 && ruta !== 'Sin asignar' ? `
-                                    <button onclick="window.abrirModalMigrarRuta('${ruta.replace(/'/g, "\\'")}', '${fechaFormateada}')" 
+                                    <button onclick="window.abrirModalMigrarRuta('${ruta.replace(/'/g, "\\'")}', '${fechaFormateadaParaRuta}')" 
                                             style="background: rgba(255,193,7,0.9); border: 1px solid rgba(255,255,255,0.5); color: #000; padding: 3px 6px; border-radius: 4px; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 22px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; white-space: nowrap;" 
                                             onmouseover="this.style.background='rgba(255,193,7,1)'; this.style.transform='scale(1.05)'" 
                                             onmouseout="this.style.background='rgba(255,193,7,0.9)'; this.style.transform='scale(1)'"
@@ -11137,17 +11434,17 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                 </div>
                             </div>
                             <div class="ruta-contenido-blanco" style="${colorContenido}">
-                                <div class="ruta-info-row ${datosRuteador.vehiculos.length === 0 ? 'drop-zone-empty' : ''}" data-tipo-fila="vehiculo" data-ruta="${ruta.replace(/'/g, "\\'")}" title="Arrastre vehículos aquí" style="${colorInfoRow}">
+                                <div class="ruta-info-row ${datosRuteador.vehiculos.length === 0 ? 'drop-zone-empty' : ''}" data-tipo-fila="vehiculo" data-ruta="${ruta.replace(/'/g, "\\'")}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}" title="Arrastre vehículos aquí" style="${colorInfoRow}">
                                     ${datosRuteador.vehiculos.length > 0 
                                         ? datosRuteador.vehiculos.filter(v => v && String(v).trim() !== '').map(v => {
                                             const vehiculoEscapado = String(v).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                                             const rutaEscapada = ruta.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                            return `<span class="ruta-badge-item ruta-badge-vehiculo" draggable="true" data-tipo="vehiculo" data-vehiculo="${vehiculoEscapado}" data-ruta="${rutaEscapada}">${v}</span>`;
+                                            return `<span class="ruta-badge-item ruta-badge-vehiculo" draggable="true" data-tipo="vehiculo" data-vehiculo="${vehiculoEscapado}" data-ruta="${rutaEscapada}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}">${v}</span>`;
                                         }).join('')
                                         : '<span style="color: #2196F3; font-size: 0.6rem; font-style: italic; opacity: 0.8; font-weight: 500;">Arrastre vehículos aquí</span>'
                                     }
                             </div>
-                                <div class="ruta-info-row ${datosRuteador.tecnicos.length === 0 ? 'drop-zone-empty' : ''}" data-tipo-fila="tecnico" data-ruta="${ruta.replace(/'/g, "\\'")}" title="Arrastre técnicos aquí" style="${colorInfoRow}">
+                                <div class="ruta-info-row ${datosRuteador.tecnicos.length === 0 ? 'drop-zone-empty' : ''}" data-tipo-fila="tecnico" data-ruta="${ruta.replace(/'/g, "\\'")}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}" title="Arrastre técnicos aquí" style="${colorInfoRow}">
                                     ${datosRuteador.tecnicos.length > 0 
                                         ? datosRuteador.tecnicos.filter(tecnicoId => tecnicoId && String(tecnicoId).trim() !== '').map(tecnicoId => {
                                             // Buscar empleado por username o id (puede estar guardado como cualquiera de los dos)
@@ -11184,14 +11481,14 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                             const usernameEscapado = String(usernameFinal).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                                             const nombreEscapado = String(nombre).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                                             const rutaEscapada = ruta.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                            return `<span class="ruta-badge-item ruta-badge-tecnico" draggable="true" data-tipo="tecnico" data-username="${usernameEscapado}" data-nombre="${nombreEscapado}" data-ruta="${rutaEscapada}">${nombre}</span>`;
+                                            return `<span class="ruta-badge-item ruta-badge-tecnico" draggable="true" data-tipo="tecnico" data-username="${usernameEscapado}" data-nombre="${nombreEscapado}" data-ruta="${rutaEscapada}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}">${nombre}</span>`;
                                           }).filter(badge => badge !== null).join('')
                                         : '<span style="color: #FF9800; font-size: 0.6rem; font-style: italic; opacity: 0.8; font-weight: 500;">Arrastre técnicos aquí</span>'
                                     }
                             </div>
                         </div>
                         </div>
-                        <div class="citas-timeline" id="timeline-${ruta.replace(' ', '-')}" data-ruta="${ruta}">
+                        <div class="citas-timeline" id="timeline-${(fechaFormateadaParaRuta || '').replace(/-/g, '')}-${ruta.replace(/ /g, '-')}" data-ruta="${ruta}" data-fecha="${fechaFormateadaParaRuta || ''}">
                             ${generarCitasTimeline(citas, ruta)}
                         </div>
                     </div>
@@ -11204,13 +11501,87 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             
             // Generar sección diurnas
             if (vehiculosCronogramaDiurnas) {
-                const htmlDiurnas = rutasDiurnas.map(ruta => generarColumnaRuta(ruta)).join('');
+                let htmlDiurnas = '';
+                if (estaEnVistaCompacta) {
+                    // Vista compacta: generar columnas directamente en el contenedor, agrupadas por día visualmente
+                    diasAMostrar.forEach((fechaDia, indexDia) => {
+                        const yearDia = fechaDia.getFullYear();
+                        const monthDia = fechaDia.getMonth();
+                        const dayDia = fechaDia.getDate();
+                        const keyDia = `${yearDia}-${monthDia + 1}-${dayDia}`;
+                        const fechaFormateadaDia = `${yearDia}-${String(monthDia + 1).padStart(2, '0')}-${String(dayDia).padStart(2, '0')}`;
+                        
+                        // Encabezado del día como columna separada (para alinearlo con las rutas)
+                        const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+                        const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                        const nombreDia = dayNames[fechaDia.getDay()];
+                        
+                        // Generar columna de encabezado del día
+                        htmlDiurnas += `<div class="vehiculo-columna-cronograma" style="min-width: 120px; flex-shrink: 0; border-right: 2px solid #e0e0e0;">
+                            <div class="vehiculo-header-cronograma" style="background: #4CAF50; color: white; padding: 12px 8px; text-align: center; font-weight: 600; font-size: 0.9rem;">
+                                ${nombreDia}<br>${dayDia} ${monthNames[monthDia]}
+                            </div>
+                            <div class="ruta-contenido-blanco" style="height: 792px;"></div>
+                        </div>`;
+                        
+                        // Columnas de rutas para este día (directamente en el contenedor padre)
+                        rutasDiurnas.forEach(ruta => {
+                            const citasDelDia = citasPorDiaYRuta[keyDia]?.[ruta] || [];
+                            htmlDiurnas += generarColumnaRuta(ruta, citasDelDia, fechaFormateadaDia);
+                        });
+                        
+                        // Separador visual entre días (excepto el último)
+                        if (indexDia < diasAMostrar.length - 1) {
+                            htmlDiurnas += `<div style="width: 4px; background: #e0e0e0; flex-shrink: 0; margin: 0 4px;"></div>`;
+                        }
+                    });
+                } else {
+                    // Vista total: solo un día
+                    htmlDiurnas = rutasDiurnas.map(ruta => generarColumnaRuta(ruta)).join('');
+                }
                 vehiculosCronogramaDiurnas.innerHTML = htmlDiurnas;
             }
             
             // Generar sección nocturnas
             if (vehiculosCronogramaNocturnas && rutasNocturnas.length > 0) {
-                const htmlNocturnas = rutasNocturnas.map(ruta => generarColumnaRuta(ruta)).join('');
+                let htmlNocturnas = '';
+                if (estaEnVistaCompacta) {
+                    // Vista compacta: generar columnas directamente en el contenedor, agrupadas por día visualmente
+                    diasAMostrar.forEach((fechaDia, indexDia) => {
+                        const yearDia = fechaDia.getFullYear();
+                        const monthDia = fechaDia.getMonth();
+                        const dayDia = fechaDia.getDate();
+                        const keyDia = `${yearDia}-${monthDia + 1}-${dayDia}`;
+                        const fechaFormateadaDia = `${yearDia}-${String(monthDia + 1).padStart(2, '0')}-${String(dayDia).padStart(2, '0')}`;
+                        
+                        // Encabezado del día como columna separada (para alinearlo con las rutas)
+                        const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+                        const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                        const nombreDia = dayNames[fechaDia.getDay()];
+                        
+                        // Generar columna de encabezado del día
+                        htmlNocturnas += `<div class="vehiculo-columna-cronograma" style="min-width: 120px; flex-shrink: 0; border-right: 2px solid #e0e0e0;">
+                            <div class="vehiculo-header-cronograma" style="background: #FF9800; color: white; padding: 12px 8px; text-align: center; font-weight: 600; font-size: 0.9rem;">
+                                ${nombreDia}<br>${dayDia} ${monthNames[monthDia]}
+                            </div>
+                            <div class="ruta-contenido-blanco" style="height: 792px;"></div>
+                        </div>`;
+                        
+                        // Columnas de rutas para este día (directamente en el contenedor padre)
+                        rutasNocturnas.forEach(ruta => {
+                            const citasDelDia = citasPorDiaYRuta[keyDia]?.[ruta] || [];
+                            htmlNocturnas += generarColumnaRuta(ruta, citasDelDia, fechaFormateadaDia);
+                        });
+                        
+                        // Separador visual entre días (excepto el último)
+                        if (indexDia < diasAMostrar.length - 1) {
+                            htmlNocturnas += `<div style="width: 4px; background: #e0e0e0; flex-shrink: 0; margin: 0 4px;"></div>`;
+                        }
+                    });
+                } else {
+                    // Vista total: solo un día
+                    htmlNocturnas = rutasNocturnas.map(ruta => generarColumnaRuta(ruta)).join('');
+                }
                 vehiculosCronogramaNocturnas.innerHTML = htmlNocturnas;
             }
 
@@ -12789,6 +13160,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             currentDate = nuevaFecha;
             diaSeleccionado = nuevaFecha;
             
+            // Actualizar botones de días
+            generarBotonesDiasMes(nuevaFecha);
+            
             console.log('🔍 DatePicker cambió:', {
                 valor: fechaString,
                 fechaCreada: nuevaFecha.toString(),
@@ -12799,6 +13173,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 await generarCronograma();
             }
         });
+        }
+        
+        // Inicializar botones de días al cargar
+        if (diaSeleccionado) {
+            generarBotonesDiasMes(diaSeleccionado);
         }
 
         if (searchInput) {
@@ -13512,9 +13891,45 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         // }
         
         // Event listener para toggle de vista compacta
+        // Event listeners para navegación de semana
+        const btnSemanaAnterior = document.getElementById('btnSemanaAnterior');
+        const btnSemanaSiguiente = document.getElementById('btnSemanaSiguiente');
+        
+        if (btnSemanaAnterior) {
+            btnSemanaAnterior.addEventListener('click', async () => {
+                if (!semanaActual) {
+                    semanaActual = obtenerLunesSemana(new Date());
+                }
+                semanaActual.setDate(semanaActual.getDate() - 7);
+                if (vistaActual === 'cronograma') {
+                    await generarCronograma();
+                    // Actualizar botones de días para mostrar la nueva semana
+                    if (diaSeleccionado) {
+                        generarBotonesDiasMes(diaSeleccionado);
+                    }
+                }
+            });
+        }
+        
+        if (btnSemanaSiguiente) {
+            btnSemanaSiguiente.addEventListener('click', async () => {
+                if (!semanaActual) {
+                    semanaActual = obtenerLunesSemana(new Date());
+                }
+                semanaActual.setDate(semanaActual.getDate() + 7);
+                if (vistaActual === 'cronograma') {
+                    await generarCronograma();
+                    // Actualizar botones de días para mostrar la nueva semana
+                    if (diaSeleccionado) {
+                        generarBotonesDiasMes(diaSeleccionado);
+                    }
+                }
+            });
+        }
+        
         const btnToggleVistaCompacta = document.getElementById('btnToggleVistaCompacta');
         if (btnToggleVistaCompacta) {
-            btnToggleVistaCompacta.addEventListener('click', () => {
+            btnToggleVistaCompacta.addEventListener('click', async () => {
                 const estaActiva = btnToggleVistaCompacta.classList.contains('active');
                 
                 if (estaActiva) {
@@ -13560,13 +13975,27 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     };
                     
                     // Regenerar cronograma para restaurar posiciones originales
-                    const fechaActual = document.getElementById('fechaCronograma')?.value || new Date().toISOString().split('T')[0];
-                    generarCronograma(fechaActual);
+                    await generarCronograma();
+                    // Actualizar botones de días para mostrar todo el mes
+                    if (diaSeleccionado) {
+                        generarBotonesDiasMes(diaSeleccionado);
+                    }
                 } else {
                     // Activar vista compacta - colapsar horas fuera del rango
                     btnToggleVistaCompacta.classList.add('active');
                     btnToggleVistaCompacta.style.background = '#4CAF50';
                     btnToggleVistaCompacta.innerHTML = '<i class="fas fa-expand-alt me-2"></i>Vista Total';
+                    
+                    // Inicializar semana actual si no está definida
+                    if (!semanaActual) {
+                        semanaActual = obtenerLunesSemana(new Date());
+                    }
+                    // Actualizar botones de días para mostrar solo la semana
+                    if (diaSeleccionado) {
+                        generarBotonesDiasMes(diaSeleccionado);
+                    }
+                    // Regenerar cronograma
+                    await generarCronograma();
                     
                     // Colapsar filas de horas fuera del rango
                     if (window.rangosHoras) {
@@ -16481,12 +16910,20 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 if (datePicker) {
                     datePicker.value = formatearFechaParaInput(diaSeleccionado);
                 }
+                
+                // Inicializar botones de días del mes
+                if (diaSeleccionado) {
+                    generarBotonesDiasMes(diaSeleccionado);
+                }
+                
                 // Cargar empleados al inicio
                 await cargarEmpleados();
                 // Cargar servicios al inicio
                 await window.cargarServicios();
                 // Cargar productos al inicio
                 await window.cargarProductos();
+                // Cargar herramientas al inicio (para el dropdown de Equipo y Herramientas)
+                await window.cargarEquipo();
                 // Mostrar cronograma por defecto
                 await cambiarVista('cronograma');
                 await cargarDatos();
