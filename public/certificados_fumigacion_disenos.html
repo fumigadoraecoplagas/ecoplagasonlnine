@@ -364,6 +364,162 @@
             color: #dc3545;
         }
 
+        /* Estilos para el selector de servicios */
+        .servicios-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .servicios-dropdown-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .servicios-dropdown-btn {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .servicios-dropdown-btn:hover {
+            border-color: #999;
+        }
+
+        .servicios-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            margin-top: 4px;
+        }
+
+        .servicios-dropdown-menu.show {
+            display: block;
+        }
+
+        .servicios-dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .servicios-dropdown-item:hover {
+            background: #f5f5f5;
+        }
+
+        .servicios-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .servicios-dropdown-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f9f9f9;
+        }
+
+        .servicios-seleccionados-container {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            min-height: 50px;
+        }
+
+        .servicio-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+        }
+
+        .servicio-chip-nombre {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .servicio-chip-precio {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 4px;
+            color: #1976d2;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .servicio-chip-precio:hover {
+            background: #e3f2fd;
+        }
+
+        .servicio-chip-precio-input {
+            width: 120px;
+            padding: 4px 8px;
+            border: 2px solid #1976d2;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1976d2;
+            text-align: right;
+        }
+
+        .servicio-chip-precio-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+
+        .servicio-chip-eliminar {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .servicio-chip-eliminar:hover {
+            background: #c82333;
+        }
+
+        .servicios-vacio {
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+        }
+
         @media print {
             body {
                 background: white;
@@ -379,12 +535,33 @@
             .certificate-grid {
                 grid-template-columns: 1fr;
             }
+
+            .servicios-section {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Diseños de Certificados de Fumigación</h1>
+        
+        <!-- Sección de Servicios -->
+        <div class="servicios-section">
+            <h2 style="margin-bottom: 20px; font-size: 1.5rem; color: #333;">Servicios</h2>
+            
+            <div class="servicios-dropdown-container">
+                <button class="servicios-dropdown-btn" id="serviciosDropdownBtn" onclick="toggleServiciosDropdown()">
+                    <span>Seleccionar servicio</span>
+                    <span style="font-size: 0.9rem;">▼</span>
+                </button>
+                <div class="servicios-dropdown-menu" id="serviciosDropdownMenu"></div>
+            </div>
+            
+            <div class="servicios-seleccionados-container" id="serviciosSeleccionadosContainer">
+                <div class="servicios-vacio">No hay servicios seleccionados</div>
+            </div>
+        </div>
         
         <div class="certificate-grid">
             <!-- Diseño 1: Original con bordes rojos -->
@@ -640,5 +817,230 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Lista de servicios de ejemplo (puedes cargarlos desde Firestore si es necesario)
+        const serviciosDisponibles = [
+            { id: '1', nombre: 'Refuerzo Estándar', precio: 25000 },
+            { id: '2', nombre: 'Fumigación Completa', precio: 35000 },
+            { id: '3', nombre: 'Termonebulización', precio: 45000 },
+            { id: '4', nombre: 'Control de Roedores', precio: 30000 },
+            { id: '5', nombre: 'Control de Avispas', precio: 28000 },
+            { id: '6', nombre: 'Tratamiento Preventivo', precio: 20000 },
+            { id: '7', nombre: 'Inspección Técnica', precio: 15000 },
+            { id: '8', nombre: 'Tratamiento Especializado', precio: 50000 }
+        ];
+
+        // Array para almacenar servicios seleccionados
+        let serviciosSeleccionados = [];
+
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Inicializando servicios...');
+            renderizarDropdownServicios();
+            actualizarTablaServicios();
+        });
+        
+        // También ejecutar si el DOM ya está cargado
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                renderizarDropdownServicios();
+                actualizarTablaServicios();
+            });
+        } else {
+            renderizarDropdownServicios();
+            actualizarTablaServicios();
+        }
+
+        // Función para mostrar/ocultar el dropdown
+        function toggleServiciosDropdown() {
+            const menu = document.getElementById('serviciosDropdownMenu');
+            menu.classList.toggle('show');
+        }
+
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            const container = document.querySelector('.servicios-dropdown-container');
+            const menu = document.getElementById('serviciosDropdownMenu');
+            if (container && !container.contains(event.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+        // Función para renderizar el dropdown de servicios
+        function renderizarDropdownServicios() {
+            const menu = document.getElementById('serviciosDropdownMenu');
+            if (!menu) return;
+
+            // Filtrar servicios ya seleccionados
+            const serviciosDisponiblesFiltrados = serviciosDisponibles.filter(serv => 
+                !serviciosSeleccionados.some(sel => sel.id === serv.id)
+            );
+
+            if (serviciosDisponiblesFiltrados.length === 0) {
+                menu.innerHTML = '<div class="servicios-dropdown-item disabled">No hay más servicios disponibles</div>';
+                return;
+            }
+
+            // Ordenar alfabéticamente
+            serviciosDisponiblesFiltrados.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+            menu.innerHTML = serviciosDisponiblesFiltrados.map(servicio => `
+                <div class="servicios-dropdown-item" onclick="agregarServicio('${servicio.id}')">
+                    <span>${servicio.nombre}</span>
+                    <span style="color: #666; font-weight: 600;">₡${servicio.precio.toLocaleString('es-CR')}</span>
+                </div>
+            `).join('');
+        }
+
+        // Función para agregar un servicio a la tabla
+        function agregarServicio(servicioId) {
+            console.log('Agregando servicio:', servicioId);
+            const servicio = serviciosDisponibles.find(s => s.id === servicioId);
+            if (!servicio) {
+                console.error('Servicio no encontrado:', servicioId);
+                return;
+            }
+
+            // Verificar si ya está seleccionado
+            if (serviciosSeleccionados.some(s => s.id === servicioId)) {
+                console.log('Servicio ya seleccionado');
+                return;
+            }
+
+            // Agregar con el precio original (editable después)
+            // Asegurar que el precio sea un número válido
+            const precioInicial = parseFloat(servicio.precio) || 0;
+            
+            const nuevoServicio = {
+                id: servicio.id,
+                nombre: servicio.nombre,
+                precio: precioInicial
+            };
+            
+            serviciosSeleccionados.push(nuevoServicio);
+
+            console.log('Servicio agregado:', nuevoServicio);
+            console.log('Servicios seleccionados:', serviciosSeleccionados);
+
+            // Cerrar dropdown
+            const menu = document.getElementById('serviciosDropdownMenu');
+            if (menu) {
+                menu.classList.remove('show');
+            }
+
+            // Actualizar lista y dropdown
+            actualizarTablaServicios();
+            renderizarDropdownServicios();
+        }
+
+        // Función para eliminar un servicio de la tabla
+        function eliminarServicio(servicioId) {
+            serviciosSeleccionados = serviciosSeleccionados.filter(s => s.id !== servicioId);
+            actualizarTablaServicios();
+            renderizarDropdownServicios();
+        }
+
+
+        // Función para actualizar la lista de servicios seleccionados
+        function actualizarTablaServicios() {
+            console.log('Actualizando tabla de servicios, cantidad:', serviciosSeleccionados.length);
+            const container = document.getElementById('serviciosSeleccionadosContainer');
+            if (!container) {
+                console.error('No se encontró el contenedor de servicios seleccionados');
+                return;
+            }
+
+            if (serviciosSeleccionados.length === 0) {
+                container.innerHTML = '<div class="servicios-vacio">No hay servicios seleccionados</div>';
+                return;
+            }
+
+            // Ordenar servicios alfabéticamente
+            const serviciosOrdenados = [...serviciosSeleccionados].sort((a, b) => 
+                a.nombre.localeCompare(b.nombre)
+            );
+
+            container.innerHTML = serviciosOrdenados.map(servicio => {
+                // Asegurar que el precio tenga un valor válido
+                let precio = parseFloat(servicio.precio);
+                if (isNaN(precio) || precio === null || precio === undefined) {
+                    precio = 0;
+                }
+                const precioFormateado = precio.toLocaleString('es-CR');
+                
+                console.log('Renderizando servicio:', servicio.nombre, 'Precio original:', servicio.precio, 'Precio procesado:', precio);
+                
+                return `
+                <div class="servicio-chip" data-servicio-id="${servicio.id}">
+                    <span class="servicio-chip-nombre">${servicio.nombre}</span>
+                    <span 
+                        class="servicio-chip-precio" 
+                        onclick="editarPrecioServicio('${servicio.id}')"
+                        id="precio-display-${servicio.id}"
+                        style="display: inline-flex !important; visibility: visible !important; opacity: 1 !important;"
+                    >
+                        ₡${precioFormateado}
+                    </span>
+                    <input 
+                        type="number" 
+                        class="servicio-chip-precio-input" 
+                        value="${precio}" 
+                        min="0" 
+                        step="1"
+                        id="precio-input-${servicio.id}"
+                        style="display: none;"
+                        onblur="guardarPrecioServicio('${servicio.id}', this.value)"
+                        onkeypress="if(event.key === 'Enter') { guardarPrecioServicio('${servicio.id}', this.value); }"
+                    >
+                    <button 
+                        class="servicio-chip-eliminar" 
+                        onclick="eliminarServicio('${servicio.id}')"
+                        title="Eliminar servicio"
+                    >
+                        ×
+                    </button>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // Función para editar el precio de un servicio (mostrar input)
+        function editarPrecioServicio(servicioId) {
+            const display = document.getElementById(`precio-display-${servicioId}`);
+            const input = document.getElementById(`precio-input-${servicioId}`);
+            
+            if (display && input) {
+                display.style.display = 'none';
+                input.style.display = 'inline-block';
+                input.focus();
+                input.select();
+            }
+        }
+
+        // Función para guardar el precio editado
+        function guardarPrecioServicio(servicioId, nuevoPrecio) {
+            const servicio = serviciosSeleccionados.find(s => s.id === servicioId);
+            if (servicio) {
+                const precioNumerico = parseFloat(nuevoPrecio) || 0;
+                servicio.precio = precioNumerico;
+            }
+
+            const display = document.getElementById(`precio-display-${servicioId}`);
+            const input = document.getElementById(`precio-input-${servicioId}`);
+            
+            if (display && input) {
+                input.style.display = 'none';
+                display.style.display = 'inline-flex';
+                const precioFormateado = (servicio.precio || 0).toLocaleString('es-CR');
+                display.innerHTML = `₡${precioFormateado}`;
+            }
+        }
+
+        // Función para obtener los servicios seleccionados (útil para usar en otras partes)
+        function obtenerServiciosSeleccionados() {
+            return serviciosSeleccionados;
+        }
+    </script>
 </body>
 </html>
