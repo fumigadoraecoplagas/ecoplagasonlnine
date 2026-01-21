@@ -1,4 +1,4 @@
-// Cargar script de badge de tickets globalmente para que siempre esté disponible
+﻿// Cargar script de badge de tickets globalmente para que siempre esté disponible
 if (!window.ticketsBadgeLoaded) {
     const script = document.createElement('script');
     script.type = 'module';
