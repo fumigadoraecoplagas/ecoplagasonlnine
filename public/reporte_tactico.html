@@ -1158,22 +1158,8 @@
                     const fechaFin = new Date(año, mes - 1, ultimoDiaDelMes, 23, 59, 59, 999);
                     const ahora = new Date();
                     
-                    const esMesActual = año === ahora.getFullYear() && mes === ahora.getMonth() + 1;
-                    // Si es el mes actual, usar hasta el final del día actual (23:59:59), no la hora actual
-                    let fechaHasta = fechaFin;
-                    if (esMesActual) {
-                        // Usar el final del día actual (23:59:59) en lugar de la hora actual
-                        const finDiaActual = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 23, 59, 59, 999);
-                        fechaHasta = finDiaActual;
-                        console.log('🔍 [DEBUG] Mes actual detectado:', {
-                            ahora: ahora.toISOString(),
-                            ahoraLocal: `${ahora.getFullYear()}-${ahora.getMonth() + 1}-${ahora.getDate()}`,
-                            finDiaActual: finDiaActual.toISOString(),
-                            fechaHasta: fechaHasta.toISOString(),
-                            ultimoDiaDelMes,
-                            fechaFin: fechaFin.toISOString()
-                        });
-                    }
+                    // Siempre usar el último día del mes completo, no limitar al día actual
+                    const fechaHasta = fechaFin;
 
                     const inicioTimestamp = Timestamp.fromDate(fechaInicio);
                     const finTimestamp = Timestamp.fromDate(fechaHasta);
@@ -1198,8 +1184,6 @@
                         fechaFinLocal: `${fechaFin.getFullYear()}-${fechaFin.getMonth() + 1}-${fechaFin.getDate()}`,
                         fechaHasta: fechaHasta.toISOString(),
                         fechaHastaLocal: `${fechaHasta.getFullYear()}-${fechaHasta.getMonth() + 1}-${fechaHasta.getDate()}`,
-                        esMesActual,
-                        diaActual: ahora.getDate(),
                         ultimoDiaMes: ultimoDiaDelMes,
                         totalCitas: citas.length
                     });
@@ -1207,6 +1191,12 @@
                     // Procesar ventas por día (solo del mes seleccionado)
                     const ventasPorDia = {};
                     const mesKey = `${año}-${String(mes).padStart(2, '0')}`;
+                    
+                    // Inicializar todos los días del mes con 0
+                    for (let dia = 1; dia <= ultimoDiaDelMes; dia++) {
+                        const diaKey = `${año}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+                        ventasPorDia[diaKey] = 0;
+                    }
                     
                     console.log(`📊 Procesando ${citas.length} citas para mes ${mesKey}`);
                     
