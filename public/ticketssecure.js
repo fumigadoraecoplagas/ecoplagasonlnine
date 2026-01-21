@@ -323,6 +323,104 @@ function llenarOpcionesEmpleados() {
             campoTicketsMasa: campoCrearPorGerenciaMasa ? 'encontrado' : 'no encontrado'
         });
     }
+    
+    // Configurar detección automática de palabras clave de inventario en tiempo real
+    configurarDeteccionInventarioTiempoReal();
+}
+
+// Función para detectar palabras clave de inventario y asignar automáticamente a Mayren Soto
+function configurarDeteccionInventarioTiempoReal() {
+    const palabrasClaveInventario = [
+        'inventario',
+        'faltante de inventario',
+        'inventario buseta',
+        'inventario apv',
+        'inventario bus',
+        'bodega',
+        'bodegu',
+        'almacen',
+        'almacén',
+        'stock',
+        'producto faltante',
+        'productos faltantes',
+        'falta de producto',
+        'falta de productos'
+    ];
+    
+    // Función para verificar si hay palabras clave y asignar a Mayren Soto
+    function verificarYAsignarInventario(titulo = '', descripcion = '') {
+        const textoCompleto = (titulo + ' ' + descripcion).toLowerCase();
+        const esTicketInventario = palabrasClaveInventario.some(palabra => textoCompleto.includes(palabra.toLowerCase()));
+        
+        if (esTicketInventario) {
+            const selectAsignado = document.getElementById('asignadoTicket');
+            if (selectAsignado && selectAsignado.value !== 'mayren.soto') {
+                // Verificar que Mayren Soto esté en la lista de opciones
+                const mayrenSotoOption = Array.from(selectAsignado.options).find(opt => opt.value === 'mayren.soto');
+                if (mayrenSotoOption) {
+                    selectAsignado.value = 'mayren.soto';
+                    console.log('[TICKETS] 🏷️ Palabras clave de inventario detectadas, asignando automáticamente a Mayren Soto');
+                    
+                    // Agregar feedback visual opcional
+                    selectAsignado.style.borderColor = '#0b7835';
+                    setTimeout(() => {
+                        selectAsignado.style.borderColor = '';
+                    }, 2000);
+                }
+            }
+        }
+    }
+    
+    // Configurar event listeners para el formulario de nuevo ticket
+    const tituloTicket = document.getElementById('tituloTicket');
+    const descripcionTicket = document.getElementById('descripcionTicket');
+    
+    if (tituloTicket) {
+        tituloTicket.addEventListener('input', () => {
+            const titulo = tituloTicket.value || '';
+            const descripcion = descripcionTicket?.value || '';
+            verificarYAsignarInventario(titulo, descripcion);
+        });
+    }
+    
+    if (descripcionTicket) {
+        descripcionTicket.addEventListener('input', () => {
+            const titulo = tituloTicket?.value || '';
+            const descripcion = descripcionTicket.value || '';
+            verificarYAsignarInventario(titulo, descripcion);
+        });
+    }
+    
+    // También configurar para el formulario de tickets en masa
+    const tituloTicketsMasa = document.getElementById('tituloTicketsMasa');
+    const descripcionTicketsMasa = document.getElementById('descripcionTicketsMasa');
+    
+    if (tituloTicketsMasa) {
+        tituloTicketsMasa.addEventListener('input', () => {
+            // Para tickets en masa, solo mostramos un mensaje informativo
+            const titulo = tituloTicketsMasa.value || '';
+            const descripcion = descripcionTicketsMasa?.value || '';
+            const textoCompleto = (titulo + ' ' + descripcion).toLowerCase();
+            const esTicketInventario = palabrasClaveInventario.some(palabra => textoCompleto.includes(palabra.toLowerCase()));
+            
+            if (esTicketInventario) {
+                console.log('[TICKETS] 🏷️ Palabras clave de inventario detectadas en tickets en masa - Se asignarán automáticamente a Mayren Soto al crear');
+            }
+        });
+    }
+    
+    if (descripcionTicketsMasa) {
+        descripcionTicketsMasa.addEventListener('input', () => {
+            const titulo = tituloTicketsMasa?.value || '';
+            const descripcion = descripcionTicketsMasa.value || '';
+            const textoCompleto = (titulo + ' ' + descripcion).toLowerCase();
+            const esTicketInventario = palabrasClaveInventario.some(palabra => textoCompleto.includes(palabra.toLowerCase()));
+            
+            if (esTicketInventario) {
+                console.log('[TICKETS] 🏷️ Palabras clave de inventario detectadas en tickets en masa - Se asignarán automáticamente a Mayren Soto al crear');
+            }
+        });
+    }
 }
 
 // Funciones para seleccionar fecha de vencimiento fácilmente
@@ -663,7 +761,7 @@ function mostrarTickets(ticketsFiltrados = null) {
                 </h2>
                 <div id="${ticketAccordionId}" class="accordion-collapse collapse" aria-labelledby="heading${ticketAccordionId}" data-bs-parent="#${parentAccordionId}">
                     <div class="accordion-body" style="padding: 16px; background: white;">
-                        <div class="ticket-descripcion" style="font-size: 0.95rem; margin-bottom: 14px; color: #495057; line-height: 1.6; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 3px solid #17a2b8; word-wrap: break-word; overflow-wrap: break-word; white-space: normal; height: auto; min-height: auto;">
+                        <div class="ticket-descripcion" style="font-size: 0.95rem; margin-bottom: 14px; color: #495057; line-height: 1.6; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 3px solid #17a2b8; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; height: auto; min-height: auto;">
                             <i class="fas fa-align-left text-muted me-2" style="font-size: 0.85rem;"></i>
                             ${ticket.descripcion}
                         </div>
@@ -1031,13 +1129,54 @@ async function crearTicket() {
             }
         }
         
+        // Detectar si el ticket es relacionado con inventario y asignar automáticamente a Mayren Soto
+        const textoCompleto = (titulo + ' ' + descripcion).toLowerCase();
+        const palabrasClaveInventario = [
+            'inventario',
+            'faltante de inventario',
+            'inventario buseta',
+            'inventario apv',
+            'inventario bus',
+            'bodega',
+            'bodegu',
+            'almacen',
+            'almacén',
+            'stock',
+            'producto faltante',
+            'productos faltantes',
+            'falta de producto',
+            'falta de productos'
+        ];
+        
+        let asignadoFinal = asignadoA;
+        let asignadoNombreFinal = empleados.find(e => e.username === asignadoA)?.primerNombre + ' ' + empleados.find(e => e.username === asignadoA)?.primerApellido;
+        
+        const esTicketInventario = palabrasClaveInventario.some(palabra => textoCompleto.includes(palabra.toLowerCase()));
+        
+        if (esTicketInventario) {
+            const mayrenSoto = empleados.find(e => e.username === 'mayren.soto');
+            if (mayrenSoto) {
+                asignadoFinal = 'mayren.soto';
+                asignadoNombreFinal = `${mayrenSoto.primerNombre} ${mayrenSoto.primerApellido}`;
+                console.log('[TICKETS] 🏷️ Ticket de inventario detectado, asignando automáticamente a Mayren Soto');
+                
+                // Actualizar el select en el formulario si existe
+                const selectAsignado = document.getElementById('asignadoTicket');
+                if (selectAsignado) {
+                    selectAsignado.value = 'mayren.soto';
+                }
+            } else {
+                console.warn('[TICKETS] ⚠️ No se encontró a Mayren Soto en la lista de empleados');
+            }
+        }
+        
         const ticketData = {
             titulo: titulo.trim(),
             descripcion: descripcion.trim(),
             creadoPor: creadorFinal,
             creadoPorNombre: creadorNombreFinal,
-            asignadoA: asignadoA,
-            asignadoANombre: empleados.find(e => e.username === asignadoA)?.primerNombre + ' ' + empleados.find(e => e.username === asignadoA)?.primerApellido,
+            asignadoA: asignadoFinal,
+            asignadoANombre: asignadoNombreFinal,
             estado: 'pendiente',
             prioridad: prioridad,
             fechaCreacion: serverTimestamp(),
@@ -1317,7 +1456,7 @@ function verTicket(ticketId) {
             
             <div class="ticket-detail-content">
                 <p><strong>Descripción:</strong></p>
-                <p>${ticket.descripcion}</p>
+                <p style="white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">${ticket.descripcion}</p>
                 
                 <div class="ticket-detail-info">
                     <div class="row g-2">
@@ -2084,6 +2223,37 @@ window.crearTicketsMasa = async function() {
         let ticketsCreados = 0;
         let ticketsError = 0;
         
+        // Detectar si el ticket es relacionado con inventario para asignar automáticamente a Mayren Soto
+        const textoCompletoMasa = (titulo + ' ' + descripcion).toLowerCase();
+        const palabrasClaveInventario = [
+            'inventario',
+            'faltante de inventario',
+            'inventario buseta',
+            'inventario apv',
+            'inventario bus',
+            'bodega',
+            'bodegu',
+            'almacen',
+            'almacén',
+            'stock',
+            'producto faltante',
+            'productos faltantes',
+            'falta de producto',
+            'falta de productos'
+        ];
+        
+        const esTicketInventarioMasa = palabrasClaveInventario.some(palabra => textoCompletoMasa.includes(palabra.toLowerCase()));
+        let mayrenSotoMasa = null;
+        
+        if (esTicketInventarioMasa) {
+            mayrenSotoMasa = empleados.find(e => e.username === 'mayren.soto');
+            if (mayrenSotoMasa) {
+                console.log('[TICKETS] 🏷️ Ticket de inventario detectado en masa, asignando automáticamente a Mayren Soto');
+            } else {
+                console.warn('[TICKETS] ⚠️ No se encontró a Mayren Soto en la lista de empleados');
+            }
+        }
+        
         // Crear un ticket para cada empleado seleccionado
         for (const checkbox of checkboxes) {
             try {
@@ -2110,13 +2280,22 @@ window.crearTicketsMasa = async function() {
                     }
                 }
                 
+                // Si es ticket de inventario, asignar a Mayren Soto en lugar del empleado seleccionado
+                let asignadoFinalMasa = empleadoUsername;
+                let asignadoNombreFinalMasa = `${empleado.primerNombre} ${empleado.primerApellido}`;
+                
+                if (esTicketInventarioMasa && mayrenSotoMasa) {
+                    asignadoFinalMasa = 'mayren.soto';
+                    asignadoNombreFinalMasa = `${mayrenSotoMasa.primerNombre} ${mayrenSotoMasa.primerApellido}`;
+                }
+                
                 const ticketData = {
                     titulo: titulo,
                     descripcion: descripcion,
                     creadoPor: creadorFinalMasa,
                     creadoPorNombre: creadorNombreFinalMasa,
-                    asignadoA: empleadoUsername,
-                    asignadoANombre: `${empleado.primerNombre} ${empleado.primerApellido}`,
+                    asignadoA: asignadoFinalMasa,
+                    asignadoANombre: asignadoNombreFinalMasa,
                     estado: 'pendiente',
                     prioridad: prioridad,
                     fechaCreacion: serverTimestamp(),
