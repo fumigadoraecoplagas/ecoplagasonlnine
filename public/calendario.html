@@ -1724,6 +1724,37 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     <div id="mapaUbicacionEdit" style="height: 400px; width: 100%; border-radius: 8px; border: 1px solid #e0e0e0;"></div>
                                 </div>
                                 
+                                <!-- Servicios -->
+                                <div class="col-12" style="margin-top: 0.75rem;">
+                                    <hr style="margin: 0.75rem 0; border-color: #e0e0e0; border-width: 1px;">
+                                </div>
+                                <div class="col-12" style="position: relative; z-index: 100000;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
+                                        Servicios
+                                    </label>
+                                    <div class="dropdown-container" style="position: relative; z-index: 999999;">
+                                        <input type="text" id="editServicioSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar servicio" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                        <div class="dropdown-menu" id="editServiciosDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 999999 !important; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
+                                            <div class="dropdown-item text-muted" id="noResultsEditServicio" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
+                                        </div>
+                                    </div>
+                                    <div id="editServiciosSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                </div>
+                                
+                                <!-- Plaga -->
+                                <div class="col-12" style="position: relative; z-index: 999998;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
+                                        Plaga
+                                    </label>
+                                    <div class="dropdown-container" style="position: relative; z-index: 999998;">
+                                        <input type="text" id="editPlagaSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar plaga" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                        <div class="dropdown-menu" id="editPlagasDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 999998 !important; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
+                                            <div class="dropdown-item text-muted" id="noResultsEditPlaga" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
+                                        </div>
+                                    </div>
+                                    <div id="editPlagasSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                </div>
+                                
                                 <!-- Estado -->
                                 <div class="col-12" style="margin-top: 0.75rem;">
                                     <hr style="margin: 0.75rem 0; border-color: #e0e0e0; border-width: 1px;">
@@ -1752,29 +1783,32 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Costo estimado</small>
                                 </div>
                                 
-                                <!-- Servicios -->
+                                <!-- Método de Pago -->
                                 <div class="col-12" style="margin-top: 0.75rem;">
                                     <hr style="margin: 0.75rem 0; border-color: #e0e0e0; border-width: 1px;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Método de Pago</label>
+                                    <select id="editMetodoPago" class="form-select" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                        <option value="">Seleccionar método de pago</option>
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Datáfono (tarjeta)">Datáfono (tarjeta)</option>
+                                        <option value="SINPE">SINPE</option>
+                                        <option value="Transferencia bancaria">Transferencia bancaria</option>
+                                        <option value="Cuenta por cobrar">Cuenta por cobrar</option>
+                                    </select>
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
-                                        Servicios
-                                    </label>
-                                    <div class="dropdown-container" style="position: relative; z-index: 10000;">
-                                        <input type="text" id="editServicioSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar servicio" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
-                                        <div class="dropdown-menu" id="editServiciosDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 10000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
-                                            <div class="dropdown-item text-muted" id="noResultsEditServicio" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
-                                        </div>
-                                    </div>
-                                    <div id="editServiciosSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                
+                                <!-- N° Factura -->
+                                <div class="col-12" style="margin-top: 0.75rem;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">N° Factura</label>
+                                    <input type="text" id="editNumeroFactura" class="form-control" placeholder="Ingrese el número de factura" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
                                 </div>
             </div>
         </div>
     </div>
 
                     <!-- Información Adicional -->
-                    <div class="card mb-2" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px;">
-                        <div class="card-header adicional-toggle" id="toggleAdicionalEdit" style="background: #fbdc02; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem; border-radius: 8px 8px 0 0; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2); z-index: 1;">
+                    <div class="card mb-2" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; position: relative; z-index: 1;">
+                        <div class="card-header adicional-toggle" id="toggleAdicionalEdit" style="background: #fbdc02; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem; border-radius: 8px 8px 0 0; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2); position: relative; z-index: 1;">
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <h6 class="mb-0" style="font-size: 1rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Adicional</h6>
                                 <i class="fas fa-chevron-down icon-expand-pulse" style="font-size: 1.8rem; color: #000000;"></i>
@@ -2159,6 +2193,37 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     <div id="mapaUbicacionNew" style="height: 400px; width: 100%; border-radius: 8px; border: 1px solid #e0e0e0;"></div>
                                         </div>
                                 
+                                <!-- Servicios -->
+                                <div class="col-12" style="margin-top: 0.75rem;">
+                                    <hr style="margin: 0.75rem 0; border-color: #e0e0e0; border-width: 1px;">
+                                </div>
+                                <div class="col-12" style="position: relative; z-index: 999999;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
+                                        Servicios
+                                    </label>
+                                    <div class="dropdown-container" style="position: relative; z-index: 999999;">
+                                        <input type="text" id="newServicioSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar servicio" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                        <div class="dropdown-menu" id="newServiciosDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 999999 !important; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
+                                            <div class="dropdown-item text-muted" id="noResultsNewServicio" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
+                                        </div>
+                                    </div>
+                                    <div id="newServiciosSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                </div>
+                                
+                                <!-- Plaga -->
+                                <div class="col-12" style="position: relative; z-index: 999998;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
+                                        Plaga
+                                    </label>
+                                    <div class="dropdown-container" style="position: relative; z-index: 999998;">
+                                        <input type="text" id="newPlagaSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar plaga" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                        <div class="dropdown-menu" id="newPlagasDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 999998 !important; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
+                                            <div class="dropdown-item text-muted" id="noResultsNewPlaga" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
+                                        </div>
+                                    </div>
+                                    <div id="newPlagasSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                </div>
+                                
                                 <!-- Estado -->
                                 <div class="col-12" style="margin-top: 0.75rem;">
                                     <hr style="margin: 0.75rem 0; border-color: #e0e0e0; border-width: 1px;">
@@ -2187,29 +2252,32 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Costo estimado</small>
                                 </div>
                                 
-                                <!-- Servicios -->
+                                <!-- Método de Pago -->
                                 <div class="col-12" style="margin-top: 0.75rem;">
                                     <hr style="margin: 0.75rem 0; border-color: #e0e0e0; border-width: 1px;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Método de Pago</label>
+                                    <select id="newMetodoPago" class="form-select" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                        <option value="">Seleccionar método de pago</option>
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Datáfono (tarjeta)">Datáfono (tarjeta)</option>
+                                        <option value="SINPE">SINPE</option>
+                                        <option value="Transferencia bancaria">Transferencia bancaria</option>
+                                        <option value="Cuenta por cobrar">Cuenta por cobrar</option>
+                                    </select>
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
-                                        Servicios
-                                    </label>
-                                    <div class="dropdown-container" style="position: relative; z-index: 10000;">
-                                        <input type="text" id="newServicioSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar servicio" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
-                                        <div class="dropdown-menu" id="newServiciosDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 10000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
-                                            <div class="dropdown-item text-muted" id="noResultsNewServicio" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
-                                        </div>
-                                    </div>
-                                    <div id="newServiciosSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                
+                                <!-- N° Factura -->
+                                <div class="col-12" style="margin-top: 0.75rem;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">N° Factura</label>
+                                    <input type="text" id="newNumeroFactura" class="form-control" placeholder="Ingrese el número de factura" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
                                 </div>
                                         </div>
                         </div>
                     </div>
 
                     <!-- Información Adicional -->
-                    <div class="card mb-2" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px;">
-                        <div class="card-header adicional-toggle" id="toggleAdicionalNew" style="background: #fbdc02; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem; border-radius: 8px 8px 0 0; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2); z-index: 1;">
+                    <div class="card mb-2" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; position: relative; z-index: 1;">
+                        <div class="card-header adicional-toggle" id="toggleAdicionalNew" style="background: #fbdc02; border-bottom: 1px solid #e0e0e0; padding: 1rem 1.5rem; border-radius: 8px 8px 0 0; box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2); position: relative; z-index: 1;">
                             <div style="display: flex; align-items: center; justify-content: space-between;">
                                 <h6 class="mb-0" style="font-size: 1rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Adicional</h6>
                                 <i class="fas fa-chevron-down icon-expand-pulse" style="font-size: 1.8rem; color: #000000;"></i>
@@ -3055,6 +3123,20 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const costoServicioFormateado = window.formatearMontoVenta(costoServicio);
             document.getElementById('editCostoServicio').value = costoServicioFormateado;
             
+            // Método de Pago
+            const metodoPago = cita.metadata?.metodoPago || '';
+            const editMetodoPago = document.getElementById('editMetodoPago');
+            if (editMetodoPago) {
+                editMetodoPago.value = metodoPago;
+            }
+            
+            // N° Factura
+            const numeroFactura = cita.metadata?.numeroFactura || '';
+            const editNumeroFactura = document.getElementById('editNumeroFactura');
+            if (editNumeroFactura) {
+                editNumeroFactura.value = numeroFactura;
+            }
+            
             // Ruta: incluir "Sin asignar" si aplica
             const rutaActual = window.obtenerRuta(cita);
             document.getElementById('editRuta').value = rutaActual || 'Sin asignar';
@@ -3158,6 +3240,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             }
             if (window.inicializarBusquedaServicios) {
                 window.inicializarBusquedaServicios('edit');
+            }
+            
+            // Plagas: cargar plagas seleccionadas
+            const plagas = cita.metadata?.plagas || [];
+            window.plagasSeleccionadasEdit = Array.isArray(plagas) ? [...plagas] : [];
+            if (window.inicializarBusquedaPlagas) {
+                window.inicializarBusquedaPlagas('edit');
             }
             
             // Productos: cargar productos y inicializar búsqueda
@@ -3952,9 +4041,33 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         window.vendedoresSeleccionadosEdit = [];
         window.serviciosSeleccionadosEdit = [];
         window.productosSeleccionadosEdit = [];
+        window.plagasSeleccionadasEdit = [];
         window.vendedoresSeleccionadosNew = [];
         window.serviciosSeleccionadosNew = [];
         window.productosSeleccionadosNew = [];
+        window.plagasSeleccionadasNew = [];
+        
+        // Lista de plagas disponibles (ordenadas alfabéticamente)
+        window.plagasDisponibles = [
+            'Alacranes',
+            'Arañas',
+            'Ácaros',
+            'Babosas',
+            'Caracoles',
+            'Chinches de cama',
+            'Cucaracha americana',
+            'Cucaracha germánica',
+            'Garrapatas',
+            'Hormigas',
+            'Moscas',
+            'Murciélagos',
+            'Polillas',
+            'Pulgas',
+            'Ratas',
+            'Ratones',
+            'Termitas',
+            'Zancudos'
+        ];
         
         // Función para inicializar búsqueda de vendedores
         window.inicializarBusquedaVendedores = function(prefix = 'edit') {
@@ -4195,6 +4308,139 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 }
             }
         }
+        
+        // Función para inicializar búsqueda de plagas con dropdown
+        window.inicializarBusquedaPlagas = function(prefix = 'edit') {
+            const searchInput = document.getElementById(`${prefix}PlagaSearch`);
+            const dropdownMenu = document.getElementById(`${prefix}PlagasDropdownMenu`);
+            const noResults = document.getElementById(`noResults${prefix === 'edit' ? 'Edit' : 'New'}Plaga`);
+            const selectedDiv = document.getElementById(`${prefix}PlagasSelected`);
+            
+            if (!searchInput || !dropdownMenu || !selectedDiv) return;
+            
+            // Función para renderizar opciones
+            function renderizarOpciones(query = '') {
+                const plagas = window.plagasDisponibles || [];
+                const queryLower = query.trim().toLowerCase();
+                
+                // Filtrar y ordenar alfabéticamente
+                let plagasFiltradas = plagas;
+                if (queryLower) {
+                    plagasFiltradas = plagas.filter(plaga => {
+                        const nombre = (plaga || '').toLowerCase();
+                        return nombre.includes(queryLower);
+                    });
+                }
+                
+                // Ordenar alfabéticamente por nombre
+                plagasFiltradas.sort((a, b) => {
+                    const nombreA = (a || '').toLowerCase();
+                    const nombreB = (b || '').toLowerCase();
+                    return nombreA.localeCompare(nombreB);
+                });
+                
+                // Obtener plagas ya seleccionadas
+                const selected = prefix === 'edit' ? window.plagasSeleccionadasEdit : window.plagasSeleccionadasNew;
+                
+                if (plagasFiltradas.length === 0) {
+                    dropdownMenu.style.display = 'block';
+                    noResults.style.display = 'block';
+                    dropdownMenu.innerHTML = '';
+                    dropdownMenu.appendChild(noResults);
+                    return;
+                }
+                
+                noResults.style.display = 'none';
+                dropdownMenu.innerHTML = plagasFiltradas.map(plaga => {
+                    const yaSeleccionada = selected.includes(plaga);
+                    return `
+                        <div class="dropdown-item" data-plaga="${plaga.replace(/"/g, '&quot;')}" style="cursor: pointer; padding: 0.75rem; display: flex; align-items: center; gap: 0.75rem;">
+                            <input 
+                                type="checkbox" 
+                                ${yaSeleccionada ? 'checked' : ''}
+                                style="width: 18px; height: 18px; cursor: pointer;"
+                                onchange="togglePlaga('${plaga.replace(/'/g, "\\'")}', '${prefix}')"
+                            >
+                            <span style="font-weight: 500; color: #000000; flex: 1;">${plaga}</span>
+                        </div>
+                    `;
+                }).join('');
+                
+                dropdownMenu.style.display = 'block';
+            }
+            
+            // Event listener para búsqueda en tiempo real
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value;
+                renderizarOpciones(query);
+            });
+            
+            // Mostrar todas las opciones al hacer focus
+            searchInput.addEventListener('focus', () => {
+                renderizarOpciones(searchInput.value);
+            });
+            
+            // Cerrar dropdown al hacer clic fuera
+            document.addEventListener('click', (e) => {
+                if (!searchInput.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.style.display = 'none';
+                }
+            });
+            
+            // Función para actualizar la visualización de plagas seleccionadas
+            function actualizarPlagasSeleccionadas() {
+                const selected = prefix === 'edit' ? window.plagasSeleccionadasEdit : window.plagasSeleccionadasNew;
+                selectedDiv.innerHTML = '';
+                
+                selected.forEach(plaga => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge';
+                    badge.style.cssText = 'background: #e8f5e9; color: #2e7d32; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem;';
+                    badge.setAttribute('data-plaga', plaga.replace(/"/g, '&quot;'));
+                    badge.innerHTML = `${plaga} <i class="fas fa-times" style="cursor: pointer; opacity: 0.7;"></i>`;
+                    badge.querySelector('i').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        togglePlaga(plaga, prefix);
+                    });
+                    selectedDiv.appendChild(badge);
+                });
+            }
+            
+            // Inicializar visualización
+            actualizarPlagasSeleccionadas();
+            
+            // Función para agregar/quitar plaga
+            window.togglePlaga = function(nombrePlaga, prefix) {
+                const selected = prefix === 'edit' ? window.plagasSeleccionadasEdit : window.plagasSeleccionadasNew;
+                const index = selected.indexOf(nombrePlaga);
+                
+                if (index === -1) {
+                    // Agregar plaga
+                    selected.push(nombrePlaga);
+                } else {
+                    // Quitar plaga
+                    selected.splice(index, 1);
+                }
+                
+                // Actualizar visualización
+                actualizarPlagasSeleccionadas();
+                
+                // Re-renderizar dropdown para actualizar checkboxes
+                const searchInput = document.getElementById(`${prefix}PlagaSearch`);
+                if (searchInput) {
+                    renderizarOpciones(searchInput.value);
+                }
+            };
+        }
+        
+        // Función para obtener plagas seleccionadas
+        window.obtenerPlagasSeleccionadas = function(prefix = 'edit') {
+            if (prefix === 'edit') {
+                return window.plagasSeleccionadasEdit || [];
+            } else {
+                return window.plagasSeleccionadasNew || [];
+            }
+        };
         
         // Función para inicializar búsqueda de productos
         window.inicializarBusquedaProductos = function(prefix = 'edit') {
@@ -12760,6 +13006,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Obtener servicios seleccionados
                 const serviciosSeleccionados = window.obtenerServiciosSeleccionados('edit');
                 
+                // Obtener plagas seleccionadas
+                const plagasSeleccionadas = window.obtenerPlagasSeleccionadas('edit');
+                
                 // Obtener productos seleccionados
                 const productosSeleccionados = window.obtenerProductosSeleccionados('edit');
                 
@@ -12795,6 +13044,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         costo_servicio: costoServicio, // Costo del servicio (siempre presente)
                         vendedores: vendedoresSeleccionados, // Array de usernames
                         servicios: serviciosSeleccionados, // Array de IDs de servicios
+                        plagas: plagasSeleccionadas, // Array de nombres de plagas
                         productos: productosSeleccionados, // Array de IDs de productos
                         equipo: equipoSeleccionado, // Array de IDs de equipo
                         certificados: certificadosTexto, // Texto para generar certificados
@@ -12809,6 +13059,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         provinciaId: provinciaId,
                         cantonId: cantonId,
                         distritoId: distritoId,
+                        metodoPago: document.getElementById('editMetodoPago')?.value || '',
+                        numeroFactura: document.getElementById('editNumeroFactura')?.value.trim() || '',
                         // Campos de la sección "Rápido"
                         hora_rapida: horaRapida,
                         precio_rapido: precioRapido,
@@ -13009,6 +13261,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Obtener servicios seleccionados
                 const serviciosSeleccionados = window.serviciosSeleccionadosNew || [];
                 
+                // Obtener plagas seleccionadas
+                const plagasSeleccionadas = window.obtenerPlagasSeleccionadas('new');
+                
                 // Obtener productos seleccionados
                 const productosSeleccionados = window.productosSeleccionadosNew || [];
                 
@@ -13056,6 +13311,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         costo_servicio: costoServicio,
                         vendedores: vendedoresSeleccionados,
                         servicios: serviciosSeleccionados,
+                        plagas: plagasSeleccionadas, // Array de nombres de plagas
                         productos: productosSeleccionados,
                         equipo: equipoSeleccionado, // Array de IDs de equipo
                         certificados: certificadosTexto, // Texto para generar certificados
@@ -13069,7 +13325,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         turno_emoji: emojiTurno,
                         provinciaId: provinciaId,
                         cantonId: cantonId,
-                        distritoId: distritoId
+                        distritoId: distritoId,
+                        metodoPago: document.getElementById('newMetodoPago')?.value || '',
+                        numeroFactura: document.getElementById('newNumeroFactura')?.value.trim() || ''
                     },
                     fecha_creacion: serverTimestamp(),
                     fecha_actualizacion: serverTimestamp(),
@@ -13624,6 +13882,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             if (window.todosLosProductos && window.todosLosProductos.length > 0 && window.inicializarBusquedaProductos) {
                 window.inicializarBusquedaProductos('new');
             }
+            // Inicializar búsqueda de plagas
+            if (window.inicializarBusquedaPlagas) {
+                window.inicializarBusquedaPlagas('new');
+            }
             // Inicializar búsqueda de equipo
             if (!window.todosLosEquipos || window.todosLosEquipos.length === 0) {
                 await window.cargarEquipo();
@@ -13807,6 +14069,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             }
             if (window.todosLosProductos && window.todosLosProductos.length > 0 && window.inicializarBusquedaProductos) {
                 window.inicializarBusquedaProductos('new');
+            }
+            // Inicializar búsqueda de plagas
+            if (window.inicializarBusquedaPlagas) {
+                window.inicializarBusquedaPlagas('new');
             }
             // Inicializar búsqueda de equipo
             if (!window.todosLosEquipos || window.todosLosEquipos.length === 0) {
