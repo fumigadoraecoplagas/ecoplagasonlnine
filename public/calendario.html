@@ -10106,20 +10106,21 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const serviciosSeleccionados = window.obtenerServiciosSeleccionados('edit');
                 let totalServicios = 0;
                 const serviciosDetalle = serviciosSeleccionados.map(serv => {
-                    // serv puede ser string (ID) u objeto {id, cantidad, precio}
+                    // serv es un objeto {id, cantidad, precioUnitario, precio}
                     const servicioId = typeof serv === 'string' ? serv : serv.id;
                     const servicio = window.todosLosServicios.find(s => s.id === servicioId);
                     if (servicio) {
-                        // Usar precio personalizado si existe, sino usar precio del servicio base
-                        const precio = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : (servicio.precio || 0);
+                        // precio ya es el precio total (cantidad × precioUnitario)
+                        const precioTotal = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : (servicio.precio || 0);
                         const cantidad = typeof serv === 'object' && serv.cantidad !== undefined ? serv.cantidad : 1;
-                        const subtotal = precio * cantidad;
-                        totalServicios += subtotal;
+                        const precioUnitario = typeof serv === 'object' && serv.precioUnitario !== undefined ? serv.precioUnitario : (servicio.precio || 0);
+                        totalServicios += precioTotal; // Usar precio total directamente
                         return {
                             nombre: servicio.nombre || 'Sin nombre',
                             cantidad: cantidad,
-                            precio: precio,
-                            subtotal: subtotal
+                            precioUnitario: precioUnitario,
+                            precio: precioTotal, // Precio total
+                            subtotal: precioTotal
                         };
                     }
                     return null;
