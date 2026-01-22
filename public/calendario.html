@@ -3252,19 +3252,30 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 if (typeof serv === 'string') {
                     // Es un ID simple, usar precio del servicio base
                     const servicio = window.todosLosServicios.find(s => s.id === serv);
+                    const precioUnitario = servicio?.precio || 0;
                     return {
                         id: serv,
                         cantidad: 1,
-                        precio: servicio?.precio || 0,
+                        precioUnitario: precioUnitario,
+                        precio: precioUnitario * 1, // Precio total
                         comentarios: ''
                     };
                 } else if (typeof serv === 'object' && serv.id) {
                     // Ya es un objeto con id y posiblemente cantidad, precio y comentarios
                     const servicio = window.todosLosServicios.find(s => s.id === serv.id);
+                    const cantidad = serv.cantidad !== undefined ? serv.cantidad : 1;
+                    // Si tiene precioUnitario, usarlo; si no, calcularlo del precio total
+                    let precioUnitario = serv.precioUnitario;
+                    if (precioUnitario === undefined) {
+                        // Calcular precio unitario del precio total
+                        precioUnitario = cantidad > 0 ? ((serv.precio !== undefined ? serv.precio : (servicio?.precio || 0)) / cantidad) : (servicio?.precio || 0);
+                    }
+                    const precioTotal = precioUnitario * cantidad;
                     return {
                         id: serv.id,
-                        cantidad: serv.cantidad !== undefined ? serv.cantidad : 1,
-                        precio: serv.precio !== undefined ? serv.precio : (servicio?.precio || 0),
+                        cantidad: cantidad,
+                        precioUnitario: precioUnitario,
+                        precio: precioTotal, // Precio total calculado
                         comentarios: serv.comentarios !== undefined ? serv.comentarios : ''
                     };
                 }
@@ -4331,13 +4342,16 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const servicio = window.todosLosServicios.find(s => s.id === servicioId);
                 if (!servicio) return;
                 
-                // Agregar como objeto con precio inicial del servicio, cantidad 1 y comentarios vacíos
+                // Agregar como objeto con precio unitario inicial del servicio, cantidad 1 y comentarios vacíos
+                const precioUnitario = servicio.precio || 0;
                 const servicioConPrecio = {
                     id: servicioId,
                     cantidad: 1,
-                    precio: servicio.precio || 0,
+                    precioUnitario: precioUnitario,
+                    precio: precioUnitario * 1, // Precio total inicial (cantidad × precioUnitario)
                     comentarios: ''
                 };
+                console.log('[SERVICIOS] Agregando servicio', servicioConPrecio);
                 selected.push(servicioConPrecio);
                 
                 // Renderizar tabla de servicios
@@ -4371,17 +4385,28 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Ordenar servicios alfabéticamente
                 const serviciosOrdenados = selected.map(serv => {
                     const servicio = window.todosLosServicios.find(s => s.id === (typeof serv === 'string' ? serv : serv.id));
+                    const cantidad = typeof serv === 'object' && serv.cantidad !== undefined ? serv.cantidad : 1;
+                    // precioUnitario: precio por unidad (se guarda)
+                    // precio: precio total (cantidad × precioUnitario) - se calcula
+                    const precioUnitario = typeof serv === 'object' && serv.precioUnitario !== undefined 
+                        ? serv.precioUnitario 
+                        : (typeof serv === 'object' && serv.precio !== undefined 
+                            ? (serv.precio / (cantidad || 1)) // Convertir precio antiguo a unitario
+                            : (servicio?.precio || 0));
+                    const precioTotal = precioUnitario * cantidad;
                     return {
                         id: typeof serv === 'string' ? serv : serv.id,
-                        cantidad: typeof serv === 'object' && serv.cantidad !== undefined ? serv.cantidad : 1,
-                        precio: typeof serv === 'object' && serv.precio !== undefined ? serv.precio : (servicio?.precio || 0),
+                        cantidad: cantidad,
+                        precioUnitario: precioUnitario,
+                        precio: precioTotal, // Precio total calculado
                         comentarios: typeof serv === 'object' && serv.comentarios !== undefined ? serv.comentarios : '',
                         nombre: servicio?.nombre || 'Sin nombre'
                     };
                 }).sort((a, b) => a.nombre.localeCompare(b.nombre));
                 
                 tbody.innerHTML = serviciosOrdenados.map(serv => {
-                    const precioFormateado = (serv.precio || 0).toLocaleString('es-CR');
+                    const precioTotal = serv.precio || 0; // Precio total (cantidad × precioUnitario)
+                    const precioFormateado = precioTotal.toLocaleString('es-CR');
                     const tieneComentarios = serv.comentarios && serv.comentarios.trim() !== '';
                     const comentariosEscapados = (serv.comentarios || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                     const cantidad = serv.cantidad || 1;
@@ -4406,7 +4431,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                 <input 
                                     type="number" 
                                     class="form-control form-control-sm servicio-precio-input" 
-                                    value="${serv.precio || 0}" 
+                                    value="${precioTotal}" 
                                     min="0" 
                                     step="1"
                                     data-servicio-id="${serv.id}"
@@ -4415,6 +4440,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     onchange="actualizarPrecioServicioCita('${serv.id}', this.value, '${prefix}')"
                                     onblur="actualizarPrecioServicioCita('${serv.id}', this.value, '${prefix}')"
                                 >
+                                <small style="font-size: 0.75rem; color: #6c757d; display: block; margin-top: 2px;">
+                                    ₡${(serv.precioUnitario || 0).toLocaleString('es-CR')} c/u
+                                </small>
                             </td>
                             <td style="vertical-align: middle; text-align: center; position: relative;">
                                 <button 
@@ -4470,7 +4498,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             }
             
             // Función para actualizar el precio de un servicio en la cita
-            window.actualizarPrecioServicioCita = function(servicioId, nuevoPrecio, prefix) {
+            // Función para actualizar el precio total de un servicio en la cita
+            // Cuando el usuario cambia el precio total, se recalcula el precio unitario
+            window.actualizarPrecioServicioCita = function(servicioId, nuevoPrecioTotal, prefix) {
+                console.log('[SERVICIOS] Actualizando precio total', { servicioId, nuevoPrecioTotal, prefix });
                 const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
                 const servicio = selected.find(s => {
                     const id = typeof s === 'string' ? s : s.id;
@@ -4478,16 +4509,34 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 });
                 
                 if (servicio) {
+                    const precioTotalNuevo = parseFloat(nuevoPrecioTotal) || 0;
+                    
                     // Convertir a objeto si es string
                     if (typeof servicio === 'string') {
                         const index = selected.indexOf(servicio);
                         const servicioObj = window.todosLosServicios.find(s => s.id === servicioId);
+                        const precioUnitario = servicioObj?.precio || 0;
                         selected[index] = {
                             id: servicioId,
-                            precio: parseFloat(nuevoPrecio) || servicioObj?.precio || 0
+                            cantidad: 1,
+                            precioUnitario: precioTotalNuevo, // Si es nuevo, el precio total es el unitario
+                            precio: precioTotalNuevo,
+                            comentarios: ''
                         };
+                        console.log('[SERVICIOS] Servicio convertido a objeto con precio', selected[index]);
                     } else {
-                        servicio.precio = parseFloat(nuevoPrecio) || servicio.precio || 0;
+                        const cantidad = servicio.cantidad || 1;
+                        // Recalcular precio unitario basado en el nuevo precio total
+                        const precioUnitarioNuevo = cantidad > 0 ? precioTotalNuevo / cantidad : precioTotalNuevo;
+                        
+                        servicio.precioUnitario = precioUnitarioNuevo;
+                        servicio.precio = precioTotalNuevo; // Precio total
+                        console.log('[SERVICIOS] Precio actualizado', { cantidad, precioUnitario: servicio.precioUnitario, precioTotal: servicio.precio });
+                    }
+                    
+                    // Re-renderizar la tabla para mostrar el nuevo precio unitario
+                    if (window.renderizarTablaServicios) {
+                        window.renderizarTablaServicios(prefix);
                     }
                     
                     // Actualizar resumen financiero
@@ -4496,6 +4545,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
                         window.actualizarResumenFinancieroNew();
                     }
+                } else {
+                    console.warn('[SERVICIOS] Servicio no encontrado para actualizar precio', { servicioId, prefix });
                 }
             };
             
@@ -4867,26 +4918,32 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         }
         
         // Actualizar función obtenerServiciosSeleccionados
-        // Devuelve array de objetos {id, precio} para mantener precios personalizados por cita
+        // Devuelve array de objetos {id, cantidad, precioUnitario, precio, comentarios} para mantener precios personalizados por cita
         window.obtenerServiciosSeleccionados = function(prefix = 'edit') {
             const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
-            // Asegurar que todos los servicios estén en formato objeto con cantidad, precio y comentarios
+            // Asegurar que todos los servicios estén en formato objeto con cantidad, precioUnitario, precio y comentarios
             return selected.map(serv => {
                 if (typeof serv === 'string') {
                     // Convertir string a objeto con precio del servicio base
                     const servicio = window.todosLosServicios.find(s => s.id === serv);
+                    const precioUnitario = servicio?.precio || 0;
                     return {
                         id: serv,
                         cantidad: 1,
-                        precio: servicio?.precio || 0,
+                        precioUnitario: precioUnitario,
+                        precio: precioUnitario * 1, // Precio total
                         comentarios: ''
                     };
                 }
-                // Asegurar que tenga cantidad, precio y comentarios
+                // Asegurar que tenga cantidad, precioUnitario, precio y comentarios
                 if (typeof serv === 'object') {
-                    if (serv.cantidad === undefined) {
-                        serv.cantidad = 1;
+                    const cantidad = serv.cantidad !== undefined ? serv.cantidad : 1;
+                    // Si no tiene precioUnitario, calcularlo del precio total
+                    if (serv.precioUnitario === undefined) {
+                        serv.precioUnitario = cantidad > 0 ? ((serv.precio || 0) / cantidad) : (serv.precio || 0);
                     }
+                    // Recalcular precio total
+                    serv.precio = serv.precioUnitario * cantidad;
                     if (serv.comentarios === undefined) {
                         serv.comentarios = '';
                     }
