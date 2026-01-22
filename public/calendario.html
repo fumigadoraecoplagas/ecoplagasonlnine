@@ -1743,6 +1743,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                             <thead>
                                                 <tr>
                                                     <th style="font-size: 0.9rem; font-weight: 600;">Servicio</th>
+                                                    <th style="font-size: 0.9rem; font-weight: 600; width: 100px;">Cantidad</th>
                                                     <th style="font-size: 0.9rem; font-weight: 600; width: 150px;">Precio (₡)</th>
                                                     <th style="font-size: 0.9rem; font-weight: 600; width: 80px;">Comentarios</th>
                                                     <th style="font-size: 0.9rem; font-weight: 600; width: 50px;"></th>
@@ -2224,6 +2225,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                             <thead>
                                                 <tr>
                                                     <th style="font-size: 0.9rem; font-weight: 600;">Servicio</th>
+                                                    <th style="font-size: 0.9rem; font-weight: 600; width: 100px;">Cantidad</th>
                                                     <th style="font-size: 0.9rem; font-weight: 600; width: 150px;">Precio (₡)</th>
                                                     <th style="font-size: 0.9rem; font-weight: 600; width: 80px;">Comentarios</th>
                                                     <th style="font-size: 0.9rem; font-weight: 600; width: 50px;"></th>
@@ -3252,14 +3254,16 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     const servicio = window.todosLosServicios.find(s => s.id === serv);
                     return {
                         id: serv,
+                        cantidad: 1,
                         precio: servicio?.precio || 0,
                         comentarios: ''
                     };
                 } else if (typeof serv === 'object' && serv.id) {
-                    // Ya es un objeto con id y posiblemente precio y comentarios
+                    // Ya es un objeto con id y posiblemente cantidad, precio y comentarios
                     const servicio = window.todosLosServicios.find(s => s.id === serv.id);
                     return {
                         id: serv.id,
+                        cantidad: serv.cantidad !== undefined ? serv.cantidad : 1,
                         precio: serv.precio !== undefined ? serv.precio : (servicio?.precio || 0),
                         comentarios: serv.comentarios !== undefined ? serv.comentarios : ''
                     };
@@ -4327,9 +4331,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const servicio = window.todosLosServicios.find(s => s.id === servicioId);
                 if (!servicio) return;
                 
-                // Agregar como objeto con precio inicial del servicio y comentarios vacíos
+                // Agregar como objeto con precio inicial del servicio, cantidad 1 y comentarios vacíos
                 const servicioConPrecio = {
                     id: servicioId,
+                    cantidad: 1,
                     precio: servicio.precio || 0,
                     comentarios: ''
                 };
@@ -4368,6 +4373,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     const servicio = window.todosLosServicios.find(s => s.id === (typeof serv === 'string' ? serv : serv.id));
                     return {
                         id: typeof serv === 'string' ? serv : serv.id,
+                        cantidad: typeof serv === 'object' && serv.cantidad !== undefined ? serv.cantidad : 1,
                         precio: typeof serv === 'object' && serv.precio !== undefined ? serv.precio : (servicio?.precio || 0),
                         comentarios: typeof serv === 'object' && serv.comentarios !== undefined ? serv.comentarios : '',
                         nombre: servicio?.nombre || 'Sin nombre'
@@ -4378,9 +4384,24 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     const precioFormateado = (serv.precio || 0).toLocaleString('es-CR');
                     const tieneComentarios = serv.comentarios && serv.comentarios.trim() !== '';
                     const comentariosEscapados = (serv.comentarios || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                    const cantidad = serv.cantidad || 1;
                     return `
                         <tr data-servicio-id="${serv.id}">
                             <td style="font-size: 0.9rem; vertical-align: middle;">${serv.nombre}</td>
+                            <td style="vertical-align: middle;">
+                                <input 
+                                    type="number" 
+                                    class="form-control form-control-sm servicio-cantidad-input" 
+                                    value="${cantidad}" 
+                                    min="1" 
+                                    step="1"
+                                    data-servicio-id="${serv.id}"
+                                    data-prefix="${prefix}"
+                                    style="font-size: 0.9rem; text-align: center; width: 80px;"
+                                    onchange="actualizarCantidadServicioCita('${serv.id}', this.value, '${prefix}')"
+                                    onblur="actualizarCantidadServicioCita('${serv.id}', this.value, '${prefix}')"
+                                >
+                            </td>
                             <td style="vertical-align: middle;">
                                 <input 
                                     type="number" 
@@ -4849,20 +4870,26 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         // Devuelve array de objetos {id, precio} para mantener precios personalizados por cita
         window.obtenerServiciosSeleccionados = function(prefix = 'edit') {
             const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
-            // Asegurar que todos los servicios estén en formato objeto con comentarios
+            // Asegurar que todos los servicios estén en formato objeto con cantidad, precio y comentarios
             return selected.map(serv => {
                 if (typeof serv === 'string') {
                     // Convertir string a objeto con precio del servicio base
                     const servicio = window.todosLosServicios.find(s => s.id === serv);
                     return {
                         id: serv,
+                        cantidad: 1,
                         precio: servicio?.precio || 0,
                         comentarios: ''
                     };
                 }
-                // Asegurar que tenga comentarios
-                if (typeof serv === 'object' && serv.comentarios === undefined) {
-                    serv.comentarios = '';
+                // Asegurar que tenga cantidad, precio y comentarios
+                if (typeof serv === 'object') {
+                    if (serv.cantidad === undefined) {
+                        serv.cantidad = 1;
+                    }
+                    if (serv.comentarios === undefined) {
+                        serv.comentarios = '';
+                    }
                 }
                 return serv; // Ya es un objeto
             });
@@ -9752,15 +9779,16 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         
         // Función para calcular y actualizar resumen financiero
         window.actualizarResumenFinanciero = function() {
-            // Calcular total de servicios (usando precios personalizados si existen)
+            // Calcular total de servicios (usando precios personalizados y cantidad si existen)
             const serviciosSeleccionados = window.obtenerServiciosSeleccionados('edit');
             let totalServicios = 0;
             serviciosSeleccionados.forEach(serv => {
-                // serv puede ser string (ID) u objeto {id, precio}
+                // serv puede ser string (ID) u objeto {id, cantidad, precio}
                 const servicioId = typeof serv === 'string' ? serv : serv.id;
                 const precio = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : 
                               (window.todosLosServicios.find(s => s.id === servicioId)?.precio || 0);
-                totalServicios += precio;
+                const cantidad = typeof serv === 'object' && serv.cantidad !== undefined ? serv.cantidad : 1;
+                totalServicios += precio * cantidad;
             });
             
             // Calcular total de productos (costos)
@@ -10020,16 +10048,20 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const serviciosSeleccionados = window.obtenerServiciosSeleccionados('edit');
                 let totalServicios = 0;
                 const serviciosDetalle = serviciosSeleccionados.map(serv => {
-                    // serv puede ser string (ID) u objeto {id, precio}
+                    // serv puede ser string (ID) u objeto {id, cantidad, precio}
                     const servicioId = typeof serv === 'string' ? serv : serv.id;
                     const servicio = window.todosLosServicios.find(s => s.id === servicioId);
                     if (servicio) {
                         // Usar precio personalizado si existe, sino usar precio del servicio base
                         const precio = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : (servicio.precio || 0);
-                        totalServicios += precio;
+                        const cantidad = typeof serv === 'object' && serv.cantidad !== undefined ? serv.cantidad : 1;
+                        const subtotal = precio * cantidad;
+                        totalServicios += subtotal;
                         return {
                             nombre: servicio.nombre || 'Sin nombre',
-                            precio: precio
+                            cantidad: cantidad,
+                            precio: precio,
+                            subtotal: subtotal
                         };
                     }
                     return null;
