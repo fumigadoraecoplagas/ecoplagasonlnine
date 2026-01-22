@@ -9840,12 +9840,12 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const serviciosSeleccionados = window.obtenerServiciosSeleccionados('edit');
             let totalServicios = 0;
             serviciosSeleccionados.forEach(serv => {
-                // serv puede ser string (ID) u objeto {id, cantidad, precio}
-                const servicioId = typeof serv === 'string' ? serv : serv.id;
-                const precio = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : 
-                              (window.todosLosServicios.find(s => s.id === servicioId)?.precio || 0);
-                const cantidad = typeof serv === 'object' && serv.cantidad !== undefined ? serv.cantidad : 1;
-                totalServicios += precio * cantidad;
+                // serv es un objeto {id, cantidad, precioUnitario, precio}
+                // precio ya es el precio total (cantidad × precioUnitario), no multiplicar de nuevo
+                const precioTotal = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : 
+                                   (typeof serv === 'string' ? (window.todosLosServicios.find(s => s.id === serv)?.precio || 0) : 0);
+                totalServicios += precioTotal;
+                console.log('[SERVICIOS] Sumando al total', { servicioId: typeof serv === 'string' ? serv : serv.id, precioTotal, totalAcumulado: totalServicios });
             });
             
             // Calcular total de productos (costos)
@@ -9902,12 +9902,12 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const serviciosSeleccionados = window.obtenerServiciosSeleccionados('new');
             let totalServicios = 0;
             serviciosSeleccionados.forEach(serv => {
-                // serv puede ser string (ID) u objeto {id, cantidad, precio}
-                const servicioId = typeof serv === 'string' ? serv : serv.id;
-                const precio = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : 
-                              (window.todosLosServicios?.find(s => s.id === servicioId)?.precio || 0);
-                const cantidad = typeof serv === 'object' && serv.cantidad !== undefined ? serv.cantidad : 1;
-                totalServicios += precio * cantidad;
+                // serv es un objeto {id, cantidad, precioUnitario, precio}
+                // precio ya es el precio total (cantidad × precioUnitario), no multiplicar de nuevo
+                const precioTotal = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : 
+                                   (typeof serv === 'string' ? (window.todosLosServicios?.find(s => s.id === serv)?.precio || 0) : 0);
+                totalServicios += precioTotal;
+                console.log('[SERVICIOS] Sumando al total (new)', { servicioId: typeof serv === 'string' ? serv : serv.id, precioTotal, totalAcumulado: totalServicios });
             });
             
             // Calcular total de productos (costos)
