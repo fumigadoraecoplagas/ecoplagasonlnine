@@ -1744,6 +1744,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                                 <tr>
                                                     <th style="font-size: 0.9rem; font-weight: 600;">Servicio</th>
                                                     <th style="font-size: 0.9rem; font-weight: 600; width: 150px;">Precio (₡)</th>
+                                                    <th style="font-size: 0.9rem; font-weight: 600; width: 80px;">Comentarios</th>
                                                     <th style="font-size: 0.9rem; font-weight: 600; width: 50px;"></th>
                                                 </tr>
                                             </thead>
@@ -2224,6 +2225,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                                 <tr>
                                                     <th style="font-size: 0.9rem; font-weight: 600;">Servicio</th>
                                                     <th style="font-size: 0.9rem; font-weight: 600; width: 150px;">Precio (₡)</th>
+                                                    <th style="font-size: 0.9rem; font-weight: 600; width: 80px;">Comentarios</th>
                                                     <th style="font-size: 0.9rem; font-weight: 600; width: 50px;"></th>
                                                 </tr>
                                             </thead>
@@ -3250,14 +3252,16 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     const servicio = window.todosLosServicios.find(s => s.id === serv);
                     return {
                         id: serv,
-                        precio: servicio?.precio || 0
+                        precio: servicio?.precio || 0,
+                        comentarios: ''
                     };
                 } else if (typeof serv === 'object' && serv.id) {
-                    // Ya es un objeto con id y posiblemente precio
+                    // Ya es un objeto con id y posiblemente precio y comentarios
                     const servicio = window.todosLosServicios.find(s => s.id === serv.id);
                     return {
                         id: serv.id,
-                        precio: serv.precio !== undefined ? serv.precio : (servicio?.precio || 0)
+                        precio: serv.precio !== undefined ? serv.precio : (servicio?.precio || 0),
+                        comentarios: serv.comentarios !== undefined ? serv.comentarios : ''
                     };
                 }
                 return null;
@@ -4323,10 +4327,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const servicio = window.todosLosServicios.find(s => s.id === servicioId);
                 if (!servicio) return;
                 
-                // Agregar como objeto con precio inicial del servicio
+                // Agregar como objeto con precio inicial del servicio y comentarios vacíos
                 const servicioConPrecio = {
                     id: servicioId,
-                    precio: servicio.precio || 0
+                    precio: servicio.precio || 0,
+                    comentarios: ''
                 };
                 selected.push(servicioConPrecio);
                 
@@ -4364,12 +4369,15 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     return {
                         id: typeof serv === 'string' ? serv : serv.id,
                         precio: typeof serv === 'object' && serv.precio !== undefined ? serv.precio : (servicio?.precio || 0),
+                        comentarios: typeof serv === 'object' && serv.comentarios !== undefined ? serv.comentarios : '',
                         nombre: servicio?.nombre || 'Sin nombre'
                     };
                 }).sort((a, b) => a.nombre.localeCompare(b.nombre));
                 
                 tbody.innerHTML = serviciosOrdenados.map(serv => {
                     const precioFormateado = (serv.precio || 0).toLocaleString('es-CR');
+                    const tieneComentarios = serv.comentarios && serv.comentarios.trim() !== '';
+                    const comentariosEscapados = (serv.comentarios || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                     return `
                         <tr data-servicio-id="${serv.id}">
                             <td style="font-size: 0.9rem; vertical-align: middle;">${serv.nombre}</td>
@@ -4386,6 +4394,44 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     onchange="actualizarPrecioServicioCita('${serv.id}', this.value, '${prefix}')"
                                     onblur="actualizarPrecioServicioCita('${serv.id}', this.value, '${prefix}')"
                                 >
+                            </td>
+                            <td style="vertical-align: middle; text-align: center; position: relative;">
+                                <button 
+                                    class="btn btn-sm ${tieneComentarios ? 'btn-info' : 'btn-outline-secondary'}" 
+                                    onclick="toggleComentariosServicio('${serv.id}', '${prefix}')"
+                                    style="padding: 0.25rem 0.5rem; font-size: 0.8rem; position: relative;"
+                                    title="${tieneComentarios ? 'Ver/editar comentarios' : 'Agregar comentarios'}"
+                                    id="btnComentarios-${prefix}-${serv.id}"
+                                >
+                                    <i class="fas fa-comment${tieneComentarios ? '-dots' : ''}"></i>
+                                    ${tieneComentarios ? '<span style="position: absolute; top: -2px; right: -2px; background: #28a745; width: 6px; height: 6px; border-radius: 50%;"></span>' : ''}
+                                </button>
+                                <div 
+                                    id="dropdownComentarios-${prefix}-${serv.id}" 
+                                    class="dropdown-menu" 
+                                    style="display: none; position: absolute; top: 100%; left: 0; min-width: 300px; max-width: 400px; z-index: 1050; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); padding: 1rem; margin-top: 0.25rem;"
+                                >
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <label style="font-size: 0.85rem; font-weight: 600; color: #333; margin-bottom: 0.25rem; display: block;">Comentarios (opcional)</label>
+                                        <textarea 
+                                            id="textareaComentarios-${prefix}-${serv.id}"
+                                            class="form-control" 
+                                            rows="4" 
+                                            placeholder="Agregar comentarios sobre este servicio..."
+                                            style="font-size: 0.9rem; resize: vertical;"
+                                            onblur="guardarComentariosServicio('${serv.id}', '${prefix}')"
+                                        >${comentariosEscapados}</textarea>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <button 
+                                            class="btn btn-sm btn-primary" 
+                                            onclick="guardarComentariosServicio('${serv.id}', '${prefix}')"
+                                            style="font-size: 0.8rem;"
+                                        >
+                                            Guardar
+                                        </button>
+                                    </div>
+                                </div>
                             </td>
                             <td style="vertical-align: middle; text-align: center;">
                                 <button 
@@ -4454,6 +4500,91 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     }
                 }
             };
+            
+            // Función para abrir/cerrar el dropdown de comentarios
+            window.toggleComentariosServicio = function(servicioId, prefix) {
+                const dropdown = document.getElementById(`dropdownComentarios-${prefix}-${servicioId}`);
+                if (!dropdown) return;
+                
+                // Cerrar todos los otros dropdowns de comentarios
+                document.querySelectorAll(`[id^="dropdownComentarios-${prefix}-"]`).forEach(dd => {
+                    if (dd.id !== dropdown.id) {
+                        dd.style.display = 'none';
+                    }
+                });
+                
+                // Toggle del dropdown actual
+                if (dropdown.style.display === 'none' || !dropdown.style.display) {
+                    dropdown.style.display = 'block';
+                    // Enfocar el textarea
+                    setTimeout(() => {
+                        const textarea = document.getElementById(`textareaComentarios-${prefix}-${servicioId}`);
+                        if (textarea) {
+                            textarea.focus();
+                        }
+                    }, 100);
+                } else {
+                    dropdown.style.display = 'none';
+                }
+            };
+            
+            // Función para guardar comentarios del servicio
+            window.guardarComentariosServicio = function(servicioId, prefix) {
+                const textarea = document.getElementById(`textareaComentarios-${prefix}-${servicioId}`);
+                if (!textarea) return;
+                
+                const comentarios = textarea.value.trim();
+                const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
+                const servicio = selected.find(s => {
+                    const id = typeof s === 'string' ? s : s.id;
+                    return id === servicioId;
+                });
+                
+                if (servicio) {
+                    // Convertir a objeto si es string
+                    if (typeof servicio === 'string') {
+                        const index = selected.indexOf(servicio);
+                        const servicioObj = window.todosLosServicios.find(s => s.id === servicioId);
+                        selected[index] = {
+                            id: servicioId,
+                            precio: servicioObj?.precio || 0,
+                            comentarios: comentarios
+                        };
+                    } else {
+                        servicio.comentarios = comentarios;
+                    }
+                    
+                    // Cerrar el dropdown
+                    const dropdown = document.getElementById(`dropdownComentarios-${prefix}-${servicioId}`);
+                    if (dropdown) {
+                        dropdown.style.display = 'none';
+                    }
+                    
+                    // Actualizar el botón para mostrar indicador si tiene comentarios
+                    const btn = document.getElementById(`btnComentarios-${prefix}-${servicioId}`);
+                    if (btn) {
+                        if (comentarios) {
+                            btn.className = 'btn btn-sm btn-info';
+                            btn.innerHTML = '<i class="fas fa-comment-dots"></i><span style="position: absolute; top: -2px; right: -2px; background: #28a745; width: 6px; height: 6px; border-radius: 50%;"></span>';
+                        } else {
+                            btn.className = 'btn btn-sm btn-outline-secondary';
+                            btn.innerHTML = '<i class="fas fa-comment"></i>';
+                        }
+                    }
+                }
+            };
+            
+            // Cerrar dropdowns de comentarios al hacer clic fuera
+            document.addEventListener('click', (e) => {
+                // Verificar si el clic fue fuera de cualquier dropdown de comentarios
+                if (!e.target.closest('[id^="dropdownComentarios-"]') && 
+                    !e.target.closest('[id^="btnComentarios-"]') &&
+                    !e.target.closest('[id^="textareaComentarios-"]')) {
+                    document.querySelectorAll('[id^="dropdownComentarios-"]').forEach(dropdown => {
+                        dropdown.style.display = 'none';
+                    });
+                }
+            });
         }
         
         // Función para inicializar búsqueda de plagas con dropdown
@@ -4718,15 +4849,20 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         // Devuelve array de objetos {id, precio} para mantener precios personalizados por cita
         window.obtenerServiciosSeleccionados = function(prefix = 'edit') {
             const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
-            // Asegurar que todos los servicios estén en formato objeto
+            // Asegurar que todos los servicios estén en formato objeto con comentarios
             return selected.map(serv => {
                 if (typeof serv === 'string') {
                     // Convertir string a objeto con precio del servicio base
                     const servicio = window.todosLosServicios.find(s => s.id === serv);
                     return {
                         id: serv,
-                        precio: servicio?.precio || 0
+                        precio: servicio?.precio || 0,
+                        comentarios: ''
                     };
+                }
+                // Asegurar que tenga comentarios
+                if (typeof serv === 'object' && serv.comentarios === undefined) {
+                    serv.comentarios = '';
                 }
                 return serv; // Ya es un objeto
             });
