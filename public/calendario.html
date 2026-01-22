@@ -8602,7 +8602,24 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     }
                 });
                 
+                // Variable para prevenir ejecución múltiple
+                let dropProcesando = false;
+                
                 row.addEventListener('drop', async (e) => {
+                    // Prevenir ejecución múltiple
+                    if (dropProcesando) {
+                        console.log('[DRAG&DROP] ⚠️ Drop ya en proceso, ignorando ejecución duplicada');
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return;
+                    }
+                    
+                    // Marcar como procesando inmediatamente
+                    dropProcesando = true;
+                    
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
                     console.log('[DRAG&DROP] 📥 ========== DROP INICIADO ==========');
                     console.log('[DRAG&DROP] 📍 Drop Paso 1: Evento capturado', {
                         timestamp: new Date().toISOString(),
@@ -8623,9 +8640,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                             attributes: Array.from(row.attributes).map(a => `${a.name}="${a.value}"`)
                         }
                     });
-                    
-                    e.preventDefault();
-                    e.stopPropagation();
                     row.classList.remove('drop-zone', 'drop-zone-active');
                     
                     console.log('[DRAG&DROP] 📍 Drop Paso 2: Estado del dataTransfer', {
@@ -8828,13 +8842,47 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                 nuevosTecnicos.push(username);
                             }
                         } else if (tipo === 'vehiculo') {
-                            // Leer vehículo de dataTransfer (simple, como en el formulario)
-                            let vehiculo = e.dataTransfer.getData('vehiculo');
-                            if (!vehiculo) vehiculo = e.dataTransfer.getData('text/vehiculo');
-                            if (!vehiculo) vehiculo = e.dataTransfer.getData('text/plain');
+                            // Intentar leer el vehículo de múltiples fuentes (como en drop de cita)
+                            let vehiculo = null;
+                            
+                            // Primero intentar desde la variable global (más confiable, evita problemas de Tracking Prevention)
+                            if (datosRecursoArrastrando.vehiculo) {
+                                vehiculo = datosRecursoArrastrando.vehiculo;
+                                console.log('[DRAG&DROP] 📍 Vehículo obtenido de variable global (drop ruta)', { vehiculo });
+                            }
+                            
+                            // Si no está en la variable global, intentar desde dataTransfer
+                            if (!vehiculo || vehiculo.trim() === '') {
+                                vehiculo = e.dataTransfer.getData('vehiculo');
+                                if (!vehiculo) vehiculo = e.dataTransfer.getData('text/vehiculo');
+                                if (!vehiculo) vehiculo = e.dataTransfer.getData('text/plain');
+                                if (vehiculo) {
+                                    console.log('[DRAG&DROP] 📍 Vehículo obtenido de dataTransfer (drop ruta)', { vehiculo });
+                                }
+                            }
+                            
+                            // Si aún no se encuentra, intentar obtener del elemento que se arrastró
+                            if (!vehiculo || vehiculo.trim() === '') {
+                                const elementoArrastrado = document.querySelector('.recurso-item.dragging, .ruta-badge-item.dragging');
+                                if (elementoArrastrado) {
+                                    vehiculo = elementoArrastrado.dataset.vehiculo || 
+                                              elementoArrastrado.getAttribute('data-vehiculo') ||
+                                              elementoArrastrado.textContent?.trim() || '';
+                                    console.log('[DRAG&DROP] 📍 Vehículo obtenido del elemento (drop ruta)', { vehiculo });
+                                }
+                            }
                             
                             if (!vehiculo || vehiculo.trim() === '') {
-                                console.error('[DRAG&DROP] ❌ Vehículo vacío en drop de ruta');
+                                console.error('[DRAG&DROP] ❌ Vehículo vacío en drop de ruta', {
+                                    datosGlobales: datosRecursoArrastrando,
+                                    dataTransfer: {
+                                        types: Array.from(e.dataTransfer.types || []),
+                                        vehiculo: e.dataTransfer.getData('vehiculo'),
+                                        vehiculoText: e.dataTransfer.getData('text/vehiculo'),
+                                        textPlain: e.dataTransfer.getData('text/plain')
+                                    },
+                                    elementoArrastrado: document.querySelector('.recurso-item.dragging, .ruta-badge-item.dragging')?.textContent
+                                });
                                 alert('No se puede asignar el vehículo porque no tiene un nombre válido.');
                                 return;
                             }
@@ -8933,6 +8981,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         console.error('Error asignando recurso:', error);
                         const errorMessage = error.message || error.toString() || 'Error desconocido';
                         alert('Error al asignar recurso: ' + errorMessage);
+                    } finally {
+                        // Liberar el flag después de un breve delay para permitir que termine completamente
+                        setTimeout(() => {
+                            dropProcesando = false;
+                        }, 100);
                     }
                 });
             });
