@@ -1738,7 +1738,18 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                             <div class="dropdown-item text-muted" id="noResultsEditServicio" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
                                         </div>
                                     </div>
-                                    <div id="editServiciosSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                    <div id="editServiciosSelected" class="mb-2 mt-2">
+                                        <table class="table table-sm table-bordered" id="editServiciosTabla" style="display: none;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="font-size: 0.9rem; font-weight: 600;">Servicio</th>
+                                                    <th style="font-size: 0.9rem; font-weight: 600; width: 150px;">Precio (₡)</th>
+                                                    <th style="font-size: 0.9rem; font-weight: 600; width: 50px;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="editServiciosTablaBody"></tbody>
+                                        </table>
+                                    </div>
                                 </div>
                                 
                                 <!-- Plaga -->
@@ -2207,7 +2218,18 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                             <div class="dropdown-item text-muted" id="noResultsNewServicio" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
                                         </div>
                                     </div>
-                                    <div id="newServiciosSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                    <div id="newServiciosSelected" class="mb-2 mt-2">
+                                        <table class="table table-sm table-bordered" id="newServiciosTabla" style="display: none;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="font-size: 0.9rem; font-weight: 600;">Servicio</th>
+                                                    <th style="font-size: 0.9rem; font-weight: 600; width: 150px;">Precio (₡)</th>
+                                                    <th style="font-size: 0.9rem; font-weight: 600; width: 50px;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="newServiciosTablaBody"></tbody>
+                                        </table>
+                                    </div>
                                 </div>
                                 
                                 <!-- Plaga -->
@@ -3219,24 +3241,31 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 await window.cargarServicios();
             }
             const servicios = window.obtenerServicios(cita);
-            window.serviciosSeleccionadosEdit = Array.isArray(servicios) ? [...servicios] : [];
-            const editServiciosSelected = document.getElementById('editServiciosSelected');
-            if (editServiciosSelected) {
-                editServiciosSelected.innerHTML = '';
-                window.serviciosSeleccionadosEdit.forEach(servicioId => {
-                    const servicio = window.todosLosServicios.find(s => s.id === servicioId);
-                    if (!servicio) return;
-                    const badge = document.createElement('span');
-                    badge.className = 'badge bg-success me-1 mb-1';
-                    badge.setAttribute('data-servicio-id', servicioId);
-                    badge.innerHTML = `${servicio.nombre} <i class="fas fa-times ms-1" style="cursor: pointer;"></i>`;
-                    badge.querySelector('i').addEventListener('click', () => {
-                        const index = window.serviciosSeleccionadosEdit.indexOf(servicioId);
-                        if (index > -1) window.serviciosSeleccionadosEdit.splice(index, 1);
-                        badge.remove();
-                    });
-                    editServiciosSelected.appendChild(badge);
-                });
+            // Convertir servicios a formato de objetos {id, precio}
+            // Si vienen como strings (IDs), usar precio del servicio base
+            // Si vienen como objetos {id, precio}, mantener el precio personalizado
+            window.serviciosSeleccionadosEdit = Array.isArray(servicios) ? servicios.map(serv => {
+                if (typeof serv === 'string') {
+                    // Es un ID simple, usar precio del servicio base
+                    const servicio = window.todosLosServicios.find(s => s.id === serv);
+                    return {
+                        id: serv,
+                        precio: servicio?.precio || 0
+                    };
+                } else if (typeof serv === 'object' && serv.id) {
+                    // Ya es un objeto con id y posiblemente precio
+                    const servicio = window.todosLosServicios.find(s => s.id === serv.id);
+                    return {
+                        id: serv.id,
+                        precio: serv.precio !== undefined ? serv.precio : (servicio?.precio || 0)
+                    };
+                }
+                return null;
+            }).filter(s => s !== null) : [];
+            
+            // Renderizar tabla de servicios
+            if (window.renderizarTablaServicios) {
+                window.renderizarTablaServicios('edit');
             }
             if (window.inicializarBusquedaServicios) {
                 window.inicializarBusquedaServicios('edit');
@@ -4039,11 +4068,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         
         // Variables globales para almacenar selecciones
         window.vendedoresSeleccionadosEdit = [];
-        window.serviciosSeleccionadosEdit = [];
+        window.serviciosSeleccionadosEdit = []; // Array de objetos {id, precio}
         window.productosSeleccionadosEdit = [];
         window.plagasSeleccionadasEdit = [];
         window.vendedoresSeleccionadosNew = [];
-        window.serviciosSeleccionadosNew = [];
+        window.serviciosSeleccionadosNew = []; // Array de objetos {id, precio}
         window.productosSeleccionadosNew = [];
         window.plagasSeleccionadasNew = [];
         
@@ -4227,7 +4256,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 
                 noResults.style.display = 'none';
                 dropdownMenu.innerHTML = serviciosFiltrados.map(serv => {
-                    const yaSeleccionado = selected.includes(serv.id);
+                    // Verificar si ya está seleccionado (comparar por ID)
+                    const yaSeleccionado = selected.some(s => {
+                        const id = typeof s === 'string' ? s : s.id;
+                        return id === serv.id;
+                    });
                     return `
                         <div class="dropdown-item" data-servicio-id="${serv.id}" style="cursor: ${yaSeleccionado ? 'not-allowed' : 'pointer'}; padding: 0.75rem; ${yaSeleccionado ? 'opacity: 0.5; background-color: #f5f5f5;' : ''}" ${yaSeleccionado ? 'onclick="return false;"' : ''}>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -4275,30 +4308,26 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             
             function agregarServicio(servicioId, prefix) {
                 const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
-                if (selected.includes(servicioId)) return;
+                
+                // Verificar si ya está seleccionado (comparar por ID)
+                if (selected.some(s => (typeof s === 'string' && s === servicioId) || (typeof s === 'object' && s.id === servicioId))) {
+                    return;
+                }
                 
                 const servicio = window.todosLosServicios.find(s => s.id === servicioId);
                 if (!servicio) return;
                 
-                selected.push(servicioId);
-                const badge = document.createElement('span');
-                badge.className = 'badge';
-                badge.style.cssText = 'background: #c8e6c9; color: #000000; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem;';
-                badge.setAttribute('data-servicio-id', servicioId);
-                badge.innerHTML = `${servicio.nombre} <i class="fas fa-times" style="cursor: pointer; opacity: 0.7;"></i>`;
-                badge.querySelector('i').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const index = selected.indexOf(servicioId);
-                    if (index > -1) selected.splice(index, 1);
-                    badge.remove();
-                    // Actualizar resumen financiero
-                    if (prefix === 'edit' && window.actualizarResumenFinanciero) {
-                        window.actualizarResumenFinanciero();
-                    } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
-                        window.actualizarResumenFinancieroNew();
-                    }
-                });
-                selectedDiv.appendChild(badge);
+                // Agregar como objeto con precio inicial del servicio
+                const servicioConPrecio = {
+                    id: servicioId,
+                    precio: servicio.precio || 0
+                };
+                selected.push(servicioConPrecio);
+                
+                // Renderizar tabla de servicios
+                if (window.renderizarTablaServicios) {
+                    window.renderizarTablaServicios(prefix);
+                }
                 
                 // Actualizar resumen financiero
                 if (prefix === 'edit' && window.actualizarResumenFinanciero) {
@@ -4307,6 +4336,118 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     window.actualizarResumenFinancieroNew();
                 }
             }
+            
+            // Función para renderizar la tabla de servicios (disponible globalmente)
+            window.renderizarTablaServicios = function(prefix) {
+                const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
+                const tabla = document.getElementById(`${prefix}ServiciosTabla`);
+                const tbody = document.getElementById(`${prefix}ServiciosTablaBody`);
+                
+                if (!tabla || !tbody) return;
+                
+                if (selected.length === 0) {
+                    tabla.style.display = 'none';
+                    return;
+                }
+                
+                tabla.style.display = 'table';
+                
+                // Ordenar servicios alfabéticamente
+                const serviciosOrdenados = selected.map(serv => {
+                    const servicio = window.todosLosServicios.find(s => s.id === (typeof serv === 'string' ? serv : serv.id));
+                    return {
+                        id: typeof serv === 'string' ? serv : serv.id,
+                        precio: typeof serv === 'object' && serv.precio !== undefined ? serv.precio : (servicio?.precio || 0),
+                        nombre: servicio?.nombre || 'Sin nombre'
+                    };
+                }).sort((a, b) => a.nombre.localeCompare(b.nombre));
+                
+                tbody.innerHTML = serviciosOrdenados.map(serv => {
+                    const precioFormateado = (serv.precio || 0).toLocaleString('es-CR');
+                    return `
+                        <tr data-servicio-id="${serv.id}">
+                            <td style="font-size: 0.9rem; vertical-align: middle;">${serv.nombre}</td>
+                            <td style="vertical-align: middle;">
+                                <input 
+                                    type="number" 
+                                    class="form-control form-control-sm servicio-precio-input" 
+                                    value="${serv.precio || 0}" 
+                                    min="0" 
+                                    step="1"
+                                    data-servicio-id="${serv.id}"
+                                    data-prefix="${prefix}"
+                                    style="font-size: 0.9rem; text-align: right;"
+                                    onchange="actualizarPrecioServicioCita('${serv.id}', this.value, '${prefix}')"
+                                    onblur="actualizarPrecioServicioCita('${serv.id}', this.value, '${prefix}')"
+                                >
+                            </td>
+                            <td style="vertical-align: middle; text-align: center;">
+                                <button 
+                                    class="btn btn-sm btn-danger" 
+                                    onclick="eliminarServicioCita('${serv.id}', '${prefix}')"
+                                    style="padding: 0.25rem 0.5rem; font-size: 0.8rem;"
+                                    title="Eliminar servicio"
+                                >
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+            
+            // Función para actualizar el precio de un servicio en la cita
+            window.actualizarPrecioServicioCita = function(servicioId, nuevoPrecio, prefix) {
+                const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
+                const servicio = selected.find(s => {
+                    const id = typeof s === 'string' ? s : s.id;
+                    return id === servicioId;
+                });
+                
+                if (servicio) {
+                    // Convertir a objeto si es string
+                    if (typeof servicio === 'string') {
+                        const index = selected.indexOf(servicio);
+                        const servicioObj = window.todosLosServicios.find(s => s.id === servicioId);
+                        selected[index] = {
+                            id: servicioId,
+                            precio: parseFloat(nuevoPrecio) || servicioObj?.precio || 0
+                        };
+                    } else {
+                        servicio.precio = parseFloat(nuevoPrecio) || servicio.precio || 0;
+                    }
+                    
+                    // Actualizar resumen financiero
+                    if (prefix === 'edit' && window.actualizarResumenFinanciero) {
+                        window.actualizarResumenFinanciero();
+                    } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
+                        window.actualizarResumenFinancieroNew();
+                    }
+                }
+            };
+            
+            // Función para eliminar un servicio de la cita
+            window.eliminarServicioCita = function(servicioId, prefix) {
+                const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
+                const index = selected.findIndex(s => {
+                    const id = typeof s === 'string' ? s : s.id;
+                    return id === servicioId;
+                });
+                
+                if (index > -1) {
+                    selected.splice(index, 1);
+                    if (window.renderizarTablaServicios) {
+                        window.renderizarTablaServicios(prefix);
+                    }
+                    
+                    // Actualizar resumen financiero
+                    if (prefix === 'edit' && window.actualizarResumenFinanciero) {
+                        window.actualizarResumenFinanciero();
+                    } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
+                        window.actualizarResumenFinancieroNew();
+                    }
+                }
+            };
         }
         
         // Función para inicializar búsqueda de plagas con dropdown
@@ -4568,9 +4709,21 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         }
         
         // Actualizar función obtenerServiciosSeleccionados
+        // Devuelve array de objetos {id, precio} para mantener precios personalizados por cita
         window.obtenerServiciosSeleccionados = function(prefix = 'edit') {
             const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
-            return [...selected];
+            // Asegurar que todos los servicios estén en formato objeto
+            return selected.map(serv => {
+                if (typeof serv === 'string') {
+                    // Convertir string a objeto con precio del servicio base
+                    const servicio = window.todosLosServicios.find(s => s.id === serv);
+                    return {
+                        id: serv,
+                        precio: servicio?.precio || 0
+                    };
+                }
+                return serv; // Ya es un objeto
+            });
         };
         
         // Actualizar función obtenerProductosSeleccionados
@@ -9457,14 +9610,15 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         
         // Función para calcular y actualizar resumen financiero
         window.actualizarResumenFinanciero = function() {
-            // Calcular total de servicios
+            // Calcular total de servicios (usando precios personalizados si existen)
             const serviciosSeleccionados = window.obtenerServiciosSeleccionados('edit');
             let totalServicios = 0;
-            serviciosSeleccionados.forEach(servicioId => {
-                const servicio = window.todosLosServicios.find(s => s.id === servicioId);
-                if (servicio) {
-                    totalServicios += servicio.precio || 0;
-                }
+            serviciosSeleccionados.forEach(serv => {
+                // serv puede ser string (ID) u objeto {id, precio}
+                const servicioId = typeof serv === 'string' ? serv : serv.id;
+                const precio = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : 
+                              (window.todosLosServicios.find(s => s.id === servicioId)?.precio || 0);
+                totalServicios += precio;
             });
             
             // Calcular total de productos (costos)
@@ -9517,14 +9671,15 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         
         // Función para calcular y actualizar resumen financiero del modal de nueva cita
         window.actualizarResumenFinancieroNew = function() {
-            // Calcular total de servicios
-            const serviciosSeleccionados = window.serviciosSeleccionadosNew || [];
+            // Calcular total de servicios (usando precios personalizados si existen)
+            const serviciosSeleccionados = window.obtenerServiciosSeleccionados('new');
             let totalServicios = 0;
-            serviciosSeleccionados.forEach(servicioId => {
-                const servicio = window.todosLosServicios?.find(s => s.id === servicioId);
-                if (servicio) {
-                    totalServicios += servicio.precio || 0;
-                }
+            serviciosSeleccionados.forEach(serv => {
+                // serv puede ser string (ID) u objeto {id, precio}
+                const servicioId = typeof serv === 'string' ? serv : serv.id;
+                const precio = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : 
+                              (window.todosLosServicios?.find(s => s.id === servicioId)?.precio || 0);
+                totalServicios += precio;
             });
             
             // Calcular total de productos (costos)
@@ -9719,13 +9874,16 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     });
                 }
                 
-                // Obtener servicios
+                // Obtener servicios (con precios personalizados)
                 const serviciosSeleccionados = window.obtenerServiciosSeleccionados('edit');
                 let totalServicios = 0;
-                const serviciosDetalle = serviciosSeleccionados.map(servicioId => {
+                const serviciosDetalle = serviciosSeleccionados.map(serv => {
+                    // serv puede ser string (ID) u objeto {id, precio}
+                    const servicioId = typeof serv === 'string' ? serv : serv.id;
                     const servicio = window.todosLosServicios.find(s => s.id === servicioId);
                     if (servicio) {
-                        const precio = servicio.precio || 0;
+                        // Usar precio personalizado si existe, sino usar precio del servicio base
+                        const precio = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : (servicio.precio || 0);
                         totalServicios += precio;
                         return {
                             nombre: servicio.nombre || 'Sin nombre',
@@ -13096,7 +13254,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         monto: parseInt(montoVenta) || 0,
                         costo_servicio: costoServicio, // Costo del servicio (siempre presente)
                         vendedores: vendedoresSeleccionados, // Array de usernames
-                        servicios: serviciosSeleccionados, // Array de IDs de servicios
+                        servicios: serviciosSeleccionados, // Array de objetos {id, precio} con precios personalizados por cita
                         plagas: plagasSeleccionadas, // Array de nombres de plagas
                         productos: productosSeleccionados, // Array de IDs de productos
                         equipo: equipoSeleccionado, // Array de IDs de equipo
@@ -13904,7 +14062,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const newProductosSelected = document.getElementById('newProductosSelected');
             
             if (newVendedoresSelected) newVendedoresSelected.innerHTML = '';
-            if (newServiciosSelected) newServiciosSelected.innerHTML = '';
+            // Renderizar tabla de servicios (vacía inicialmente)
+            if (window.renderizarTablaServicios) {
+                window.renderizarTablaServicios('new');
+            }
             if (newProductosSelected) newProductosSelected.innerHTML = '';
             
             // Limpiar campos de búsqueda
@@ -14092,7 +14253,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const newProductosSelected = document.getElementById('newProductosSelected');
             
             if (newVendedoresSelected) newVendedoresSelected.innerHTML = '';
-            if (newServiciosSelected) newServiciosSelected.innerHTML = '';
+            // Renderizar tabla de servicios (vacía inicialmente)
+            if (window.renderizarTablaServicios) {
+                window.renderizarTablaServicios('new');
+            }
             if (newProductosSelected) newProductosSelected.innerHTML = '';
             
             // Limpiar campos de búsqueda
