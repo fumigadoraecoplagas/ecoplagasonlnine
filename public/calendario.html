@@ -9841,15 +9841,16 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         
         // Función para calcular y actualizar resumen financiero del modal de nueva cita
         window.actualizarResumenFinancieroNew = function() {
-            // Calcular total de servicios (usando precios personalizados si existen)
+            // Calcular total de servicios (usando precios personalizados y cantidad si existen)
             const serviciosSeleccionados = window.obtenerServiciosSeleccionados('new');
             let totalServicios = 0;
             serviciosSeleccionados.forEach(serv => {
-                // serv puede ser string (ID) u objeto {id, precio}
+                // serv puede ser string (ID) u objeto {id, cantidad, precio}
                 const servicioId = typeof serv === 'string' ? serv : serv.id;
                 const precio = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : 
                               (window.todosLosServicios?.find(s => s.id === servicioId)?.precio || 0);
-                totalServicios += precio;
+                const cantidad = typeof serv === 'object' && serv.cantidad !== undefined ? serv.cantidad : 1;
+                totalServicios += precio * cantidad;
             });
             
             // Calcular total de productos (costos)
