@@ -1,6 +1,6 @@
 // Módulo de Tickets Internos - Eco Plagas
 import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, collection, addDoc, query, getDocs, where, updateDoc, doc, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, addDoc, query, getDocs, where, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 // Sistema seguro: usar secureAuthManager directamente
@@ -218,6 +218,31 @@ async function cargarEmpleados() {
             empleados.push({ id: doc.id, ...doc.data() });
         });
         
+        // DEBUG: Verificar si Mayren Rodriguez está en la lista
+        console.log('[TICKETS] 📋 Total de empleados cargados:', empleados.length);
+        const mayrenRodriguez = empleados.find(e => e.username === 'mayren.rodriguez' || e.username?.toLowerCase() === 'mayren.rodriguez');
+        if (mayrenRodriguez) {
+            console.log('[TICKETS] ✅ Mayren Rodriguez encontrado:', {
+                username: mayrenRodriguez.username,
+                nombre: `${mayrenRodriguez.primerNombre} ${mayrenRodriguez.primerApellido}`,
+                estado: mayrenRodriguez.estado || mayrenRodriguez.activo
+            });
+        } else {
+            console.warn('[TICKETS] ⚠️ Mayren Rodriguez NO encontrado en la lista de empleados');
+            console.log('[TICKETS] 📝 Lista de usernames de empleados:', empleados.map(e => e.username).filter(Boolean));
+            // Buscar variaciones del nombre
+            const variaciones = empleados.filter(e => {
+                const nombreCompleto = `${e.primerNombre || ''} ${e.primerApellido || ''}`.toLowerCase();
+                return nombreCompleto.includes('mayren') || nombreCompleto.includes('rodriguez');
+            });
+            if (variaciones.length > 0) {
+                console.log('[TICKETS] 🔍 Empleados con nombre similar a "Mayren Rodriguez":', variaciones.map(e => ({
+                    username: e.username,
+                    nombre: `${e.primerNombre} ${e.primerApellido}`
+                })));
+            }
+        }
+        
     } catch (error) {
         console.error('❌ Error cargando empleados:', error);
         throw error;
@@ -238,6 +263,35 @@ async function cargarTickets() {
     } catch (error) {
         console.error('❌ Error cargando tickets:', error);
         throw error;
+    }
+}
+
+// Función para cargar equipos y herramientas desde Firestore
+async function cargarEquiposYHerramientas() {
+    try {
+        // Cargar equipos
+        const equiposQuery = query(collection(db, 'equipo'), orderBy('nombre'));
+        const equiposSnapshot = await getDocs(equiposQuery);
+        equipos = equiposSnapshot.docs.map(doc => ({
+            id: doc.id,
+            nombre: doc.data().nombre || '',
+            ...doc.data()
+        }));
+        console.log('[TICKETS] 🔧 Equipos cargados:', equipos.length);
+        
+        // Cargar herramientas
+        const herramientasQuery = query(collection(db, 'herramientas'), orderBy('nombre'));
+        const herramientasSnapshot = await getDocs(herramientasQuery);
+        herramientas = herramientasSnapshot.docs.map(doc => ({
+            id: doc.id,
+            nombre: doc.data().nombre || '',
+            ...doc.data()
+        }));
+        console.log('[TICKETS] 🛠️ Herramientas cargadas:', herramientas.length);
+        
+    } catch (error) {
+        console.error('[TICKETS] ❌ Error cargando equipos y herramientas:', error);
+        // No lanzar error, solo registrar - el sistema puede funcionar sin esto
     }
 }
 
@@ -300,7 +354,7 @@ function llenarOpcionesEmpleados() {
     });
     
     // Mostrar/ocultar campo de gerencia según el usuario autenticado
-    const usuariosAdministracion = ['mayren.soto', 'isabella.sanchez'];
+    const usuariosAdministracion = ['mayren.rodriguez', 'isabella.sanchez'];
     const campoCrearPorGerencia = document.getElementById('campoCrearPorGerencia');
     const campoCrearPorGerenciaMasa = document.getElementById('campoCrearPorGerenciaMasa');
     
@@ -324,11 +378,9 @@ function llenarOpcionesEmpleados() {
         });
     }
     
-    // Configurar detección automática de palabras clave de inventario en tiempo real
-    configurarDeteccionInventarioTiempoReal();
 }
 
-// Función para detectar palabras clave de inventario y asignar automáticamente a Mayren Soto
+// Función para detectar palabras clave de inventario y asignar automáticamente a Mayren Rodriguez
 function configurarDeteccionInventarioTiempoReal() {
     const palabrasClaveInventario = [
         'inventario',
@@ -347,25 +399,52 @@ function configurarDeteccionInventarioTiempoReal() {
         'falta de productos'
     ];
     
-    // Función para verificar si hay palabras clave y asignar a Mayren Soto
+    // Función para verificar si hay palabras clave y asignar a Mayren Rodriguez
     function verificarYAsignarInventario(titulo = '', descripcion = '') {
         const textoCompleto = (titulo + ' ' + descripcion).toLowerCase();
         const esTicketInventario = palabrasClaveInventario.some(palabra => textoCompleto.includes(palabra.toLowerCase()));
         
         if (esTicketInventario) {
             const selectAsignado = document.getElementById('asignadoTicket');
-            if (selectAsignado && selectAsignado.value !== 'mayren.soto') {
-                // Verificar que Mayren Soto esté en la lista de opciones
-                const mayrenSotoOption = Array.from(selectAsignado.options).find(opt => opt.value === 'mayren.soto');
-                if (mayrenSotoOption) {
-                    selectAsignado.value = 'mayren.soto';
-                    console.log('[TICKETS] 🏷️ Palabras clave de inventario detectadas, asignando automáticamente a Mayren Soto');
-                    
-                    // Agregar feedback visual opcional
-                    selectAsignado.style.borderColor = '#0b7835';
-                    setTimeout(() => {
-                        selectAsignado.style.borderColor = '';
-                    }, 2000);
+            if (selectAsignado) {
+                // Buscar Mayren Rodriguez en la lista de empleados
+                let mayrenRodriguez = empleados.find(e => e.username === 'mayren.rodriguez');
+                
+                // Si no se encuentra con el username exacto, buscar variaciones
+                if (!mayrenRodriguez) {
+                    mayrenRodriguez = empleados.find(e => 
+                        e.username?.toLowerCase() === 'mayren.rodriguez' ||
+                        e.username?.toLowerCase() === 'mayren_rodriguez' ||
+                        e.username?.toLowerCase() === 'mayrenrodriguez'
+                    );
+                }
+                
+                // Si aún no se encuentra, buscar por nombre
+                if (!mayrenRodriguez) {
+                    mayrenRodriguez = empleados.find(e => {
+                        const nombreCompleto = `${e.primerNombre || ''} ${e.primerApellido || ''}`.toLowerCase();
+                        return nombreCompleto.includes('mayren') && nombreCompleto.includes('rodriguez');
+                    });
+                }
+                
+                if (mayrenRodriguez && selectAsignado.value !== mayrenRodriguez.username) {
+                    // Verificar que Mayren Rodriguez esté en la lista de opciones del select
+                    const mayrenRodriguezOption = Array.from(selectAsignado.options).find(opt => opt.value === mayrenRodriguez.username);
+                    if (mayrenRodriguezOption) {
+                        selectAsignado.value = mayrenRodriguez.username;
+                        console.log('[TICKETS] 🏷️ Palabras clave de inventario detectadas, asignando automáticamente a Mayren Rodriguez', {
+                            username: mayrenRodriguez.username,
+                            nombre: `${mayrenRodriguez.primerNombre} ${mayrenRodriguez.primerApellido}`
+                        });
+                        
+                        // Agregar feedback visual opcional
+                        selectAsignado.style.borderColor = '#0b7835';
+                        setTimeout(() => {
+                            selectAsignado.style.borderColor = '';
+                        }, 2000);
+                    } else {
+                        console.warn('[TICKETS] ⚠️ Mayren Rodriguez encontrado en empleados pero no está en las opciones del select');
+                    }
                 }
             }
         }
@@ -418,6 +497,149 @@ function configurarDeteccionInventarioTiempoReal() {
             
             if (esTicketInventario) {
                 console.log('[TICKETS] 🏷️ Palabras clave de inventario detectadas en tickets en masa - Se asignarán automáticamente a Mayren Soto al crear');
+            }
+        });
+    }
+}
+
+// Función para detectar palabras clave de equipo/herramientas y asignar automáticamente a Manuel Paniagua
+function configurarDeteccionEquipoTiempoReal() {
+    // Palabras clave base
+    const palabrasClaveEquipo = [
+        'equipo',
+        'herramientas',
+        'herramienta',
+        'faltante de herramientas',
+        'falta de herramientas',
+        'falta de herramienta',
+        'equipo faltante',
+        'falta de equipo'
+    ];
+    
+    // Función para verificar si hay palabras clave y asignar a Manuel Paniagua
+    function verificarYAsignarEquipo(titulo = '', descripcion = '') {
+        const textoCompleto = (titulo + ' ' + descripcion).toLowerCase();
+        
+        // Verificar palabras clave base
+        let esTicketEquipo = palabrasClaveEquipo.some(palabra => textoCompleto.includes(palabra.toLowerCase()));
+        
+        // Si no se detectó con palabras clave base, verificar nombres de equipos/herramientas
+        if (!esTicketEquipo) {
+            // Buscar nombres de equipos en el texto
+            const nombreEquipoEncontrado = equipos.some(equipo => {
+                if (equipo.nombre) {
+                    return textoCompleto.includes(equipo.nombre.toLowerCase());
+                }
+                return false;
+            });
+            
+            // Buscar nombres de herramientas en el texto
+            const nombreHerramientaEncontrado = herramientas.some(herramienta => {
+                if (herramienta.nombre) {
+                    return textoCompleto.includes(herramienta.nombre.toLowerCase());
+                }
+                return false;
+            });
+            
+            esTicketEquipo = nombreEquipoEncontrado || nombreHerramientaEncontrado;
+        }
+        
+        if (esTicketEquipo) {
+            const selectAsignado = document.getElementById('asignadoTicket');
+            if (selectAsignado) {
+                // Buscar Manuel Paniagua en la lista de empleados
+                let manuelPaniagua = empleados.find(e => e.username === 'manuel.paniagua');
+                
+                // Si no se encuentra con el username exacto, buscar variaciones
+                if (!manuelPaniagua) {
+                    manuelPaniagua = empleados.find(e => 
+                        e.username?.toLowerCase() === 'manuel.paniagua' ||
+                        e.username?.toLowerCase() === 'manuel_paniagua' ||
+                        e.username?.toLowerCase() === 'manuelpaniagua'
+                    );
+                }
+                
+                // Si aún no se encuentra, buscar por nombre
+                if (!manuelPaniagua) {
+                    manuelPaniagua = empleados.find(e => {
+                        const nombreCompleto = `${e.primerNombre || ''} ${e.primerApellido || ''}`.toLowerCase();
+                        return nombreCompleto.includes('manuel') && nombreCompleto.includes('paniagua');
+                    });
+                }
+                
+                if (manuelPaniagua && selectAsignado.value !== manuelPaniagua.username) {
+                    // Verificar que Manuel Paniagua esté en la lista de opciones del select
+                    const manuelPaniaguaOption = Array.from(selectAsignado.options).find(opt => opt.value === manuelPaniagua.username);
+                    if (manuelPaniaguaOption) {
+                        selectAsignado.value = manuelPaniagua.username;
+                        console.log('[TICKETS] 🔧 Palabras clave de equipo/herramientas detectadas, asignando automáticamente a Manuel Paniagua', {
+                            username: manuelPaniagua.username,
+                            nombre: `${manuelPaniagua.primerNombre} ${manuelPaniagua.primerApellido}`
+                        });
+                        
+                        // Agregar feedback visual opcional
+                        selectAsignado.style.borderColor = '#0b7835';
+                        setTimeout(() => {
+                            selectAsignado.style.borderColor = '';
+                        }, 2000);
+                    } else {
+                        console.warn('[TICKETS] ⚠️ Manuel Paniagua encontrado en empleados pero no está en las opciones del select');
+                    }
+                }
+            }
+        }
+    }
+    
+    // Configurar event listeners para el formulario de nuevo ticket
+    const tituloTicket = document.getElementById('tituloTicket');
+    const descripcionTicket = document.getElementById('descripcionTicket');
+    
+    if (tituloTicket) {
+        tituloTicket.addEventListener('input', () => {
+            const titulo = tituloTicket.value || '';
+            const descripcion = descripcionTicket?.value || '';
+            verificarYAsignarEquipo(titulo, descripcion);
+        });
+    }
+    
+    if (descripcionTicket) {
+        descripcionTicket.addEventListener('input', () => {
+            const titulo = tituloTicket?.value || '';
+            const descripcion = descripcionTicket.value || '';
+            verificarYAsignarEquipo(titulo, descripcion);
+        });
+    }
+    
+    // También configurar para el formulario de tickets en masa
+    const tituloTicketsMasa = document.getElementById('tituloTicketsMasa');
+    const descripcionTicketsMasa = document.getElementById('descripcionTicketsMasa');
+    
+    if (tituloTicketsMasa) {
+        tituloTicketsMasa.addEventListener('input', () => {
+            const titulo = tituloTicketsMasa.value || '';
+            const descripcion = descripcionTicketsMasa?.value || '';
+            const textoCompleto = (titulo + ' ' + descripcion).toLowerCase();
+            const esTicketEquipo = palabrasClaveEquipo.some(palabra => textoCompleto.includes(palabra.toLowerCase())) ||
+                equipos.some(e => textoCompleto.includes(e.nombre?.toLowerCase() || '')) ||
+                herramientas.some(h => textoCompleto.includes(h.nombre?.toLowerCase() || ''));
+            
+            if (esTicketEquipo) {
+                console.log('[TICKETS] 🔧 Palabras clave de equipo/herramientas detectadas en tickets en masa - Se asignarán automáticamente a Manuel Paniagua al crear');
+            }
+        });
+    }
+    
+    if (descripcionTicketsMasa) {
+        descripcionTicketsMasa.addEventListener('input', () => {
+            const titulo = tituloTicketsMasa?.value || '';
+            const descripcion = descripcionTicketsMasa.value || '';
+            const textoCompleto = (titulo + ' ' + descripcion).toLowerCase();
+            const esTicketEquipo = palabrasClaveEquipo.some(palabra => textoCompleto.includes(palabra.toLowerCase())) ||
+                equipos.some(e => textoCompleto.includes(e.nombre?.toLowerCase() || '')) ||
+                herramientas.some(h => textoCompleto.includes(h.nombre?.toLowerCase() || ''));
+            
+            if (esTicketEquipo) {
+                console.log('[TICKETS] 🔧 Palabras clave de equipo/herramientas detectadas en tickets en masa - Se asignarán automáticamente a Manuel Paniagua al crear');
             }
         });
     }
@@ -691,6 +913,15 @@ function mostrarTickets(ticketsFiltrados = null) {
         const puedoEditar = ticket.creadoPor === currentUser.username;
         const esUrgente = ticket.prioridad === 'urgente';
         
+        // Verificar si el usuario tiene permisos de gerencia o administración
+        const usuariosGerencia = ['pablo.paniagua', 'manuel.paniagua', 'cristhian.paniagua', 'mario.paniagua'];
+        const esUsuarioGerencia = usuariosGerencia.includes(currentUser.username);
+        const tienePermisosAdmin = currentUser.permisos && (
+            currentUser.permisos.reportes_gerenciales === true ||
+            currentUser.permisos.administrador_bodega === true
+        );
+        const puedoEliminar = esUsuarioGerencia || tienePermisosAdmin;
+        
         // Calcular días hasta vencimiento
         let diasRestantes = null;
         if (ticket.fechaVencimiento && ticket.estado !== 'completada') {
@@ -761,8 +992,7 @@ function mostrarTickets(ticketsFiltrados = null) {
                 </h2>
                 <div id="${ticketAccordionId}" class="accordion-collapse collapse" aria-labelledby="heading${ticketAccordionId}" data-bs-parent="#${parentAccordionId}">
                     <div class="accordion-body" style="padding: 16px; background: white;">
-                        <div class="ticket-descripcion" style="font-size: 0.95rem; margin-bottom: 14px; color: #495057; line-height: 1.6; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 3px solid #17a2b8; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; height: auto; min-height: auto;">
-                            <i class="fas fa-align-left text-muted me-2" style="font-size: 0.85rem;"></i>
+                        <div class="ticket-descripcion" style="font-size: 0.95rem; margin-bottom: 14px; color: #495057; line-height: 1.6; padding: 12px; background: #f8f9fa; border-radius: 8px; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; height: auto; min-height: auto;">
                             ${ticket.descripcion}
                         </div>
                         <div class="ticket-info" style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 16px;">
@@ -803,6 +1033,11 @@ function mostrarTickets(ticketsFiltrados = null) {
                             ${ticket.estado === 'pendiente' && ticket.asignadoA === currentUser.username ? `
                                 <button class="btn btn-success btn-sm" onclick="abrirResolverTicket('${ticket.id}')" style="font-size: 0.95rem; padding: 10px 20px; border-radius: 8px; font-weight: 700; box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3); transition: all 0.2s;" title="Marcar esta tarea como completada" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 10px rgba(40, 167, 69, 0.4)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 6px rgba(40, 167, 69, 0.3)';">
                                     <i class="fas fa-check-circle me-2"></i>Marcar como Completada
+                            </button>
+                        ` : ''}
+                            ${puedoEliminar ? `
+                                <button class="btn btn-danger btn-sm" onclick="confirmarEliminarTicket('${ticket.id}')" style="font-size: 0.9rem; padding: 8px 16px; border-radius: 8px; font-weight: 600;" title="Eliminar ticket">
+                                    <i class="fas fa-trash me-1"></i>Eliminar
                             </button>
                         ` : ''}
                     </div>
@@ -1129,46 +1364,8 @@ async function crearTicket() {
             }
         }
         
-        // Detectar si el ticket es relacionado con inventario y asignar automáticamente a Mayren Soto
-        const textoCompleto = (titulo + ' ' + descripcion).toLowerCase();
-        const palabrasClaveInventario = [
-            'inventario',
-            'faltante de inventario',
-            'inventario buseta',
-            'inventario apv',
-            'inventario bus',
-            'bodega',
-            'bodegu',
-            'almacen',
-            'almacén',
-            'stock',
-            'producto faltante',
-            'productos faltantes',
-            'falta de producto',
-            'falta de productos'
-        ];
-        
         let asignadoFinal = asignadoA;
         let asignadoNombreFinal = empleados.find(e => e.username === asignadoA)?.primerNombre + ' ' + empleados.find(e => e.username === asignadoA)?.primerApellido;
-        
-        const esTicketInventario = palabrasClaveInventario.some(palabra => textoCompleto.includes(palabra.toLowerCase()));
-        
-        if (esTicketInventario) {
-            const mayrenSoto = empleados.find(e => e.username === 'mayren.soto');
-            if (mayrenSoto) {
-                asignadoFinal = 'mayren.soto';
-                asignadoNombreFinal = `${mayrenSoto.primerNombre} ${mayrenSoto.primerApellido}`;
-                console.log('[TICKETS] 🏷️ Ticket de inventario detectado, asignando automáticamente a Mayren Soto');
-                
-                // Actualizar el select en el formulario si existe
-                const selectAsignado = document.getElementById('asignadoTicket');
-                if (selectAsignado) {
-                    selectAsignado.value = 'mayren.soto';
-                }
-            } else {
-                console.warn('[TICKETS] ⚠️ No se encontró a Mayren Soto en la lista de empleados');
-            }
-        }
         
         const ticketData = {
             titulo: titulo.trim(),
@@ -1524,12 +1721,26 @@ function verTicket(ticketId) {
     
     document.getElementById('contenidoTicket').innerHTML = html;
     
+    // Verificar si el usuario tiene permisos de gerencia o administración
+    const usuariosGerencia = ['pablo.paniagua', 'manuel.paniagua', 'cristhian.paniagua', 'mario.paniagua'];
+    const esUsuarioGerencia = usuariosGerencia.includes(currentUser.username);
+    const tienePermisosAdmin = currentUser.permisos && (
+        currentUser.permisos.reportes_gerenciales === true ||
+        currentUser.permisos.administrador_bodega === true
+    );
+    const puedoEliminar = esUsuarioGerencia || tienePermisosAdmin;
+    
     // Botones
     const botones = `
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
         ${ticket.estado === 'pendiente' && esMio ? `
             <button type="button" class="btn btn-success btn-lg" onclick="abrirResolverTicket('${ticket.id}')" style="font-weight: 700; padding: 12px 24px; box-shadow: 0 3px 8px rgba(40, 167, 69, 0.4);">
                 <i class="fas fa-check-circle me-2"></i>Marcar como Completada
+            </button>
+        ` : ''}
+        ${puedoEliminar ? `
+            <button type="button" class="btn btn-danger btn-lg" onclick="confirmarEliminarTicket('${ticket.id}')" style="font-weight: 700; padding: 12px 24px; box-shadow: 0 3px 8px rgba(220, 53, 69, 0.4);">
+                <i class="fas fa-trash me-2"></i>Eliminar Ticket
             </button>
         ` : ''}
     `;
@@ -1786,6 +1997,84 @@ async function resolverTicket() {
         mostrarMensaje('Error resolviendo el ticket', 'danger');
     }
 }
+
+// Confirmar eliminación de ticket
+window.confirmarEliminarTicket = function(ticketId) {
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (!ticket) return;
+    
+    // Verificar permisos
+    const usuariosGerencia = ['pablo.paniagua', 'manuel.paniagua', 'cristhian.paniagua', 'mario.paniagua'];
+    const esUsuarioGerencia = usuariosGerencia.includes(currentUser.username);
+    const tienePermisosAdmin = currentUser.permisos && (
+        currentUser.permisos.reportes_gerenciales === true ||
+        currentUser.permisos.administrador_bodega === true
+    );
+    
+    if (!esUsuarioGerencia && !tienePermisosAdmin) {
+        mostrarMensaje('No tienes permisos para eliminar tickets', 'warning');
+        return;
+    }
+    
+    const confirmacion = confirm(
+        `¿Estás seguro de que deseas eliminar este ticket?\n\n` +
+        `Título: ${ticket.titulo}\n` +
+        `Estado: ${ticket.estado}\n\n` +
+        `Esta acción no se puede deshacer.`
+    );
+    
+    if (confirmacion) {
+        eliminarTicket(ticketId);
+    }
+};
+
+// Eliminar ticket
+window.eliminarTicket = async function(ticketId) {
+    try {
+        // Verificar permisos nuevamente
+        const usuariosGerencia = ['pablo.paniagua', 'manuel.paniagua', 'cristhian.paniagua', 'mario.paniagua'];
+        const esUsuarioGerencia = usuariosGerencia.includes(currentUser.username);
+        const tienePermisosAdmin = currentUser.permisos && (
+            currentUser.permisos.reportes_gerenciales === true ||
+            currentUser.permisos.administrador_bodega === true
+        );
+        
+        if (!esUsuarioGerencia && !tienePermisosAdmin) {
+            mostrarMensaje('No tienes permisos para eliminar tickets', 'warning');
+            return;
+        }
+        
+        const ticket = tickets.find(t => t.id === ticketId);
+        if (!ticket) {
+            mostrarMensaje('Ticket no encontrado', 'warning');
+            return;
+        }
+        
+        // Eliminar el documento de Firestore
+        await deleteDoc(doc(db, 'tickets', ticketId));
+        
+        // Cerrar modales abiertos
+        const modalVerTicket = bootstrap.Modal.getInstance(document.getElementById('modalVerTicket'));
+        if (modalVerTicket) modalVerTicket.hide();
+        
+        const modalEditarTicket = bootstrap.Modal.getInstance(document.getElementById('modalEditarTicket'));
+        if (modalEditarTicket) modalEditarTicket.hide();
+        
+        // Recargar datos
+        await cargarTickets();
+        mostrarEstadisticas();
+        mostrarTickets();
+        
+        // Actualizar badge
+        actualizarBadgeTickets();
+        
+        mostrarMensaje('Ticket eliminado exitosamente', 'success');
+        
+    } catch (error) {
+        console.error('❌ Error eliminando ticket:', error);
+        mostrarMensaje('Error eliminando el ticket', 'danger');
+    }
+};
 
 // Abrir modal para editar ticket
 function abrirEditarTicket(ticketId) {
@@ -2223,37 +2512,6 @@ window.crearTicketsMasa = async function() {
         let ticketsCreados = 0;
         let ticketsError = 0;
         
-        // Detectar si el ticket es relacionado con inventario para asignar automáticamente a Mayren Soto
-        const textoCompletoMasa = (titulo + ' ' + descripcion).toLowerCase();
-        const palabrasClaveInventario = [
-            'inventario',
-            'faltante de inventario',
-            'inventario buseta',
-            'inventario apv',
-            'inventario bus',
-            'bodega',
-            'bodegu',
-            'almacen',
-            'almacén',
-            'stock',
-            'producto faltante',
-            'productos faltantes',
-            'falta de producto',
-            'falta de productos'
-        ];
-        
-        const esTicketInventarioMasa = palabrasClaveInventario.some(palabra => textoCompletoMasa.includes(palabra.toLowerCase()));
-        let mayrenSotoMasa = null;
-        
-        if (esTicketInventarioMasa) {
-            mayrenSotoMasa = empleados.find(e => e.username === 'mayren.soto');
-            if (mayrenSotoMasa) {
-                console.log('[TICKETS] 🏷️ Ticket de inventario detectado en masa, asignando automáticamente a Mayren Soto');
-            } else {
-                console.warn('[TICKETS] ⚠️ No se encontró a Mayren Soto en la lista de empleados');
-            }
-        }
-        
         // Crear un ticket para cada empleado seleccionado
         for (const checkbox of checkboxes) {
             try {
@@ -2280,14 +2538,8 @@ window.crearTicketsMasa = async function() {
                     }
                 }
                 
-                // Si es ticket de inventario, asignar a Mayren Soto en lugar del empleado seleccionado
                 let asignadoFinalMasa = empleadoUsername;
                 let asignadoNombreFinalMasa = `${empleado.primerNombre} ${empleado.primerApellido}`;
-                
-                if (esTicketInventarioMasa && mayrenSotoMasa) {
-                    asignadoFinalMasa = 'mayren.soto';
-                    asignadoNombreFinalMasa = `${mayrenSotoMasa.primerNombre} ${mayrenSotoMasa.primerApellido}`;
-                }
                 
                 const ticketData = {
                     titulo: titulo,
