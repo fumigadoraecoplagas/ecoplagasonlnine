@@ -18,6 +18,7 @@ let productos = [];
 let cuentasGasto = [];
 let proveedores = [];
 let stockBodegas = [];
+let productosSeleccionadosTransferencia = []; // Array de objetos {productoId, productoNombre, cantidad}
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', async function() {
@@ -44,12 +45,6 @@ function esperarAuthManager() {
 }
 
 function setupListeners() {
-    // Listener para búsqueda de productos en transferencia
-    const inputBusqueda = document.getElementById('buscarProductoTransferencia');
-    if (inputBusqueda) {
-        inputBusqueda.addEventListener('input', filtrarProductosTransferencia);
-    }
-    
     // Listener para formulario de transferencia
     const formTransferencia = document.getElementById('formTransferencia');
     if (formTransferencia) {
@@ -178,7 +173,18 @@ function llenarSelectProductos() {
             selectCompra.appendChild(option);
         });
     }
-    // El select de transferencia se llena dinámicamente al buscar o seleccionar bodegas
+    
+    // Llenar el select de transferencia con todos los productos
+    const selectTransferencia = document.getElementById('productoTransferencia');
+    if (selectTransferencia) {
+        selectTransferencia.innerHTML = '<option value="">Seleccionar producto...</option>';
+        productos.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.id;
+            option.textContent = p.nombre;
+            selectTransferencia.appendChild(option);
+        });
+    }
 }
 
 function llenarSelectProveedores() {
@@ -203,13 +209,16 @@ function calcularTotalCompra() {
 window.registrarTransferencia = async function() {
     const origenId = document.getElementById('bodegaOrigenTransferencia').value;
     const destinoId = document.getElementById('bodegaDestinoTransferencia').value;
-    const productoId = document.getElementById('productoTransferencia').value;
-    const cantidad = parseFloat(document.getElementById('cantidadTransferencia').value);
     const motivo = document.getElementById('motivoTransferencia').value;
     const observaciones = document.getElementById('observacionesTransferencia').value;
     
-    if (!origenId || !destinoId || !productoId || !cantidad || cantidad <= 0) {
-        mostrarMensaje('Por favor completa los campos obligatorios', 'warning');
+    if (!origenId || !destinoId) {
+        mostrarMensaje('Por favor selecciona bodega origen y destino', 'warning');
+        return;
+    }
+    
+    if (productosSeleccionadosTransferencia.length === 0) {
+        mostrarMensaje('Por favor agrega al menos un producto', 'warning');
         return;
     }
     
@@ -218,12 +227,26 @@ window.registrarTransferencia = async function() {
         return;
     }
     
-    // Validar stock
-    const stockItem = stockBodegas.find(s => s.bodegaId === origenId && s.productoId === productoId);
-    const stockDisponible = stockItem ? parseFloat(stockItem.stockActual) : 0;
+    // Validar stock para todos los productos
+    const productosConStockInsuficiente = [];
+    for (const item of productosSeleccionadosTransferencia) {
+        const stockItem = stockBodegas.find(s => s.bodegaId === origenId && s.productoId === item.productoId);
+        const stockDisponible = stockItem ? parseFloat(stockItem.stockActual) : 0;
+        
+        if (item.cantidad > stockDisponible) {
+            productosConStockInsuficiente.push({
+                producto: item.productoNombre,
+                cantidad: item.cantidad,
+                disponible: stockDisponible
+            });
+        }
+    }
     
-    if (cantidad > stockDisponible) {
-        mostrarMensaje(`Stock insuficiente. Disponible: ${stockDisponible}`, 'danger');
+    if (productosConStockInsuficiente.length > 0) {
+        const mensaje = productosConStockInsuficiente.map(p => 
+            `${p.producto}: solicitado ${p.cantidad}, disponible ${p.disponible}`
+        ).join('\n');
+        mostrarMensaje(`Stock insuficiente:\n${mensaje}`, 'danger');
         return;
     }
     
@@ -233,32 +256,52 @@ window.registrarTransferencia = async function() {
     
     try {
         const user = auth.currentUser;
-        const movimientoData = {
-            fecha: serverTimestamp(),
-            tipo: tipo,
-            productoId: productoId,
-            origen: origenId,
-            destino: destinoId,
-            cantidad: cantidad,
-            motivo: motivo,
-            observaciones: observaciones,
-            usuarioId: user.uid,
-            empleado: user.email, // O username si estuviera disponible
-            fechaRegistro: serverTimestamp()
-        };
+        let productosProcesados = 0;
+        let productosConError = [];
         
-        // Obtener precio promedio si es posible (para valorizar el gasto/transferencia)
-        const producto = productos.find(p => p.id === productoId);
-        if (producto) {
-            movimientoData.precioUnitario = producto.precioUnitario;
-            movimientoData.total = cantidad * producto.precioUnitario;
+        // Procesar cada producto
+        for (const item of productosSeleccionadosTransferencia) {
+            try {
+                const movimientoData = {
+                    fecha: serverTimestamp(),
+                    tipo: tipo,
+                    productoId: item.productoId,
+                    origen: origenId,
+                    destino: destinoId,
+                    cantidad: item.cantidad,
+                    motivo: motivo,
+                    observaciones: observaciones,
+                    usuarioId: user.uid,
+                    empleado: user.email, // O username si estuviera disponible
+                    fechaRegistro: serverTimestamp()
+                };
+                
+                // Obtener precio promedio si es posible (para valorizar el gasto/transferencia)
+                const producto = productos.find(p => p.id === item.productoId);
+                if (producto) {
+                    movimientoData.precioUnitario = producto.precioUnitario;
+                    movimientoData.total = item.cantidad * producto.precioUnitario;
+                }
+                
+                // Procesar movimiento (crea movimiento y actualiza stocks automáticamente)
+                await procesarMovimientoInventario(db, movimientoData, 'producto');
+                productosProcesados++;
+            } catch (error) {
+                console.error(`Error procesando producto ${item.productoNombre}:`, error);
+                productosConError.push(item.productoNombre);
+            }
         }
         
-        // Procesar movimiento (crea movimiento y actualiza stocks automáticamente)
-        await procesarMovimientoInventario(db, movimientoData, 'producto');
+        if (productosConError.length > 0) {
+            mostrarMensaje(`Transferencia parcialmente registrada. ${productosProcesados} producto(s) procesado(s). Errores en: ${productosConError.join(', ')}`, 'warning');
+        } else {
+            mostrarMensaje(`Transferencia registrada con éxito. ${productosProcesados} producto(s) procesado(s)`, 'success');
+        }
         
-        mostrarMensaje('Transferencia registrada con éxito', 'success');
+        // Limpiar formulario y lista de productos
         document.getElementById('formTransferencia').reset();
+        productosSeleccionadosTransferencia = [];
+        actualizarTablaProductosTransferencia();
         
     } catch (error) {
         console.error('Error registrando transferencia:', error);
@@ -396,37 +439,161 @@ window.reversarGasto = async function() {
 // Helpers UI
 window.decrementarCantidadTransferencia = function() {
     const input = document.getElementById('cantidadTransferencia');
-    const val = parseFloat(input.value) || 0;
-    if (val > 1) input.value = val - 1;
+    const val = parseFloat(input.value) || 1;
+    if (val > 1) {
+        input.value = val - 1;
+        // Disparar evento change para validar
+        input.dispatchEvent(new Event('change'));
+    }
 };
 
 window.incrementarCantidadTransferencia = function() {
     const input = document.getElementById('cantidadTransferencia');
-    const val = parseFloat(input.value) || 0;
+    if (!input) return;
+    const val = parseFloat(input.value) || 1;
     input.value = val + 1;
+    // Disparar evento change para validar
+    input.dispatchEvent(new Event('change'));
 };
 
-window.limpiarBusquedaProductoTransferencia = function() {
-    document.getElementById('buscarProductoTransferencia').value = '';
-    filtrarProductosTransferencia();
+window.decrementarCantidadTransferencia = function() {
+    const input = document.getElementById('cantidadTransferencia');
+    if (!input) return;
+    const val = parseFloat(input.value) || 1;
+    if (val > 1) {
+        input.value = val - 1;
+        // Disparar evento change para validar
+        input.dispatchEvent(new Event('change'));
+    }
 };
 
-function filtrarProductosTransferencia() {
-    const termino = document.getElementById('buscarProductoTransferencia').value.toLowerCase();
-    const select = document.getElementById('productoTransferencia');
+// Agregar producto a la lista de transferencia
+window.agregarProductoATransferencia = function() {
+    const productoId = document.getElementById('productoTransferencia')?.value;
+    const cantidad = parseFloat(document.getElementById('cantidadTransferencia')?.value) || 1;
     
-    select.innerHTML = '<option value="">Seleccionar producto...</option>';
+    if (!productoId) {
+        mostrarMensaje('Por favor selecciona un producto', 'warning');
+        return;
+    }
     
-    const filtrados = productos.filter(p => 
-        p.nombre.toLowerCase().includes(termino) || 
-        p.codigo.toLowerCase().includes(termino)
-    );
+    if (cantidad <= 0) {
+        mostrarMensaje('La cantidad debe ser mayor a 0', 'warning');
+        return;
+    }
     
-    filtrados.forEach(p => {
-        const option = document.createElement('option');
-        option.value = p.id;
-        option.textContent = p.nombre;
-        select.appendChild(option);
-    });
+    const producto = productos.find(p => p.id === productoId);
+    if (!producto) {
+        mostrarMensaje('Producto no encontrado', 'danger');
+        return;
+    }
+    
+    // Verificar si el producto ya está en la lista
+    const productoExistente = productosSeleccionadosTransferencia.find(p => p.productoId === productoId);
+    if (productoExistente) {
+        // Si ya existe, sumar la cantidad
+        productoExistente.cantidad += cantidad;
+    } else {
+        // Si no existe, agregarlo
+        productosSeleccionadosTransferencia.push({
+            productoId: productoId,
+            productoNombre: producto.nombre,
+            cantidad: cantidad
+        });
+    }
+    
+    // Actualizar la tabla
+    actualizarTablaProductosTransferencia();
+    
+    // Limpiar selección
+    const selectProducto = document.getElementById('productoTransferencia');
+    const inputCantidad = document.getElementById('cantidadTransferencia');
+    if (selectProducto) selectProducto.value = '';
+    if (inputCantidad) inputCantidad.value = 1;
+    
+    mostrarMensaje(`Producto "${producto.nombre}" agregado`, 'success');
+};
+
+// Actualizar tabla de productos seleccionados
+function actualizarTablaProductosTransferencia() {
+    const tbody = document.getElementById('tbodyProductosTransferencia');
+    const container = document.getElementById('productosSeleccionadosContainer');
+    
+    if (!tbody || !container) return;
+    
+    if (productosSeleccionadosTransferencia.length === 0) {
+        container.style.display = 'none';
+        tbody.innerHTML = '';
+        return;
+    }
+    
+    container.style.display = 'block';
+    tbody.innerHTML = productosSeleccionadosTransferencia.map((item, index) => {
+        return `
+            <tr>
+                <td style="padding: 1rem; vertical-align: middle;">
+                    <strong>${item.productoNombre}</strong>
+                </td>
+                <td style="padding: 1rem; vertical-align: middle;">
+                    <div class="input-group">
+                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="decrementarCantidadProductoTransferencia(${index})">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" 
+                               class="form-control text-center" 
+                               value="${item.cantidad}" 
+                               min="1" 
+                               step="1"
+                               onchange="actualizarCantidadProductoTransferencia(${index}, this.value)"
+                               style="font-weight: bold;">
+                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="incrementarCantidadProductoTransferencia(${index})">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </td>
+                <td style="padding: 1rem; vertical-align: middle; text-align: center;">
+                    <button class="btn btn-danger btn-sm" type="button" onclick="eliminarProductoTransferencia(${index})" title="Eliminar producto">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
+
+// Incrementar cantidad de un producto en la tabla
+window.incrementarCantidadProductoTransferencia = function(index) {
+    if (productosSeleccionadosTransferencia[index]) {
+        productosSeleccionadosTransferencia[index].cantidad += 1;
+        actualizarTablaProductosTransferencia();
+    }
+};
+
+// Decrementar cantidad de un producto en la tabla
+window.decrementarCantidadProductoTransferencia = function(index) {
+    if (productosSeleccionadosTransferencia[index] && productosSeleccionadosTransferencia[index].cantidad > 1) {
+        productosSeleccionadosTransferencia[index].cantidad -= 1;
+        actualizarTablaProductosTransferencia();
+    }
+};
+
+// Actualizar cantidad de un producto en la tabla
+window.actualizarCantidadProductoTransferencia = function(index, nuevaCantidad) {
+    const cantidad = parseFloat(nuevaCantidad) || 1;
+    if (productosSeleccionadosTransferencia[index] && cantidad > 0) {
+        productosSeleccionadosTransferencia[index].cantidad = cantidad;
+        actualizarTablaProductosTransferencia();
+    }
+};
+
+// Eliminar producto de la lista
+window.eliminarProductoTransferencia = function(index) {
+    if (productosSeleccionadosTransferencia[index]) {
+        const productoNombre = productosSeleccionadosTransferencia[index].productoNombre;
+        productosSeleccionadosTransferencia.splice(index, 1);
+        actualizarTablaProductosTransferencia();
+        mostrarMensaje(`Producto "${productoNombre}" eliminado`, 'info');
+    }
+};
+
 
