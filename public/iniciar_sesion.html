@@ -378,16 +378,36 @@
                         emailNormalizadoCoincide: normalizeUsername(empFirebaseEmail.replace('@ecoplagascr.com', '').replace(/^rh\+/, '')) === usernameNormalized
                     };
                     
-                    // Buscar por: firebaseAuthEmail, firebaseAuthUID, o username (normalizado)
-                    if (empFirebaseEmail === email ||
-                        emp.firebaseAuthUID === firebaseUser.uid ||
-                        empUsernameNormalized === usernameNormalized ||
-                        normalizeUsername(empFirebaseEmail.replace('@ecoplagascr.com', '').replace(/^rh\+/, '')) === usernameNormalized) {
-                        console.log('✅ Match encontrado en doc:', doc.id, matchFlags);
+                    // Buscar por: firebaseAuthUID (prioridad más alta), firebaseAuthEmail, o username (normalizado)
+                    // Prioridad 1: UID (más confiable)
+                    if (emp.firebaseAuthUID === firebaseUser.uid) {
+                        console.log('✅ Match encontrado por UID en doc:', doc.id, matchFlags);
                         empleadoEncontrado = emp;
-                    } else {
-                        console.log('⏭️ Doc sin coincidencia:', doc.id, matchFlags);
+                        return;
                     }
+                    
+                    // Prioridad 2: Email exacto
+                    if (empFirebaseEmail === email) {
+                        console.log('✅ Match encontrado por email en doc:', doc.id, matchFlags);
+                        empleadoEncontrado = emp;
+                        return;
+                    }
+                    
+                    // Prioridad 3: Username normalizado
+                    if (empUsernameNormalized === usernameNormalized) {
+                        console.log('✅ Match encontrado por username en doc:', doc.id, matchFlags);
+                        empleadoEncontrado = emp;
+                        return;
+                    }
+                    
+                    // Prioridad 4: Email normalizado del documento
+                    if (empFirebaseEmail && normalizeUsername(empFirebaseEmail.replace('@ecoplagascr.com', '').replace(/^rh\+/, '')) === usernameNormalized) {
+                        console.log('✅ Match encontrado por email normalizado en doc:', doc.id, matchFlags);
+                        empleadoEncontrado = emp;
+                        return;
+                    }
+                    
+                    console.log('⏭️ Doc sin coincidencia:', doc.id, matchFlags);
                 });
 
                 if (!empleadoEncontrado) {
