@@ -1347,10 +1347,35 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         <!-- Input oculto para mantener compatibilidad -->
                         <input type="date" id="datePicker" style="display: none;">
                         <div style="width: 1px; height: 28px; background: #e0e0e0; margin: 0 4px;"></div>
-                        <button id="btnToggleVistaCompacta" class="btn btn-sm active" style="background: #4CAF50; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 500; font-size: 0.9rem; height: 36px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='#45a049';" onmouseout="this.style.background='#4CAF50';">
-                            <i class="fas fa-expand-alt" style="font-size: 0.85rem;"></i>
-                            <span>Vista Total</span>
+                        <button id="btnToggleVistaCompacta" class="btn btn-sm" style="background: #6c757d; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 500; font-size: 0.9rem; height: 36px; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='#5a6268';" onmouseout="this.style.background='#6c757d';" data-vista-compacta="true">
+                            <i class="fas fa-compress-alt" style="font-size: 0.85rem;"></i>
+                            <span>Vista Compacta</span>
                         </button>
+                        <script>
+                            // Script inline para asegurar que el botón esté en vista compacta al cargar
+                            (function() {
+                                console.log('🔍 [INLINE] Script inline ejecutándose...');
+                                const btn = document.getElementById('btnToggleVistaCompacta');
+                                if (btn) {
+                                    console.log('🔍 [INLINE] Botón encontrado, configurando...');
+                                    btn.classList.remove('active');
+                                    btn.style.background = '#6c757d';
+                                    btn.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
+                                    console.log('✅ [INLINE] Botón configurado para vista compacta');
+                                } else {
+                                    console.log('⏳ [INLINE] Botón no encontrado aún, esperando...');
+                                    setTimeout(function() {
+                                        const btn2 = document.getElementById('btnToggleVistaCompacta');
+                                        if (btn2) {
+                                            btn2.classList.remove('active');
+                                            btn2.style.background = '#6c757d';
+                                            btn2.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
+                                            console.log('✅ [INLINE] Botón configurado después de esperar');
+                                        }
+                                    }, 100);
+                                }
+                            })();
+                        </script>
                         <!-- Botones de navegación de semana (solo visibles en vista compacta) -->
                         <div id="navegacionSemana" style="display: none; align-items: center; gap: 8px;">
                             <button id="btnSemanaAnterior" class="btn-date-nav" style="background: #f5f5f5; border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #4CAF50;" onmouseover="this.style.background='#4CAF50'; this.style.color='white';" onmouseout="this.style.background='#f5f5f5'; this.style.color='#4CAF50';">
@@ -2782,9 +2807,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         let todasLasCitas = [];
         let citasFiltradas = [];
         let selectedCita = null;
+        console.log('🔍 [CALENDARIO] Variables globales inicializándose...');
         let currentDate = new Date();
         let diaSeleccionado = new Date();
         let semanaActual = new Date(); // Fecha del lunes de la semana actual en vista compacta
+        console.log('🔍 [CALENDARIO] Variables globales inicializadas');
         // Mapas de encuestas:
         // - mapaLinksEncuestas: links generados (encuestas_id) - clave = "telefono_fechaServicio"
         // - mapaRespuestasEncuestas: respuestas recibidas (encuestas) - clave = "id_encuesta"
@@ -3752,9 +3779,15 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
     <!-- Sistema de Autenticación Seguro ya cargado en el head -->
     
     <!-- Firebase SDK -->
+    <script>
+        // Log inmediato fuera del módulo para verificar que el script se carga
+        console.log('🔍 [CALENDARIO] Script HTML cargado - ANTES del módulo');
+    </script>
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        console.log('🔍 [CALENDARIO] Script iniciando...');
         import { getFirestore, collection, getDocs, getDoc, query, orderBy, doc, updateDoc, deleteDoc, addDoc, setDoc, Timestamp, serverTimestamp, where, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        console.log('🔍 [CALENDARIO] Imports cargados');
         import { getStorage, ref, getDownloadURL, getBytes } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
         
         // Hacer setDoc disponible globalmente
@@ -3889,8 +3922,18 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const container = document.getElementById('datePickerContainer');
             if (!container) return;
             
-            // Verificar si estamos en vista compacta
+            // Asegurar que el botón esté en el estado correcto
             const btnToggle = document.getElementById('btnToggleVistaCompacta');
+            if (btnToggle) {
+                // Si el botón tiene el atributo data-vista-compacta="true", forzar vista compacta
+                if (btnToggle.getAttribute('data-vista-compacta') === 'true' && btnToggle.classList.contains('active')) {
+                    btnToggle.classList.remove('active');
+                    btnToggle.style.background = '#6c757d';
+                    btnToggle.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
+                }
+            }
+            
+            // Verificar si estamos en vista compacta
             const estaEnVistaCompacta = btnToggle && !btnToggle.classList.contains('active');
             
             const hoy = new Date();
@@ -4403,12 +4446,12 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     window.actualizarPrecioTotalServicios(prefix);
                 }
                 
-                // Actualizar resumen financiero
-                if (prefix === 'edit' && window.actualizarResumenFinanciero) {
-                    window.actualizarResumenFinanciero();
-                } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
-                    window.actualizarResumenFinancieroNew();
-                }
+                    // Actualizar resumen financiero
+                    if (prefix === 'edit' && window.actualizarResumenFinanciero) {
+                        window.actualizarResumenFinanciero();
+                    } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
+                        window.actualizarResumenFinancieroNew();
+                    }
             }
             
             // Función para renderizar la tabla de servicios (disponible globalmente)
@@ -4640,13 +4683,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     if (window.actualizarPrecioTotalServicios) {
                         window.actualizarPrecioTotalServicios(prefix);
                     }
-                    
-                    // Actualizar resumen financiero
-                    if (prefix === 'edit' && window.actualizarResumenFinanciero) {
-                        window.actualizarResumenFinanciero();
-                    } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
-                        window.actualizarResumenFinancieroNew();
-                    }
+                
+                // Actualizar resumen financiero
+                if (prefix === 'edit' && window.actualizarResumenFinanciero) {
+                    window.actualizarResumenFinanciero();
+                } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
+                    window.actualizarResumenFinancieroNew();
+                }
                 } else {
                     console.error('[SERVICIOS] No se encontró el servicio para actualizar cantidad', { servicioId, prefix });
                 }
@@ -11019,6 +11062,38 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             try {
                 console.log('🔄 Cargando datos del calendario...');
                 
+                // Asegurar que el botón de vista compacta esté en el estado correcto (sin active = vista compacta predeterminada)
+                const btnToggleVistaCompacta = document.getElementById('btnToggleVistaCompacta');
+                console.log('🔍 [cargarDatos] Estado inicial del botón:', {
+                    existe: !!btnToggleVistaCompacta,
+                    tieneActive: btnToggleVistaCompacta ? btnToggleVistaCompacta.classList.contains('active') : false,
+                    texto: btnToggleVistaCompacta ? btnToggleVistaCompacta.textContent.trim() : 'N/A'
+                });
+                if (btnToggleVistaCompacta && btnToggleVistaCompacta.classList.contains('active')) {
+                    // Si tiene active, quitarlo para que inicie en vista compacta
+                    console.log('🔧 [cargarDatos] Quitando clase active del botón para iniciar en vista compacta');
+                    btnToggleVistaCompacta.classList.remove('active');
+                    btnToggleVistaCompacta.style.background = '#6c757d';
+                    btnToggleVistaCompacta.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
+                } else if (btnToggleVistaCompacta) {
+                    // Asegurar que el botón esté configurado correctamente para vista compacta
+                    console.log('🔧 [cargarDatos] Asegurando que el botón esté en vista compacta');
+                    btnToggleVistaCompacta.classList.remove('active');
+                    btnToggleVistaCompacta.style.background = '#6c757d';
+                    btnToggleVistaCompacta.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
+                }
+                
+                // Inicializar semana actual si no está definida (para vista compacta)
+                if (!window.semanaActual) {
+                    function obtenerLunesSemanaInit(fecha) {
+                        const d = new Date(fecha);
+                        const day = d.getDay();
+                        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                        return new Date(d.setDate(diff));
+                    }
+                    window.semanaActual = obtenerLunesSemanaInit(new Date());
+                }
+                
                 // Cargar mapa de encuestas en paralelo
                 await cargarMapaEncuestas();
 
@@ -11120,6 +11195,15 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         async function cambiarVista(vista) {
             vistaActual = vista;
             window.vistaActual = vistaActual;
+            
+            // Asegurar que el botón de vista compacta esté configurado ANTES de generar cualquier vista
+            const btnToggleVistaCompacta = document.getElementById('btnToggleVistaCompacta');
+            if (btnToggleVistaCompacta && !btnToggleVistaCompacta.classList.contains('active')) {
+                // Está en vista compacta (predeterminada), asegurar que esté configurado correctamente
+                btnToggleVistaCompacta.classList.remove('active');
+                btnToggleVistaCompacta.style.background = '#6c757d';
+                btnToggleVistaCompacta.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
+            }
             
             // Ocultar todas las vistas
             calendarGrid.style.display = 'none';
@@ -11580,7 +11664,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 
                 // Detectar si estamos en vista compacta
                 const btnToggle = document.getElementById('btnToggleVistaCompacta');
-                const estaCompacta = btnToggle && btnToggle.classList.contains('active');
+                const estaCompacta = btnToggle && !btnToggle.classList.contains('active');
                 
                 // Determinar a qué sección pertenece este timeline (diurnas o nocturnas) - IGUAL QUE EN DROP
                 const contenedorPadre = timeline.closest('#vehiculosCronogramaDiurnas, #vehiculosCronogramaNocturnas');
@@ -12038,8 +12122,20 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         
         // Función para generar cronograma
         async function generarCronograma() {
-            // Verificar si estamos en vista compacta
+            // Asegurar que el botón esté en el estado correcto ANTES de verificar
             const btnToggle = document.getElementById('btnToggleVistaCompacta');
+            if (btnToggle) {
+                // Si el botón tiene el atributo data-vista-compacta="true" o no tiene 'active', forzar vista compacta
+                const debeSerCompacta = btnToggle.getAttribute('data-vista-compacta') === 'true' || !btnToggle.classList.contains('active');
+                if (debeSerCompacta) {
+                    // Asegurar que esté configurado correctamente para vista compacta
+                    btnToggle.classList.remove('active');
+                    btnToggle.style.background = '#6c757d';
+                    btnToggle.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
+                }
+            }
+            
+            // Verificar si estamos en vista compacta
             const estaEnVistaCompacta = btnToggle && !btnToggle.classList.contains('active');
             
             // Si está en vista compacta, usar la semana actual; si no, usar el día seleccionado
@@ -13919,8 +14015,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const cantonId = document.getElementById('editCanton')?.value || '';
                 const distritoId = document.getElementById('editDistrito')?.value || '';
                 
-                // Actualizar todos los campos, incluyendo los "invariables" ya que el usuario quiere poder editarlos
-                await updateDoc(doc(window.db, 'citas', selectedCita.id), {
+                // Preparar datos para actualizar
+                const datosActualizacion = {
                     telefono: telefonoNormalizado, // Fuente de verdad: teléfono en raíz
                     inicio_gmt6: timestampGMT6,  // Permitir editar fecha/hora
                     duracion_minutos: duracion,  // Permitir editar duración
@@ -13952,17 +14048,39 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         distritoId: distritoId,
                         metodoPago: document.getElementById('editMetodoPago')?.value || '',
                         numeroFactura: document.getElementById('editNumeroFactura')?.value.trim() || '',
-                        // Campos de la sección "Rápido"
-                        hora_rapida: horaRapida,
-                        precio_rapido: precioRapido,
-                        vendedor_rapido: vendedorRapido,
-                        canton_rapido: cantonRapido,
-                        distrito_rapido: distritoRapido,
-                        provincia_rapida: provinciaRapida,
-                        nombre_cliente_rapido: nombreClienteRapido
+                        // Campos de la sección "Rápido" - removidos (no se usan actualmente)
                     },
                     fecha_actualizacion: serverTimestamp()
+                };
+                
+                // Limpiar valores undefined que Firestore no acepta
+                const limpiarUndefined = (obj) => {
+                    if (obj === null || obj === undefined) return null;
+                    if (Array.isArray(obj)) return obj.map(limpiarUndefined);
+                    if (typeof obj === 'object' && obj.constructor === Object) {
+                        const cleaned = {};
+                        for (const key in obj) {
+                            if (obj[key] !== undefined) {
+                                cleaned[key] = limpiarUndefined(obj[key]);
+                            }
+                        }
+                        return cleaned;
+                    }
+                    return obj;
+                };
+                
+                const datosLimpios = limpiarUndefined(datosActualizacion);
+                
+                // Log para depuración
+                console.log('🔍 [guardarCita] Datos a actualizar:', {
+                    citaId: selectedCita.id,
+                    telefono: datosLimpios.telefono,
+                    tieneMetadata: !!datosLimpios.metadata,
+                    keysMetadata: datosLimpios.metadata ? Object.keys(datosLimpios.metadata) : []
                 });
+                
+                // Actualizar todos los campos, incluyendo los "invariables" ya que el usuario quiere poder editarlos
+                await updateDoc(doc(window.db, 'citas', selectedCita.id), datosLimpios);
 
                 bootstrap.Modal.getInstance(document.getElementById('editCitaModal')).hide();
                 await cargarDatos();
@@ -13979,8 +14097,34 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 }, 3000);
 
             } catch (error) {
-                console.error('Error guardando cita:', error);
-                alert('Error guardando cita: ' + error.message);
+                console.error('❌ Error guardando cita:', error);
+                console.error('❌ Error completo:', {
+                    message: error?.message,
+                    stack: error?.stack,
+                    name: error?.name,
+                    code: error?.code,
+                    error: error,
+                    stringified: JSON.stringify(error, Object.getOwnPropertyNames(error))
+                });
+                
+                // Intentar obtener el mensaje de error de diferentes formas
+                let errorMessage = 'Error desconocido al guardar la cita';
+                if (error?.message) {
+                    errorMessage = error.message;
+                } else if (error?.code) {
+                    errorMessage = `Error de Firestore (código: ${error.code})`;
+                } else if (typeof error === 'string') {
+                    errorMessage = error;
+                } else if (error?.toString && typeof error.toString === 'function') {
+                    try {
+                        errorMessage = error.toString();
+                    } catch (e) {
+                        errorMessage = 'Error al convertir error a string';
+                    }
+                }
+                
+                console.error('❌ Mensaje de error final:', errorMessage);
+                alert('Error guardando cita: ' + errorMessage);
             } finally {
                 // Restaurar botones (footer y header)
                 console.log('🔧 Restaurando botón...');
@@ -15106,10 +15250,26 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const estaActiva = btnToggleVistaCompacta.classList.contains('active');
                 
                 if (estaActiva) {
-                    // Desactivar vista compacta - mostrar todas las horas
+                    // Cambiar de vista total a vista compacta
                     btnToggleVistaCompacta.classList.remove('active');
                     btnToggleVistaCompacta.style.background = '#6c757d';
                     btnToggleVistaCompacta.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
+                    
+                    // Inicializar semana actual si no está definida
+                    if (!semanaActual) {
+                        semanaActual = obtenerLunesSemana(new Date());
+                    }
+                    // Actualizar botones de días para mostrar solo la semana
+                    if (diaSeleccionado) {
+                        generarBotonesDiasMes(diaSeleccionado);
+                    }
+                    // Regenerar cronograma para mostrar vista compacta
+                    await generarCronograma();
+                } else {
+                    // Cambiar de vista compacta a vista total
+                    btnToggleVistaCompacta.classList.add('active');
+                    btnToggleVistaCompacta.style.background = '#4CAF50';
+                    btnToggleVistaCompacta.innerHTML = '<i class="fas fa-expand-alt me-2"></i>Vista Total';
                     
                     // Restaurar vista total: mostrar todas las horas y restaurar altura
                     const restaurarVistaTotal = (contenedorId) => {
@@ -15153,23 +15313,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     if (diaSeleccionado) {
                         generarBotonesDiasMes(diaSeleccionado);
                     }
-                } else {
-                    // Activar vista compacta - colapsar horas fuera del rango
-                    btnToggleVistaCompacta.classList.add('active');
-                    btnToggleVistaCompacta.style.background = '#4CAF50';
-                    btnToggleVistaCompacta.innerHTML = '<i class="fas fa-expand-alt me-2"></i>Vista Total';
-                    
-                    // Inicializar semana actual si no está definida
-                    if (!semanaActual) {
-                        semanaActual = obtenerLunesSemana(new Date());
-                    }
-                    // Actualizar botones de días para mostrar solo la semana
-                    if (diaSeleccionado) {
-                        generarBotonesDiasMes(diaSeleccionado);
-                    }
-                    // Regenerar cronograma
-                    await generarCronograma();
-                    
+                }
+                
+                // Colapsar filas de horas fuera del rango (solo si estamos en vista compacta)
+                const estaEnVistaCompactaDespues = !btnToggleVistaCompacta.classList.contains('active');
+                if (estaEnVistaCompactaDespues) {
                     // Colapsar filas de horas fuera del rango
                     if (window.rangosHoras) {
                         const colapsarFilasHoras = (contenedorId, minutosInicio, minutosFin) => {
@@ -18076,7 +18224,45 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         }
 
             // Inicializar
+            console.log('🔍 [INIT] Iniciando event listener load...');
+            // Verificar que el código se ejecuta
+            console.log('🔍 [INIT] Código de inicialización ejecutándose...');
             window.addEventListener('load', async () => {
+                console.log('🔍 [load] Evento load disparado');
+                // PRIMERO: Configurar el botón de vista compacta ANTES de generar cualquier vista
+                const btnToggleVistaCompacta = document.getElementById('btnToggleVistaCompacta');
+                console.log('🔍 [load] Botón encontrado:', !!btnToggleVistaCompacta);
+                if (btnToggleVistaCompacta) {
+                    console.log('🔧 [load] Configurando botón para vista compacta predeterminada');
+                    console.log('🔍 [load] Estado ANTES:', {
+                        tieneActive: btnToggleVistaCompacta.classList.contains('active'),
+                        texto: btnToggleVistaCompacta.textContent.trim(),
+                        background: btnToggleVistaCompacta.style.background
+                    });
+                    btnToggleVistaCompacta.classList.remove('active');
+                    btnToggleVistaCompacta.style.background = '#6c757d';
+                    btnToggleVistaCompacta.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
+                    console.log('✅ [load] Botón configurado. Estado DESPUÉS:', {
+                        tieneActive: btnToggleVistaCompacta.classList.contains('active'),
+                        texto: btnToggleVistaCompacta.textContent.trim(),
+                        background: btnToggleVistaCompacta.style.background
+                    });
+                } else {
+                    console.error('❌ [load] NO se encontró el botón btnToggleVistaCompacta');
+                }
+                
+                // Inicializar semana actual para vista compacta
+                if (!window.semanaActual) {
+                    function obtenerLunesSemanaInit(fecha) {
+                        const d = new Date(fecha);
+                        const day = d.getDay();
+                        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                        return new Date(d.setDate(diff));
+                    }
+                    window.semanaActual = obtenerLunesSemanaInit(new Date());
+                    console.log('✅ [load] semanaActual inicializada:', window.semanaActual);
+                }
+                
                 // Cargar ubicaciones al iniciar
                 await cargarUbicaciones();
                 
@@ -18097,7 +18283,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 await window.cargarProductos();
                 // Cargar herramientas al inicio (para el dropdown de Equipo y Herramientas)
                 await window.cargarEquipo();
-                // Mostrar cronograma por defecto
+                // Mostrar cronograma por defecto (ahora con botón ya configurado)
                 await cambiarVista('cronograma');
                 await cargarDatos();
             });
@@ -18199,6 +18385,27 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Agregar funcionalidad de logout (desde load-headersecure.js)
                 if (window.headerLoader && window.headerLoader.addLogoutButton) {
                     window.headerLoader.addLogoutButton();
+                }
+            }
+            
+            // Inicializar vista compacta como predeterminada
+            const btnToggleVistaCompacta = document.getElementById('btnToggleVistaCompacta');
+            if (btnToggleVistaCompacta && !btnToggleVistaCompacta.classList.contains('active')) {
+                // Estamos en vista compacta (predeterminada), inicializar semana actual si no está definida
+                if (!window.semanaActual) {
+                    // Función helper para obtener el lunes de la semana (mismo código que en generarBotonesDiasMes)
+                    function obtenerLunesSemanaLocal(fecha) {
+                        const d = new Date(fecha);
+                        const day = d.getDay();
+                        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Ajustar para que lunes sea 0
+                        return new Date(d.setDate(diff));
+                    }
+                    window.semanaActual = obtenerLunesSemanaLocal(new Date());
+                }
+                // Mostrar navegación de semana
+                const navegacionSemana = document.getElementById('navegacionSemana');
+                if (navegacionSemana) {
+                    navegacionSemana.style.display = 'flex';
                 }
             }
         });
