@@ -2272,6 +2272,55 @@
             const eraEmpleadoNuevo = !currentEmpleadoId;
             let mantenerModalAbierto = false;
 
+            // ========== VERIFICACIÓN INICIAL DE AUTENTICACIÓN ==========
+            // Verificar que el usuario esté autenticado antes de continuar
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+            const auth = getAuth();
+            
+            if (!auth.currentUser) {
+                console.error('❌ [GUARDAR EMPLEADO] No hay usuario autenticado en Firebase Auth');
+                alert('⚠️ Tu sesión expiró. Por favor, recarga la página e inicia sesión nuevamente.');
+                
+                // Rehabilitar botón
+                if (btnGuardar) {
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerHTML = '<i class="fas fa-save me-2"></i>Guardar Empleado';
+                }
+                
+                // Redirigir a login si no estamos ya ahí
+                if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                    setTimeout(() => {
+                        window.location.replace('iniciar_sesion.html');
+                    }, 2000);
+                }
+                return;
+            }
+            
+            // Verificar que window.authManager tenga el usuario cargado
+            if (!window.authManager?.currentUser) {
+                console.warn('⚠️ [GUARDAR EMPLEADO] window.authManager.currentUser no está disponible, intentando recargar...');
+                
+                // Intentar recargar el usuario desde secureAuthManager
+                if (window.secureAuthManager) {
+                    window.authManager = window.secureAuthManager;
+                    // Esperar un momento para que se cargue
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                // Si aún no hay usuario, mostrar error
+                if (!window.authManager?.currentUser) {
+                    console.error('❌ [GUARDAR EMPLEADO] No se pudo cargar el usuario autenticado');
+                    alert('⚠️ No se pudo verificar tu sesión. Por favor, recarga la página e inicia sesión nuevamente.');
+                    
+                    // Rehabilitar botón
+                    if (btnGuardar) {
+                        btnGuardar.disabled = false;
+                        btnGuardar.innerHTML = '<i class="fas fa-save me-2"></i>Guardar Empleado';
+                    }
+                    return;
+                }
+            }
+            
             // ========== LOGS DETALLADOS DE DIAGNÓSTICO ==========
             console.group('🔍 [GUARDAR EMPLEADO] Diagnóstico Completo');
             
