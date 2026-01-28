@@ -436,12 +436,12 @@ function configurarDeteccionInventarioTiempoReal() {
                             username: mayrenRodriguez.username,
                             nombre: `${mayrenRodriguez.primerNombre} ${mayrenRodriguez.primerApellido}`
                         });
-                        
-                        // Agregar feedback visual opcional
-                        selectAsignado.style.borderColor = '#0b7835';
-                        setTimeout(() => {
-                            selectAsignado.style.borderColor = '';
-                        }, 2000);
+                    
+                    // Agregar feedback visual opcional
+                    selectAsignado.style.borderColor = '#0b7835';
+                    setTimeout(() => {
+                        selectAsignado.style.borderColor = '';
+                    }, 2000);
                     } else {
                         console.warn('[TICKETS] ⚠️ Mayren Rodriguez encontrado en empleados pero no está en las opciones del select');
                     }
