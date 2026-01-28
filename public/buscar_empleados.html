@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Empleados en Firebase</title>
+</head>
+<body>
+    <h1>Buscando empleados en Firebase...</h1>
+    <div id="resultado"></div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+        const firebaseConfig = {
+            projectId: "cursorwebapp-f376d",
+            appId: "1:719990096116:web:07c1ff697e7655b2cd9ea1",
+            databaseURL: "https://cursorwebapp-f376d-default-rtdb.firebaseio.com",
+            storageBucket: "cursorwebapp-f376d.firebasestorage.app",
+            apiKey: "AIzaSyC-IQj0yHR8cELr-mw-v2xlnw6LlJYFUyk",
+            authDomain: "cursorwebapp-f376d.firebaseapp.com",
+            messagingSenderId: "719990096116",
+            measurementId: "G-DJXLKFR7CD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function buscarEmpleados() {
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = '<p>Buscando...</p>';
+
+            try {
+                const usuariosABuscar = ['jason.solis', 'jose.solis'];
+                const resultados = {};
+
+                // Buscar por ID del documento (username)
+                for (const username of usuariosABuscar) {
+                    try {
+                        const docRef = doc(db, 'empleados', username);
+                        const docSnap = await getDoc(docRef);
+                        
+                        if (docSnap.exists()) {
+                            resultados[username] = {
+                                encontrado: true,
+                                metodo: 'ID del documento',
+                                datos: docSnap.data()
+                            };
+                        } else {
+                            resultados[username] = {
+                                encontrado: false,
+                                metodo: 'ID del documento'
+                            };
+                        }
+                    } catch (error) {
+                        resultados[username] = {
+                            encontrado: false,
+                            error: error.message
+                        };
+                    }
+                }
+
+                // Si no se encontró por ID, buscar en toda la colección
+                const empleadosSnapshot = await getDocs(collection(db, 'empleados'));
+                empleadosSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const username = doc.id;
+                    
+                    // Verificar si alguno de los usuarios buscados coincide
+                    usuariosABuscar.forEach(usuarioBuscado => {
+                        if (username === usuarioBuscado || 
+                            data.username === usuarioBuscado ||
+                            (data.email && data.email.toLowerCase().includes(usuarioBuscado))) {
+                            if (!resultados[usuarioBuscado] || !resultados[usuarioBuscado].encontrado) {
+                                resultados[usuarioBuscado] = {
+                                    encontrado: true,
+                                    metodo: 'Búsqueda en colección',
+                                    idDocumento: username,
+                                    datos: data
+                                };
+                            }
+                        }
+                    });
+                });
+
+                // Mostrar resultados en consola primero
+                console.log('\n=== RESULTADOS DE BÚSQUEDA ===');
+                for (const [usuario, resultado] of Object.entries(resultados)) {
+                    if (resultado.encontrado) {
+                        console.log(`\n✅ ${usuario.toUpperCase()} - ENCONTRADO`);
+                        console.log(`   Método: ${resultado.metodo}`);
+                        if (resultado.idDocumento) {
+                            console.log(`   ID del documento: ${resultado.idDocumento}`);
+                        }
+                        if (resultado.datos) {
+                            console.log(`   Nombre: ${resultado.datos.primerNombre || ''} ${resultado.datos.primerApellido || ''}`);
+                            console.log(`   Email: ${resultado.datos.email || 'N/A'}`);
+                            console.log(`   Estado: ${resultado.datos.estado || 'N/A'}`);
+                            console.log(`   Username: ${resultado.datos.username || resultado.idDocumento || 'N/A'}`);
+                            console.log(`   Datos completos:`, resultado.datos);
+                        }
+                    } else {
+                        console.log(`\n❌ ${usuario.toUpperCase()} - NO ENCONTRADO`);
+                        if (resultado.error) {
+                            console.log(`   Error: ${resultado.error}`);
+                        }
+                    }
+                }
+                console.log('\n=== FIN DE RESULTADOS ===\n');
+
+                // Mostrar resultados en HTML
+                let html = '<h2>Resultados de la búsqueda:</h2>';
+                
+                for (const [usuario, resultado] of Object.entries(resultados)) {
+                    html += `<div style="margin: 20px 0; padding: 15px; border: 2px solid ${resultado.encontrado ? '#28a745' : '#dc3545'}; border-radius: 5px;">`;
+                    html += `<h3 style="color: ${resultado.encontrado ? '#28a745' : '#dc3545'};">`;
+                    html += `${resultado.encontrado ? '✅' : '❌'} ${usuario}`;
+                    html += `</h3>`;
+                    
+                    if (resultado.encontrado) {
+                        html += `<p><strong>Estado:</strong> Encontrado</p>`;
+                        html += `<p><strong>Método:</strong> ${resultado.metodo}</p>`;
+                        if (resultado.idDocumento) {
+                            html += `<p><strong>ID del documento:</strong> ${resultado.idDocumento}</p>`;
+                        }
+                        if (resultado.datos) {
+                            html += `<p><strong>Nombre completo:</strong> ${resultado.datos.primerNombre || ''} ${resultado.datos.primerApellido || ''}</p>`;
+                            html += `<p><strong>Email:</strong> ${resultado.datos.email || 'N/A'}</p>`;
+                            html += `<p><strong>Estado:</strong> ${resultado.datos.estado || 'N/A'}</p>`;
+                            html += `<p><strong>Username:</strong> ${resultado.datos.username || resultado.idDocumento || 'N/A'}</p>`;
+                            html += `<details style="margin-top: 10px;"><summary>Ver todos los datos</summary><pre style="background: #f5f5f5; padding: 10px; overflow: auto;">${JSON.stringify(resultado.datos, null, 2)}</pre></details>`;
+                        }
+                    } else {
+                        html += `<p><strong>Estado:</strong> No encontrado</p>`;
+                        if (resultado.error) {
+                            html += `<p><strong>Error:</strong> ${resultado.error}</p>`;
+                        }
+                    }
+                    html += `</div>`;
+                }
+
+                resultadoDiv.innerHTML = html;
+
+            } catch (error) {
+                resultadoDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('Error:', error);
+            }
+        }
+
+        buscarEmpleados();
+    </script>
+</body>
+</html>
