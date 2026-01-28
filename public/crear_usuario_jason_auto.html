@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Usuario jason.solis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .resultado {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .exito {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Creando Usuario jason.solis en Firebase Auth</h1>
+        <div id="resultado">
+            <div class="loading">
+                <p>Iniciando proceso...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, fetchSignInMethodsForEmail, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+        const firebaseConfig = {
+            projectId: "cursorwebapp-f376d",
+            appId: "1:719990096116:web:07c1ff697e7655b2cd9ea1",
+            databaseURL: "https://cursorwebapp-f376d-default-rtdb.firebaseio.com",
+            storageBucket: "cursorwebapp-f376d.firebasestorage.app",
+            apiKey: "AIzaSyC-IQj0yHR8cELr-mw-v2xlnw6LlJYFUyk",
+            authDomain: "cursorwebapp-f376d.firebaseapp.com",
+            messagingSenderId: "719990096116",
+            measurementId: "G-DJXLKFR7CD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        async function crearUsuario() {
+            const resultadoDiv = document.getElementById('resultado');
+            let html = '';
+            
+            const email = 'rh+jason.solis@ecoplagascr.com';
+            const password = 'raiz2490';
+            
+            html += '<div class="resultado info"><h3>📋 Información</h3><p>Email: ' + email + '</p><p>Password: [OCULTO]</p></div>';
+            resultadoDiv.innerHTML = html;
+            
+            // 1. Verificar si ya existe
+            html += '<div class="resultado info"><h3>1️⃣ Verificando si ya existe...</h3></div>';
+            resultadoDiv.innerHTML = html;
+            
+            try {
+                const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+                if (signInMethods.length > 0) {
+                    html += '<div class="resultado exito"><h3>✅ Usuario ya existe</h3><p>El usuario ya está creado en Firebase Auth.</p></div>';
+                    resultadoDiv.innerHTML = html;
+                    return;
+                }
+            } catch (error) {
+                // Continuar con la creación
+            }
+            
+            // 2. Crear usuario
+            html += '<div class="resultado info"><h3>2️⃣ Creando usuario en Firebase Auth...</h3></div>';
+            resultadoDiv.innerHTML = html;
+            
+            let userCredential;
+            try {
+                userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                html += '<div class="resultado exito"><h3>✅ Usuario creado</h3><p>UID: ' + userCredential.user.uid + '</p><p>Email: ' + userCredential.user.email + '</p></div>';
+                resultadoDiv.innerHTML = html;
+            } catch (error) {
+                html += '<div class="resultado error"><h3>❌ Error</h3><p>' + error.message + '</p></div>';
+                resultadoDiv.innerHTML = html;
+                return;
+            }
+            
+            // 3. Cerrar sesión
+            html += '<div class="resultado info"><h3>3️⃣ Cerrando sesión...</h3></div>';
+            resultadoDiv.innerHTML = html;
+            await signOut(auth);
+            
+            // 4. Actualizar documento
+            html += '<div class="resultado info"><h3>4️⃣ Actualizando documento en Firestore...</h3></div>';
+            resultadoDiv.innerHTML = html;
+            
+            try {
+                const docRef = doc(db, 'empleados', 'jason.solis');
+                await setDoc(docRef, {
+                    firebaseAuthUID: userCredential.user.uid,
+                    firebaseAuthEmail: email,
+                    firebaseAuthMigrated: true,
+                    firebaseAuthMigratedAt: new Date().toISOString(),
+                    fechaActualizacion: new Date().toISOString()
+                }, { merge: true });
+                
+                html += '<div class="resultado exito"><h3>✅ Documento actualizado</h3></div>';
+                resultadoDiv.innerHTML = html;
+            } catch (error) {
+                html += '<div class="resultado error"><h3>⚠️ Error actualizando documento</h3><p>' + error.message + '</p></div>';
+                resultadoDiv.innerHTML = html;
+            }
+            
+            // 5. Resumen final
+            html += '<div class="resultado exito"><h3>✅ PROCESO COMPLETADO</h3>' +
+                    '<p><strong>Firebase Auth:</strong> ✅ Usuario creado</p>' +
+                    '<p><strong>Firestore:</strong> ✅ Documento actualizado</p>' +
+                    '<p><strong>UID:</strong> ' + userCredential.user.uid + '</p>' +
+                    '<h4>Credenciales de acceso:</h4>' +
+                    '<ul>' +
+                    '<li><strong>Username:</strong> jason.solis</li>' +
+                    '<li><strong>Email:</strong> ' + email + '</li>' +
+                    '<li><strong>Password:</strong> ' + password + '</li>' +
+                    '</ul>' +
+                    '<p style="margin-top: 20px; padding: 10px; background: #fff3cd; border-radius: 5px;">' +
+                    '✅ Ahora puedes iniciar sesión con estas credenciales.</p>' +
+                    '</div>';
+            resultadoDiv.innerHTML = html;
+        }
+        
+        crearUsuario().catch(error => {
+            document.getElementById('resultado').innerHTML = 
+                '<div class="resultado error"><h3>❌ Error</h3><p>' + error.message + '</p></div>';
+            console.error('Error:', error);
+        });
+    </script>
+</body>
+</html>
