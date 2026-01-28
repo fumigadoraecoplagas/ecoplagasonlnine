@@ -231,8 +231,8 @@ window.registrarTransferencia = async function() {
     const productosConStockInsuficiente = [];
     for (const item of productosSeleccionadosTransferencia) {
         const stockItem = stockBodegas.find(s => s.bodegaId === origenId && s.productoId === item.productoId);
-        const stockDisponible = stockItem ? parseFloat(stockItem.stockActual) : 0;
-        
+    const stockDisponible = stockItem ? parseFloat(stockItem.stockActual) : 0;
+    
         if (item.cantidad > stockDisponible) {
             productosConStockInsuficiente.push({
                 producto: item.productoNombre,
@@ -262,29 +262,29 @@ window.registrarTransferencia = async function() {
         // Procesar cada producto
         for (const item of productosSeleccionadosTransferencia) {
             try {
-                const movimientoData = {
-                    fecha: serverTimestamp(),
-                    tipo: tipo,
+        const movimientoData = {
+            fecha: serverTimestamp(),
+            tipo: tipo,
                     productoId: item.productoId,
-                    origen: origenId,
-                    destino: destinoId,
+            origen: origenId,
+            destino: destinoId,
                     cantidad: item.cantidad,
-                    motivo: motivo,
-                    observaciones: observaciones,
-                    usuarioId: user.uid,
-                    empleado: user.email, // O username si estuviera disponible
-                    fechaRegistro: serverTimestamp()
-                };
-                
-                // Obtener precio promedio si es posible (para valorizar el gasto/transferencia)
+            motivo: motivo,
+            observaciones: observaciones,
+            usuarioId: user.uid,
+            empleado: user.email, // O username si estuviera disponible
+            fechaRegistro: serverTimestamp()
+        };
+        
+        // Obtener precio promedio si es posible (para valorizar el gasto/transferencia)
                 const producto = productos.find(p => p.id === item.productoId);
-                if (producto) {
-                    movimientoData.precioUnitario = producto.precioUnitario;
+        if (producto) {
+            movimientoData.precioUnitario = producto.precioUnitario;
                     movimientoData.total = item.cantidad * producto.precioUnitario;
-                }
-                
-                // Procesar movimiento (crea movimiento y actualiza stocks automáticamente)
-                await procesarMovimientoInventario(db, movimientoData, 'producto');
+        }
+        
+        // Procesar movimiento (crea movimiento y actualiza stocks automáticamente)
+        await procesarMovimientoInventario(db, movimientoData, 'producto');
                 productosProcesados++;
             } catch (error) {
                 console.error(`Error procesando producto ${item.productoNombre}:`, error);
