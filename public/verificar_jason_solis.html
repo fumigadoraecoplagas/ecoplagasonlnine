@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar jason.solis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .resultado {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .exito {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .advertencia {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        .info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Verificando credenciales de jason.solis</h1>
+        <div id="resultado">
+            <div class="loading">
+                <p>Verificando...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, doc, getDoc, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, fetchSignInMethodsForEmail, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+        const firebaseConfig = {
+            projectId: "cursorwebapp-f376d",
+            appId: "1:719990096116:web:07c1ff697e7655b2cd9ea1",
+            databaseURL: "https://cursorwebapp-f376d-default-rtdb.firebaseio.com",
+            storageBucket: "cursorwebapp-f376d.firebasestorage.app",
+            apiKey: "AIzaSyC-IQj0yHR8cELr-mw-v2xlnw6LlJYFUyk",
+            authDomain: "cursorwebapp-f376d.firebaseapp.com",
+            messagingSenderId: "719990096116",
+            measurementId: "G-DJXLKFR7CD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        async function verificarJasonSolis() {
+            const resultadoDiv = document.getElementById('resultado');
+            let html = '';
+            
+            const email = 'rh+jason.solis@ecoplagascr.com';
+            const password = 'raiz2490';
+            const username = 'jason.solis';
+            
+            console.log('\n🔍 ========== VERIFICANDO CREDENCIALES DE jason.solis ==========\n');
+            console.log('📧 Email:', email);
+            console.log('👤 Username:', username);
+            
+            html += '<h2>📋 Información a verificar</h2>';
+            html += '<div class="info resultado">';
+            html += `<p><strong>Email:</strong> ${email}</p>`;
+            html += `<p><strong>Username:</strong> ${username}</p>`;
+            html += `<p><strong>Password:</strong> [OCULTO]</p>`;
+            html += '</div>';
+            
+            // 1. Verificar Firebase Auth
+            html += '<h2>1️⃣ Firebase Authentication</h2>';
+            let signInMethods = [];
+            let existeEnAuth = false;
+            
+            try {
+                signInMethods = await fetchSignInMethodsForEmail(auth, email);
+                existeEnAuth = signInMethods.length > 0;
+                
+                if (existeEnAuth) {
+                    html += '<div class="exito resultado">';
+                    html += '<p>✅ <strong>Usuario EXISTE en Firebase Auth</strong></p>';
+                    html += `<p>Métodos de autenticación: ${signInMethods.join(', ')}</p>`;
+                    html += '</div>';
+                    console.log('✅ Usuario EXISTE en Firebase Auth');
+                } else {
+                    html += '<div class="error resultado">';
+                    html += '<p>❌ <strong>Usuario NO EXISTE en Firebase Auth</strong></p>';
+                    html += '<p>⚠️ El usuario necesita ser creado en Firebase Auth</p>';
+                    html += '</div>';
+                    console.log('❌ Usuario NO EXISTE en Firebase Auth');
+                }
+            } catch (error) {
+                html += '<div class="error resultado">';
+                html += `<p>❌ <strong>Error verificando Firebase Auth:</strong> ${error.message}</p>`;
+                html += '</div>';
+                console.error('Error verificando Firebase Auth:', error);
+            }
+            
+            // 2. Verificar Firestore
+            html += '<h2>2️⃣ Firestore (colección empleados)</h2>';
+            let empleadoEncontrado = null;
+            let docId = null;
+            
+            // Buscar por ID del documento
+            try {
+                const docRef = doc(db, 'empleados', username);
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    empleadoEncontrado = { id: docSnap.id, ...docSnap.data() };
+                    docId = docSnap.id;
+                    console.log('✅ Documento encontrado por ID:', docId);
+                }
+            } catch (error) {
+                console.log('Error buscando por ID:', error.message);
+            }
+            
+            // Si no se encontró, buscar en toda la colección
+            if (!empleadoEncontrado) {
+                try {
+                    const empleadosSnapshot = await getDocs(collection(db, 'empleados'));
+                    empleadosSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        const id = doc.id;
+                        
+                        if (id === username || 
+                            data.username === username ||
+                            data.email === email ||
+                            (data.firebaseAuthEmail && data.firebaseAuthEmail === email)) {
+                            empleadoEncontrado = { id: id, ...data };
+                            docId = id;
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error buscando en colección:', error);
+                }
+            }
+            
+            if (empleadoEncontrado) {
+                html += '<div class="exito resultado">';
+                html += '<p>✅ <strong>Empleado ENCONTRADO en Firestore</strong></p>';
+                html += `<p><strong>ID del documento:</strong> ${docId}</p>`;
+                html += `<p><strong>Username:</strong> ${empleadoEncontrado.username || 'N/A'}</p>`;
+                html += `<p><strong>Nombre:</strong> ${empleadoEncontrado.primerNombre || ''} ${empleadoEncontrado.primerApellido || ''}</p>`;
+                html += `<p><strong>Email:</strong> ${empleadoEncontrado.email || 'N/A'}</p>`;
+                html += `<p><strong>Firebase Auth Email:</strong> ${empleadoEncontrado.firebaseAuthEmail || 'N/A'}</p>`;
+                html += `<p><strong>Firebase Auth UID:</strong> ${empleadoEncontrado.firebaseAuthUID || 'N/A'}</p>`;
+                html += `<p><strong>Estado:</strong> ${empleadoEncontrado.estado || empleadoEncontrado.activo || 'N/A'}</p>`;
+                html += '<details><summary>Ver todos los datos</summary><pre>' + JSON.stringify(empleadoEncontrado, null, 2) + '</pre></details>';
+                html += '</div>';
+                console.log('✅ Empleado encontrado:', empleadoEncontrado);
+            } else {
+                html += '<div class="error resultado">';
+                html += '<p>❌ <strong>Empleado NO ENCONTRADO en Firestore</strong></p>';
+                html += '</div>';
+                console.log('❌ NO se encontró el empleado en Firestore');
+            }
+            
+            // 3. Intentar login
+            html += '<h2>3️⃣ Prueba de Login</h2>';
+            let loginExitoso = false;
+            let uidObtenido = null;
+            
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                loginExitoso = true;
+                uidObtenido = userCredential.user.uid;
+                
+                html += '<div class="exito resultado">';
+                html += '<p>✅ <strong>LOGIN EXITOSO</strong></p>';
+                html += `<p><strong>UID:</strong> ${uidObtenido}</p>`;
+                html += `<p><strong>Email verificado:</strong> ${userCredential.user.email}</p>`;
+                html += '<p>✅ Las credenciales son <strong>CORRECTAS</strong></p>';
+                html += '</div>';
+                console.log('✅ LOGIN EXITOSO');
+                console.log('UID:', uidObtenido);
+                
+                // Cerrar sesión inmediatamente
+                await signOut(auth);
+                console.log('🔒 Sesión cerrada');
+                
+            } catch (loginError) {
+                html += '<div class="error resultado">';
+                html += '<p>❌ <strong>LOGIN FALLIDO</strong></p>';
+                html += `<p><strong>Código de error:</strong> ${loginError.code}</p>`;
+                html += `<p><strong>Mensaje:</strong> ${loginError.message}</p>`;
+                
+                if (loginError.code === 'auth/user-not-found') {
+                    html += '<p>⚠️ El usuario NO EXISTE en Firebase Auth</p>';
+                } else if (loginError.code === 'auth/wrong-password') {
+                    html += '<p>⚠️ La contraseña es INCORRECTA</p>';
+                } else if (loginError.code === 'auth/invalid-email') {
+                    html += '<p>⚠️ El email es INVÁLIDO</p>';
+                }
+                
+                html += '</div>';
+                console.log('❌ LOGIN FALLIDO:', loginError.code, loginError.message);
+            }
+            
+            // 4. Resumen final
+            html += '<h2>📊 RESUMEN FINAL</h2>';
+            const existeEnFirestore = empleadoEncontrado !== null;
+            
+            if (existeEnAuth && existeEnFirestore && loginExitoso) {
+                html += '<div class="exito resultado">';
+                html += '<p>✅ <strong>Todo está correcto</strong></p>';
+                html += '<p>El usuario está configurado correctamente en ambos sistemas y las credenciales funcionan.</p>';
+                html += '</div>';
+            } else {
+                html += '<div class="advertencia resultado">';
+                html += '<p><strong>Estado de configuración:</strong></p>';
+                html += `<p>Firebase Auth: ${existeEnAuth ? '✅ EXISTE' : '❌ NO EXISTE'}</p>`;
+                html += `<p>Firestore: ${existeEnFirestore ? '✅ EXISTE' : '❌ NO EXISTE'}</p>`;
+                html += `<p>Login: ${loginExitoso ? '✅ FUNCIONA' : '❌ NO FUNCIONA'}</p>`;
+                html += '</div>';
+                
+                if (!existeEnAuth && existeEnFirestore) {
+                    html += '<div class="advertencia resultado">';
+                    html += '<p>⚠️ <strong>PROBLEMA:</strong> El usuario existe en Firestore pero NO en Firebase Auth</p>';
+                    html += `<p><strong>SOLUCIÓN:</strong> Crear el usuario en Firebase Auth con el email: ${email}</p>`;
+                    html += '</div>';
+                } else if (existeEnAuth && !existeEnFirestore) {
+                    html += '<div class="advertencia resultado">';
+                    html += '<p>⚠️ <strong>PROBLEMA:</strong> El usuario existe en Firebase Auth pero NO en Firestore</p>';
+                    html += `<p><strong>SOLUCIÓN:</strong> Crear el documento en Firestore con username: ${username}</p>`;
+                    html += '</div>';
+                } else if (!existeEnAuth && !existeEnFirestore) {
+                    html += '<div class="error resultado">';
+                    html += '<p>❌ <strong>PROBLEMA:</strong> El usuario NO EXISTE en ningún sistema</p>';
+                    html += '<p><strong>SOLUCIÓN:</strong> Crear el usuario en ambos sistemas</p>';
+                    html += '</div>';
+                } else if (existeEnAuth && existeEnFirestore && !loginExitoso) {
+                    html += '<div class="advertencia resultado">';
+                    html += '<p>⚠️ <strong>PROBLEMA:</strong> El usuario existe en ambos sistemas pero las credenciales no funcionan</p>';
+                    html += '<p><strong>SOLUCIÓN:</strong> Verificar la contraseña o resetearla en Firebase Auth</p>';
+                    html += '</div>';
+                }
+            }
+            
+            resultadoDiv.innerHTML = html;
+            
+            // Mostrar en consola también
+            console.log('\n' + '='.repeat(60));
+            console.log('📊 RESUMEN FINAL');
+            console.log('='.repeat(60));
+            console.log('Firebase Auth:', existeEnAuth ? '✅ EXISTE' : '❌ NO EXISTE');
+            console.log('Firestore:', existeEnFirestore ? '✅ EXISTE' : '❌ NO EXISTE');
+            console.log('Login:', loginExitoso ? '✅ FUNCIONA' : '❌ NO FUNCIONA');
+            console.log('='.repeat(60) + '\n');
+        }
+        
+        verificarJasonSolis().catch(error => {
+            document.getElementById('resultado').innerHTML = 
+                `<div class="error resultado"><p>❌ Error: ${error.message}</p><pre>${error.stack}</pre></div>`;
+            console.error('Error:', error);
+        });
+    </script>
+</body>
+</html>
