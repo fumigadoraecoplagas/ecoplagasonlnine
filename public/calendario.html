@@ -1712,22 +1712,22 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                         
                                         <div class="col" style="flex: 1 1 0; min-width: 0;">
                                             <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Provincia</label>
-                                            <select id="editProvincia" class="form-select" disabled readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f5f5f5; border-radius: 8px; color: #000000; opacity: 0.7;">
-                                                <option value="">Se detectará automáticamente...</option>
+                                            <select id="editProvincia" class="form-select" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                                <option value="">Seleccionar provincia...</option>
                                             </select>
                                         </div>
                                         
                                         <div class="col" style="flex: 1 1 0; min-width: 0;">
                                             <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Cantón</label>
-                                            <select id="editCanton" class="form-select" disabled readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f5f5f5; border-radius: 8px; color: #000000; opacity: 0.7;">
-                                                <option value="">Se detectará automáticamente...</option>
+                                            <select id="editCanton" class="form-select" disabled style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                                <option value="">Primero seleccione una provincia</option>
                                             </select>
                                         </div>
                                         
                                         <div class="col" style="flex: 1 1 0; min-width: 0;">
                                             <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Distrito</label>
-                                            <select id="editDistrito" class="form-select" disabled readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f5f5f5; border-radius: 8px; color: #000000; opacity: 0.7;">
-                                                <option value="">Se detectará automáticamente...</option>
+                                            <select id="editDistrito" class="form-select" disabled style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                                <option value="">Primero seleccione un cantón</option>
                                             </select>
                                         </div>
                                     </div>
@@ -1812,10 +1812,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     <div id="editPlagasSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
                                 </div>
                                 
-                                <!-- Estado -->
+                                <!-- Estado y Costo del Servicio -->
                                 <div class="col-12" style="margin-top: 0.75rem;">
                                     <hr style="margin: 0.75rem 0; border-color: #e0e0e0; border-width: 1px;">
-                                    <h6 class="mb-2" style="font-size: 1rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif; margin-top: 0.5rem;">Detalles</h6>
             </div>
                                 
                                 <div class="col-md-6">
@@ -1827,18 +1826,19 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                         <option value="cancelada">Cancelada</option>
                                     </select>
         </div>
-                                
-                                <!-- Monto y Costo -->
-                                <div class="col-md-6">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Monto de Venta (₡)</label>
-                                    <input type="text" id="editMontoVenta" class="form-control" placeholder="0" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
-    </div>
 
                                 <div class="col-md-6">
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Costo del Servicio (₡)</label>
-                                    <input type="text" id="editCostoServicio" class="form-control" placeholder="20000" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                    <input type="text" id="editCostoServicio" class="form-control" placeholder="0" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
                                     <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Costo estimado</small>
                                 </div>
+                                
+                                <!-- Monto de Venta (calculado automáticamente) -->
+                                <div class="col-md-6">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Monto de Venta (₡)</label>
+                                    <input type="text" id="editMontoVenta" class="form-control" placeholder="0" readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f8f9fa; border-radius: 8px; color: #000000; cursor: not-allowed;">
+                                    <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Calculado automáticamente: Precio Total + Costo del Servicio</small>
+    </div>
                                 
                                 <!-- Método de Pago -->
                                 <div class="col-12" style="margin-top: 0.75rem;">
@@ -2216,22 +2216,22 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                         
                                         <div class="col" style="flex: 1 1 0; min-width: 0;">
                                             <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Provincia</label>
-                                            <select id="newProvincia" class="form-select" disabled readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f5f5f5; border-radius: 8px; color: #000000; opacity: 0.7;">
-                                                <option value="">Se detectará automáticamente...</option>
+                                            <select id="newProvincia" class="form-select" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                                <option value="">Seleccionar provincia...</option>
                             </select>
                                         </div>
                                         
                                         <div class="col" style="flex: 1 1 0; min-width: 0;">
                                             <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Cantón</label>
-                                            <select id="newCanton" class="form-select" disabled readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f5f5f5; border-radius: 8px; color: #000000; opacity: 0.7;">
-                                                <option value="">Se detectará automáticamente...</option>
+                                            <select id="newCanton" class="form-select" disabled style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                                <option value="">Primero seleccione una provincia</option>
                             </select>
                                         </div>
                                         
                                         <div class="col" style="flex: 1 1 0; min-width: 0;">
                                             <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Distrito</label>
-                                            <select id="newDistrito" class="form-select" disabled readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f5f5f5; border-radius: 8px; color: #000000; opacity: 0.7;">
-                                                <option value="">Se detectará automáticamente...</option>
+                                            <select id="newDistrito" class="form-select" disabled style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                                <option value="">Primero seleccione un cantón</option>
                                             </select>
                                         </div>
                                     </div>
@@ -2316,10 +2316,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     <div id="newPlagasSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
                                 </div>
                                 
-                                <!-- Estado -->
+                                <!-- Estado y Costo del Servicio -->
                                 <div class="col-12" style="margin-top: 0.75rem;">
                                     <hr style="margin: 0.75rem 0; border-color: #e0e0e0; border-width: 1px;">
-                                    <h6 class="mb-2" style="font-size: 1rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif; margin-top: 0.5rem;">Detalles</h6>
                                     </div>
                                 
                                 <div class="col-md-6">
@@ -2331,18 +2330,19 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                 <option value="cancelada">Cancelada</option>
                             </select>
                         </div>
-                                
-                                <!-- Monto y Costo -->
-                                <div class="col-md-6">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Monto de Venta (₡)</label>
-                                    <input type="text" id="newMontoVenta" class="form-control" placeholder="0" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
-                        </div>
 
                                 <div class="col-md-6">
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Costo del Servicio (₡)</label>
-                                    <input type="text" id="newCostoServicio" class="form-control" placeholder="20000" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                    <input type="text" id="newCostoServicio" class="form-control" placeholder="0" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
                                     <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Costo estimado</small>
                                 </div>
+                                
+                                <!-- Monto de Venta (calculado automáticamente) -->
+                                <div class="col-md-6">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Monto de Venta (₡)</label>
+                                    <input type="text" id="newMontoVenta" class="form-control" placeholder="0" readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f8f9fa; border-radius: 8px; color: #000000; cursor: not-allowed;">
+                                    <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Calculado automáticamente: Precio Total + Costo del Servicio</small>
+                        </div>
                                 
                                 <!-- Método de Pago -->
                                 <div class="col-12" style="margin-top: 0.75rem;">
@@ -2933,6 +2933,108 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             selectDistrito.disabled = false;
         }
         
+        // ========== FUNCIONES PARA FORMULARIO NUEVA CITA ==========
+        // Llenar selector de provincias en modal de nueva cita
+        function llenarProvinciasNew() {
+            const selectProvincia = document.getElementById('newProvincia');
+            if (!selectProvincia || !window.ubicacionesCR) return;
+            
+            selectProvincia.innerHTML = '<option value="">Seleccionar provincia...</option>';
+            
+            Object.values(window.ubicacionesCR).forEach(provincia => {
+                const option = document.createElement('option');
+                option.value = provincia.id;
+                option.textContent = provincia.nombre;
+                selectProvincia.appendChild(option);
+            });
+        }
+        
+        // Llenar selector de cantones según provincia seleccionada (nueva cita)
+        function llenarCantonesNew(provinciaId) {
+            const selectCanton = document.getElementById('newCanton');
+            const selectDistrito = document.getElementById('newDistrito');
+            
+            if (!selectCanton || !window.ubicacionesCR || !provinciaId) {
+                if (selectCanton) {
+                    selectCanton.innerHTML = '<option value="">Primero seleccione una provincia</option>';
+                    selectCanton.disabled = true;
+                }
+                if (selectDistrito) {
+                    selectDistrito.innerHTML = '<option value="">Primero seleccione un cantón</option>';
+                    selectDistrito.disabled = true;
+                }
+                return;
+            }
+            
+            const provincia = window.ubicacionesCR[provinciaId];
+            if (!provincia || !provincia.cantones) {
+                if (selectCanton) {
+                    selectCanton.innerHTML = '<option value="">No hay cantones disponibles</option>';
+                    selectCanton.disabled = true;
+                }
+                return;
+            }
+            
+            selectCanton.innerHTML = '<option value="">Seleccionar cantón...</option>';
+            
+            Object.values(provincia.cantones).forEach(canton => {
+                const option = document.createElement('option');
+                option.value = canton.id;
+                option.textContent = canton.nombre;
+                selectCanton.appendChild(option);
+            });
+            
+            selectCanton.disabled = false;
+            
+            // Limpiar distritos
+            if (selectDistrito) {
+                selectDistrito.innerHTML = '<option value="">Primero seleccione un cantón</option>';
+                selectDistrito.disabled = true;
+            }
+        }
+        
+        // Llenar selector de distritos según cantón seleccionado (nueva cita)
+        function llenarDistritosNew(provinciaId, cantonId) {
+            const selectDistrito = document.getElementById('newDistrito');
+            
+            if (!selectDistrito || !window.ubicacionesCR || !provinciaId || !cantonId) {
+                if (selectDistrito) {
+                    selectDistrito.innerHTML = '<option value="">Primero seleccione un cantón</option>';
+                    selectDistrito.disabled = true;
+                }
+                return;
+            }
+            
+            const provincia = window.ubicacionesCR[provinciaId];
+            if (!provincia || !provincia.cantones || !provincia.cantones[cantonId]) {
+                if (selectDistrito) {
+                    selectDistrito.innerHTML = '<option value="">No hay distritos disponibles</option>';
+                    selectDistrito.disabled = true;
+                }
+                return;
+            }
+            
+            const canton = provincia.cantones[cantonId];
+            if (!canton || !canton.distritos) {
+                if (selectDistrito) {
+                    selectDistrito.innerHTML = '<option value="">No hay distritos disponibles</option>';
+                    selectDistrito.disabled = true;
+                }
+                return;
+            }
+            
+            selectDistrito.innerHTML = '<option value="">Seleccionar distrito...</option>';
+            
+            Object.values(canton.distritos).forEach(distrito => {
+                const option = document.createElement('option');
+                option.value = distrito.id;
+                option.textContent = distrito.nombre;
+                selectDistrito.appendChild(option);
+            });
+            
+            selectDistrito.disabled = false;
+        }
+        
         // Actualizar mapa de ubicación en modal de edición
         // Actualizar mapa según ubicación seleccionada (COPIADO EXACTAMENTE de citas_registradas.html)
         async function actualizarMapaUbicacionEdit(provinciaId, cantonId, distritoId) {
@@ -3146,6 +3248,25 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 return;
             }
             
+            // LIMPIAR selecciones antes de cargar datos de la cita
+            // Esto asegura que cada cita tenga sus propias selecciones independientes
+            window.serviciosSeleccionadosEdit = [];
+            window.plagasSeleccionadasEdit = [];
+            
+            // Renderizar tablas/vistas vacías antes de cargar datos
+            if (window.renderizarTablaServicios) {
+                window.renderizarTablaServicios('edit');
+            }
+            // Inicializar búsqueda de plagas para renderizar estado vacío
+            if (window.inicializarBusquedaPlagas) {
+                window.inicializarBusquedaPlagas('edit');
+            }
+            
+            // Llenar provincias en el formulario de edición
+            if (window.llenarProvinciasEdit) {
+                llenarProvinciasEdit();
+            }
+            
             // Llenar el formulario con todos los datos
             // Obtener nombre del cliente desde el documento del cliente (source of truth)
             const telefonoCita = window.obtenerTelefono(cita);
@@ -3215,9 +3336,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const montoVentaFormateado = window.formatearMontoVenta(montoVenta);
             document.getElementById('editMontoVenta').value = montoVentaFormateado;
             
-            // Costo del Servicio
-            const costoServicio = window.obtenerCostoServicio(cita) || 20000;
-            const costoServicioFormateado = window.formatearMontoVenta(costoServicio);
+            // Costo del Servicio - Siempre mostrar 0 por defecto (editable manualmente)
+            const costoServicioFormateado = window.formatearMontoVenta(0);
             document.getElementById('editCostoServicio').value = costoServicioFormateado;
             
             // Método de Pago
@@ -3690,6 +3810,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 costoServicioInput.addEventListener('blur', () => {
                     const valorNumerico = window.extraerValorNumerico(costoServicioInput.value);
                     costoServicioInput.value = window.formatearMontoVenta(valorNumerico);
+                    if (window.actualizarResumenFinanciero) {
+                        window.actualizarResumenFinanciero();
+                    }
                 });
                 costoServicioInput.addEventListener('input', () => {
                     window.actualizarResumenFinanciero();
@@ -4589,6 +4712,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         window.precioTotalServiciosManualNew = valorFinal;
                     }
                     
+                    // Actualizar resumen financiero cuando se cambia el precio total manualmente
+                    if (prefix === 'edit' && window.actualizarResumenFinanciero) {
+                        window.actualizarResumenFinanciero();
+                    } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
+                        window.actualizarResumenFinancieroNew();
+                    }
+                    
                     return;
                 }
                 
@@ -4630,6 +4760,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     containerTotal.style.display = 'block';
                 } else {
                     containerTotal.style.display = 'none';
+                }
+                
+                // Actualizar resumen financiero cuando se actualiza el precio total
+                if (prefix === 'edit' && window.actualizarResumenFinanciero) {
+                    window.actualizarResumenFinanciero();
+                } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
+                    window.actualizarResumenFinancieroNew();
                 }
             };
             
@@ -6144,7 +6281,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         };
         
         window.obtenerCostoServicio = function(cita) {
-            return window.obtenerCampoCita(cita, 'costo_servicio', 20000);
+            return window.obtenerCampoCita(cita, 'costo_servicio', 0);
         };
         
         window.obtenerVendedores = function(cita) {
@@ -10317,17 +10454,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         
         // Función para calcular y actualizar resumen financiero
         window.actualizarResumenFinanciero = function() {
-            // Calcular total de servicios (usando precios personalizados y cantidad si existen)
-            const serviciosSeleccionados = window.obtenerServiciosSeleccionados('edit');
-            let totalServicios = 0;
-            serviciosSeleccionados.forEach(serv => {
-                // serv puede ser string (ID) u objeto {id, cantidad, precio}
-                const servicioId = typeof serv === 'string' ? serv : serv.id;
-                const precio = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : 
-                              (window.todosLosServicios.find(s => s.id === servicioId)?.precio || 0);
-                const cantidad = typeof serv === 'object' && serv.cantidad !== undefined ? serv.cantidad : 1;
-                totalServicios += precio * cantidad;
-            });
+            // Obtener el precio total de servicios del campo (puede ser manual o calculado)
+            const precioTotalServiciosInput = document.getElementById('editPrecioTotalServicios');
+            const valorNumericoServicios = precioTotalServiciosInput ? window.extraerValorNumerico(precioTotalServiciosInput.value) : '0';
+            const totalServicios = parseFloat(valorNumericoServicios) || 0;
             
             // Calcular total de productos (costos)
             const productosSeleccionados = window.obtenerProductosSeleccionados('edit');
@@ -10379,17 +10509,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         
         // Función para calcular y actualizar resumen financiero del modal de nueva cita
         window.actualizarResumenFinancieroNew = function() {
-            // Calcular total de servicios (usando precios personalizados y cantidad si existen)
-            const serviciosSeleccionados = window.obtenerServiciosSeleccionados('new');
-            let totalServicios = 0;
-            serviciosSeleccionados.forEach(serv => {
-                // serv puede ser string (ID) u objeto {id, cantidad, precio}
-                const servicioId = typeof serv === 'string' ? serv : serv.id;
-                const precio = typeof serv === 'object' && serv.precio !== undefined ? serv.precio : 
-                              (window.todosLosServicios?.find(s => s.id === servicioId)?.precio || 0);
-                const cantidad = typeof serv === 'object' && serv.cantidad !== undefined ? serv.cantidad : 1;
-                totalServicios += precio * cantidad;
-            });
+            // Obtener el precio total de servicios del campo (puede ser manual o calculado)
+            const precioTotalServiciosInput = document.getElementById('newPrecioTotalServicios');
+            const valorNumericoServicios = precioTotalServiciosInput ? window.extraerValorNumerico(precioTotalServiciosInput.value) : '0';
+            const totalServicios = parseFloat(valorNumericoServicios) || 0;
             
             // Calcular total de productos (costos)
             const productosSeleccionados = window.productosSeleccionadosNew || [];
@@ -14881,15 +15004,16 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             if (newStatus) newStatus.value = 'agendada';
             if (newMontoVenta) newMontoVenta.value = '';
             if (newCostoServicio) {
-                const costoServicioFormateado = window.formatearMontoVenta('20000');
+                const costoServicioFormateado = window.formatearMontoVenta('0');
                 newCostoServicio.value = costoServicioFormateado;
             }
             if (newDescription) newDescription.value = '';
             
-            // Limpiar selecciones de vendedores, servicios y productos
+            // Limpiar selecciones de vendedores, servicios, productos y plagas
             window.vendedoresSeleccionadosNew = [];
             window.serviciosSeleccionadosNew = [];
             window.productosSeleccionadosNew = [];
+            window.plagasSeleccionadasNew = [];
             
             const newVendedoresSelected = document.getElementById('newVendedoresSelected');
             const newServiciosSelected = document.getElementById('newServiciosSelected');
@@ -14945,6 +15069,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             // Limpiar campo de certificados
             const newCertificados = document.getElementById('newCertificados');
             if (newCertificados) newCertificados.value = '';
+            
+            // Llenar provincias en el formulario de nueva cita
+            if (window.llenarProvinciasNew) {
+                llenarProvinciasNew();
+            }
             
             // Abrir modal
             const modal = new bootstrap.Modal(document.getElementById('nuevaCitaModal'));
@@ -15003,19 +15132,64 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     newClientNameInput.addEventListener('input', actualizarEncabezadoAutoNuevaCita);
                 }
                 
+                // Event listeners para provincia, cantón y distrito en formulario nueva cita
                 const newProvinciaSelect = document.getElementById('newProvincia');
                 if (newProvinciaSelect) {
-                    // newProvinciaSelect.addEventListener('change', actualizarEncabezadoAutoNuevaCita); // Función eliminada
+                    newProvinciaSelect.addEventListener('change', function() {
+                        const provinciaId = this.value;
+                        
+                        if (!provinciaId) {
+                            const selectCanton = document.getElementById('newCanton');
+                            const selectDistrito = document.getElementById('newDistrito');
+                            if (selectCanton) {
+                                selectCanton.innerHTML = '<option value="">Primero seleccione una provincia</option>';
+                                selectCanton.disabled = true;
+                            }
+                            if (selectDistrito) {
+                                selectDistrito.innerHTML = '<option value="">Primero seleccione un cantón</option>';
+                                selectDistrito.disabled = true;
+                            }
+                            return;
+                        }
+                        
+                        // Llenar cantones
+                        llenarCantonesNew(provinciaId);
+                        
+                        // Limpiar selección de distrito
+                        const selectDistrito = document.getElementById('newDistrito');
+                        if (selectDistrito) {
+                            selectDistrito.innerHTML = '<option value="">Primero seleccione un cantón</option>';
+                            selectDistrito.disabled = true;
+                        }
+                    });
                 }
                 
                 const newCantonSelect = document.getElementById('newCanton');
                 if (newCantonSelect) {
-                    // newCantonSelect.addEventListener('change', actualizarEncabezadoAutoNuevaCita); // Función eliminada
+                    newCantonSelect.addEventListener('change', function() {
+                        const provinciaId = newProvinciaSelect ? newProvinciaSelect.value : null;
+                        const cantonId = this.value;
+                        
+                        if (!cantonId) {
+                            const selectDistrito = document.getElementById('newDistrito');
+                            if (selectDistrito) {
+                                selectDistrito.innerHTML = '<option value="">Primero seleccione un cantón</option>';
+                                selectDistrito.disabled = true;
+                            }
+                            return;
+                        }
+                        
+                        // Llenar distritos
+                        llenarDistritosNew(provinciaId, cantonId);
+                    });
                 }
                 
                 const newDistritoSelect = document.getElementById('newDistrito');
                 if (newDistritoSelect) {
-                    // newDistritoSelect.addEventListener('change', actualizarEncabezadoAutoNuevaCita); // Función eliminada
+                    newDistritoSelect.addEventListener('change', function() {
+                        // El distrito se seleccionó, no hay acción adicional necesaria
+                        // pero se puede usar para actualizar el mapa si es necesario
+                    });
                 }
                 
                 // Observar cambios en vendedores seleccionados usando MutationObserver
@@ -15072,15 +15246,16 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             if (newStatus) newStatus.value = 'agendada';
             if (newMontoVenta) newMontoVenta.value = '';
             if (newCostoServicio) {
-                const costoServicioFormateado = window.formatearMontoVenta('20000');
+                const costoServicioFormateado = window.formatearMontoVenta('0');
                 newCostoServicio.value = costoServicioFormateado;
             }
             if (newDescription) newDescription.value = '';
             
-            // Limpiar selecciones de vendedores, servicios y productos
+            // Limpiar selecciones de vendedores, servicios, productos y plagas
             window.vendedoresSeleccionadosNew = [];
             window.serviciosSeleccionadosNew = [];
             window.productosSeleccionadosNew = [];
+            window.plagasSeleccionadasNew = [];
             
             const newVendedoresSelected = document.getElementById('newVendedoresSelected');
             const newServiciosSelected = document.getElementById('newServiciosSelected');
@@ -15136,6 +15311,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             // Limpiar campo de certificados
             const newCertificados = document.getElementById('newCertificados');
             if (newCertificados) newCertificados.value = '';
+            
+            // Llenar provincias en el formulario de nueva cita
+            if (window.llenarProvinciasNew) {
+                llenarProvinciasNew();
+            }
             
             // Abrir modal
             const modal = new bootstrap.Modal(document.getElementById('nuevaCitaModal'));
