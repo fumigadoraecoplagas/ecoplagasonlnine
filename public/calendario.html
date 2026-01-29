@@ -1833,12 +1833,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Costo estimado</small>
                                 </div>
                                 
-                                <!-- Monto de Venta (calculado automáticamente) -->
-                                <div class="col-md-6">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Monto de Venta (₡)</label>
-                                    <input type="text" id="editMontoVenta" class="form-control" placeholder="0" readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f8f9fa; border-radius: 8px; color: #000000; cursor: not-allowed;">
-                                    <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Calculado automáticamente: Precio Total + Costo del Servicio</small>
-    </div>
                                 
                                 <!-- Método de Pago -->
                                 <div class="col-12" style="margin-top: 0.75rem;">
@@ -1968,14 +1962,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                                 <h6 style="color: #27ae60; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.95rem;">
                                                     <i class="fas fa-arrow-up me-1"></i>INGRESOS
                                                 </h6>
-                                                <div class="row" style="background-color: #f0fff4; padding: 0.75rem; border-radius: 6px; margin: 0;">
-                                <div class="col-12">
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <span style="color: #34495e; font-size: 0.9rem;">Monto de Venta:</span>
-                                                            <span id="montoVentaDisplay" style="color: #27ae60; font-weight: 700; font-size: 1rem;">₡0</span>
-                                        </div>
-                                                    </div>
-                                                </div>
                                             </div>
                                             
                                             <!-- RESULTADO NETO -->
@@ -1984,7 +1970,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                                     <strong style="color: #2c3e50; font-size: 1.1rem;">GANANCIA NETA:</strong>
                                                     <span id="netoVenta" style="font-weight: 700; font-size: 1.3rem;">₡0</span>
                                                 </div>
-                                                <small style="color: #7f8c8d; font-size: 0.8rem;">Monto Venta - Total Costos</small>
+                                                <small style="color: #7f8c8d; font-size: 0.8rem;">Precio Total Servicios - Total Costos</small>
                                             </div>
                                         </div>
                                     </div>
@@ -2337,12 +2323,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Costo estimado</small>
                                 </div>
                                 
-                                <!-- Monto de Venta (calculado automáticamente) -->
-                                <div class="col-md-6">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Monto de Venta (₡)</label>
-                                    <input type="text" id="newMontoVenta" class="form-control" placeholder="0" readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f8f9fa; border-radius: 8px; color: #000000; cursor: not-allowed;">
-                                    <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Calculado automáticamente: Precio Total + Costo del Servicio</small>
-                        </div>
                                 
                                 <!-- Método de Pago -->
                                 <div class="col-12" style="margin-top: 0.75rem;">
@@ -2472,14 +2452,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                                 <h6 style="color: #27ae60; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.95rem;">
                                                     <i class="fas fa-arrow-up me-1"></i>INGRESOS
                                                 </h6>
-                                                <div class="row" style="background-color: #f0fff4; padding: 0.75rem; border-radius: 6px; margin: 0;">
-                        <div class="col-12">
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <span style="color: #34495e; font-size: 0.9rem;">Monto de Venta:</span>
-                                                            <span id="newMontoVentaDisplay" style="color: #27ae60; font-weight: 700; font-size: 1rem;">₡0</span>
-                                                </div>
-                                                </div>
-                                                </div>
                         </div>
                                             
                                             <!-- RESULTADO NETO -->
@@ -2488,7 +2460,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                                     <strong style="color: #2c3e50; font-size: 1.1rem;">GANANCIA NETA:</strong>
                                                     <span id="newNetoVenta" style="font-weight: 700; font-size: 1.3rem;">₡0</span>
                                                 </div>
-                                                <small style="color: #7f8c8d; font-size: 0.8rem;">Monto Venta - Total Costos</small>
+                                                <small style="color: #7f8c8d; font-size: 0.8rem;">Precio Total Servicios - Total Costos</small>
                     </div>
                 </div>
                                     </div>
@@ -3332,10 +3304,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 }
             }
             
-            const montoVenta = window.obtenerMonto(cita) || 0;
-            const montoVentaFormateado = window.formatearMontoVenta(montoVenta);
-            document.getElementById('editMontoVenta').value = montoVentaFormateado;
-            
             // Costo del Servicio - Siempre mostrar 0 por defecto (editable manualmente)
             const costoServicioFormateado = window.formatearMontoVenta(0);
             document.getElementById('editCostoServicio').value = costoServicioFormateado;
@@ -3773,26 +3741,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     if (e.target.type === 'checkbox') {
                         window.actualizarResumenFinanciero();
                     }
-                });
-            }
-            
-            const montoVentaInput = document.getElementById('editMontoVenta');
-            if (montoVentaInput) {
-                // Formatear cuando se presiona Enter o se pierde el foco
-                montoVentaInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const valorNumerico = window.extraerValorNumerico(montoVentaInput.value);
-                        montoVentaInput.value = window.formatearMontoVenta(valorNumerico);
-                        montoVentaInput.blur();
-                    }
-                });
-                montoVentaInput.addEventListener('blur', () => {
-                    const valorNumerico = window.extraerValorNumerico(montoVentaInput.value);
-                    montoVentaInput.value = window.formatearMontoVenta(valorNumerico);
-                });
-                montoVentaInput.addEventListener('input', () => {
-                    window.actualizarResumenFinanciero();
                 });
             }
             
@@ -6252,7 +6200,55 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         };
         
         window.obtenerMonto = function(cita) {
-            return window.obtenerCampoCita(cita, 'monto', 0);
+            // Calcular ganancia neta: precio total servicios - costos
+            // Precio total de servicios
+            const servicios = window.obtenerServicios(cita);
+            let precioTotalServicios = 0;
+            
+            if (Array.isArray(servicios) && servicios.length > 0) {
+                servicios.forEach(serv => {
+                    if (typeof serv === 'object' && serv.id) {
+                        // Buscar el servicio en la lista de todos los servicios
+                        const servicioBase = window.todosLosServicios?.find(s => s.id === serv.id);
+                        const precioUnitario = serv.precio !== undefined ? serv.precio : (servicioBase?.precio || 0);
+                        const cantidad = serv.cantidad !== undefined ? serv.cantidad : 1;
+                        precioTotalServicios += precioUnitario * cantidad;
+                    } else if (typeof serv === 'string') {
+                        // Es un ID simple, buscar precio del servicio base
+                        const servicioBase = window.todosLosServicios?.find(s => s.id === serv);
+                        if (servicioBase) {
+                            precioTotalServicios += servicioBase.precio || 0;
+                        }
+                    }
+                });
+            }
+            
+            // Costo de productos
+            const productos = window.obtenerProductos(cita);
+            let costoProductos = 0;
+            
+            if (Array.isArray(productos) && productos.length > 0 && window.todosLosProductos) {
+                productos.forEach(item => {
+                    const productoId = typeof item === 'object' && item.id ? item.id : item;
+                    const producto = window.todosLosProductos.find(p => p.id === productoId);
+                    if (producto) {
+                        const costoUnitario = producto.precioUnitario || producto.precio || 0;
+                        const cantidad = (typeof item === 'object' && item.cantidad) ? item.cantidad : 1;
+                        costoProductos += costoUnitario * cantidad;
+                    }
+                });
+            }
+            
+            // Costo del servicio
+            const costoServicio = window.obtenerCostoServicio(cita) || 0;
+            
+            // Total de costos
+            const totalCostos = costoProductos + costoServicio;
+            
+            // Ganancia neta
+            const gananciaNeta = precioTotalServicios - totalCostos;
+            
+            return gananciaNeta;
         };
         
         // Función para formatear número con símbolo ₡ y puntos para miles
@@ -10476,23 +10472,18 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const valorNumericoCosto = costoServicioInput ? window.extraerValorNumerico(costoServicioInput.value) : '0';
             const costoServicio = parseFloat(valorNumericoCosto) || 0;
             
-            // Total de costos (servicios + productos + costo del servicio)
-            const totalCostos = totalServicios + totalProductos + costoServicio;
+            // Total de costos (productos + costo del servicio)
+            // Nota: totalServicios es el precio de venta de servicios (ingreso), no un costo
+            const totalCostos = totalProductos + costoServicio;
             
-            // Obtener monto de venta (extraer valor numérico sin formato)
-            const montoVentaInput = document.getElementById('editMontoVenta');
-            const valorNumerico = montoVentaInput ? window.extraerValorNumerico(montoVentaInput.value) : '0';
-            const montoVenta = parseFloat(valorNumerico) || 0;
-            
-            // Calcular neto
-            const neto = montoVenta - totalCostos;
+            // Calcular ganancia neta: precio total de servicios - costos
+            const neto = totalServicios - totalCostos;
             
             // Actualizar UI
             document.getElementById('totalServicios').textContent = `₡${totalServicios.toLocaleString('es-CR')}`;
             document.getElementById('totalProductos').textContent = `₡${totalProductos.toLocaleString('es-CR')}`;
             document.getElementById('costoServicioDisplay').textContent = `₡${costoServicio.toLocaleString('es-CR')}`;
             document.getElementById('totalCostos').textContent = `₡${totalCostos.toLocaleString('es-CR')}`;
-            document.getElementById('montoVentaDisplay').textContent = `₡${montoVenta.toLocaleString('es-CR')}`;
             
             const netoElement = document.getElementById('netoVenta');
             netoElement.textContent = `₡${neto.toLocaleString('es-CR')}`;
@@ -10531,30 +10522,24 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const valorNumericoCosto = costoServicioInput ? window.extraerValorNumerico(costoServicioInput.value) : '0';
             const costoServicio = parseFloat(valorNumericoCosto) || 0;
             
-            // Total de costos (servicios + productos + costo del servicio)
-            const totalCostos = totalServicios + totalProductos + costoServicio;
+            // Total de costos (productos + costo del servicio)
+            // Nota: totalServicios es el precio de venta de servicios (ingreso), no un costo
+            const totalCostos = totalProductos + costoServicio;
             
-            // Obtener monto de venta (extraer valor numérico sin formato)
-            const montoVentaInput = document.getElementById('newMontoVenta');
-            const valorNumerico = montoVentaInput ? window.extraerValorNumerico(montoVentaInput.value) : '0';
-            const montoVenta = parseFloat(valorNumerico) || 0;
-            
-            // Calcular neto
-            const neto = montoVenta - totalCostos;
+            // Calcular ganancia neta: precio total de servicios - costos
+            const neto = totalServicios - totalCostos;
             
             // Actualizar UI
             const totalServiciosEl = document.getElementById('newTotalServicios');
             const totalProductosEl = document.getElementById('newTotalProductos');
             const costoServicioEl = document.getElementById('newCostoServicioDisplay');
             const totalCostosEl = document.getElementById('newTotalCostos');
-            const montoVentaEl = document.getElementById('newMontoVentaDisplay');
             const netoEl = document.getElementById('newNetoVenta');
             
             if (totalServiciosEl) totalServiciosEl.textContent = `₡${totalServicios.toLocaleString('es-CR')}`;
             if (totalProductosEl) totalProductosEl.textContent = `₡${totalProductos.toLocaleString('es-CR')}`;
             if (costoServicioEl) costoServicioEl.textContent = `₡${costoServicio.toLocaleString('es-CR')}`;
             if (totalCostosEl) totalCostosEl.textContent = `₡${totalCostos.toLocaleString('es-CR')}`;
-            if (montoVentaEl) montoVentaEl.textContent = `₡${montoVenta.toLocaleString('es-CR')}`;
             
             if (netoEl) {
                 netoEl.textContent = `₡${neto.toLocaleString('es-CR')}`;
@@ -13888,9 +13873,32 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 
                 // Campos opcionales
                 const clientName = document.getElementById('editClientName').value.trim();
-                const montoVentaInput = document.getElementById('editMontoVenta');
-                const valorNumerico = montoVentaInput ? window.extraerValorNumerico(montoVentaInput.value) : '0';
-                const montoVenta = valorNumerico || '0';
+                
+                // Calcular ganancia neta: precio total servicios - costos
+                const precioTotalServiciosInput = document.getElementById('editPrecioTotalServicios');
+                const valorNumericoServicios = precioTotalServiciosInput ? window.extraerValorNumerico(precioTotalServiciosInput.value) : '0';
+                const precioTotalServicios = parseFloat(valorNumericoServicios) || 0;
+                
+                // Calcular total de productos (costos)
+                const productosSeleccionados = window.obtenerProductosSeleccionados('edit');
+                let totalProductos = 0;
+                productosSeleccionados.forEach(item => {
+                    const producto = window.todosLosProductos?.find(p => p.id === item.id);
+                    if (producto) {
+                        const costoUnitario = producto.precioUnitario || producto.precio || 0;
+                        const cantidad = item.cantidad || 1;
+                        totalProductos += costoUnitario * cantidad;
+                    }
+                });
+                
+                // Obtener costo del servicio
+                const costoServicioInput = document.getElementById('editCostoServicio');
+                const valorNumericoCosto = costoServicioInput ? window.extraerValorNumerico(costoServicioInput.value) : '0';
+                const costoServicio = parseFloat(valorNumericoCosto) || 0;
+                
+                // Calcular ganancia neta
+                const totalCostos = totalProductos + costoServicio;
+                const gananciaNeta = precioTotalServicios - totalCostos;
 
                 const fechaInicio = new Date(startTime);
                 console.log('🔍 Hora ingresada por usuario:', startTime);
@@ -14150,7 +14158,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         sucursalIndice: sucursalIndice, // Índice de la sucursal (0, 1, 2, 3, ...) o null si no tiene sucursal
                         ruta: window.validarRuta ? window.validarRuta(document.getElementById('editRuta')?.value || 'Sin asignar') : (document.getElementById('editRuta')?.value || 'Sin asignar'),
                         estado: document.getElementById('editStatus')?.value || 'agendada',
-                        monto: parseInt(montoVenta) || 0,
+                        monto: Math.round(gananciaNeta) || 0, // Guardar ganancia neta en lugar de monto de venta
                         costo_servicio: costoServicio, // Costo del servicio (siempre presente)
                         vendedores: vendedoresSeleccionados, // Array de usernames
                         servicios: serviciosSeleccionados, // Array de objetos {id, precio} con precios personalizados por cita
@@ -14295,9 +14303,32 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 }
                 
                 const clientName = document.getElementById('newClientName').value.trim();
-                const montoVentaInput = document.getElementById('newMontoVenta');
-                const valorNumerico = montoVentaInput ? window.extraerValorNumerico(montoVentaInput.value) : '0';
-                const montoVenta = valorNumerico || '0';
+                
+                // Calcular ganancia neta: precio total servicios - costos
+                const precioTotalServiciosInput = document.getElementById('newPrecioTotalServicios');
+                const valorNumericoServicios = precioTotalServiciosInput ? window.extraerValorNumerico(precioTotalServiciosInput.value) : '0';
+                const precioTotalServicios = parseFloat(valorNumericoServicios) || 0;
+                
+                // Calcular total de productos (costos)
+                const productosSeleccionados = window.obtenerProductosSeleccionados('new');
+                let totalProductos = 0;
+                productosSeleccionados.forEach(item => {
+                    const producto = window.todosLosProductos?.find(p => p.id === item.id);
+                    if (producto) {
+                        const costoUnitario = producto.precioUnitario || producto.precio || 0;
+                        const cantidad = item.cantidad || 1;
+                        totalProductos += costoUnitario * cantidad;
+                    }
+                });
+                
+                // Obtener costo del servicio
+                const costoServicioInput = document.getElementById('newCostoServicio');
+                const valorNumericoCosto = costoServicioInput ? window.extraerValorNumerico(costoServicioInput.value) : '0';
+                const costoServicio = parseFloat(valorNumericoCosto) || 0;
+                
+                // Calcular ganancia neta
+                const totalCostos = totalProductos + costoServicio;
+                const gananciaNeta = precioTotalServicios - totalCostos;
 
                 const fechaInicio = new Date(startTime);
                 console.log('🔍 Hora ingresada por usuario:', startTime);
@@ -14475,7 +14506,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         sucursalIndice: sucursalIndice, // Índice de la sucursal (0, 1, 2, 3, ...) o null si no tiene sucursal
                         ruta: window.validarRuta ? window.validarRuta(document.getElementById('newRuta')?.value || 'Sin asignar') : (document.getElementById('newRuta')?.value || 'Sin asignar'),
                         estado: document.getElementById('newStatus')?.value || 'agendada', // Opcional, por defecto 'agendada'
-                        monto: parseInt(montoVenta) || 0,
+                        monto: Math.round(gananciaNeta) || 0, // Guardar ganancia neta en lugar de monto de venta
                         costo_servicio: costoServicio,
                         vendedores: vendedoresSeleccionados,
                         servicios: serviciosSeleccionados,
@@ -14993,7 +15024,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const newCoordenadas = document.getElementById('newCoordenadas');
             const newOtrasSenas = document.getElementById('newOtrasSenas');
             const newStatus = document.getElementById('newStatus');
-            const newMontoVenta = document.getElementById('newMontoVenta');
             const newCostoServicio = document.getElementById('newCostoServicio');
             const newDescription = document.getElementById('newDescription');
             
@@ -15002,7 +15032,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             if (newCoordenadas) newCoordenadas.value = '';
             if (newOtrasSenas) newOtrasSenas.value = '';
             if (newStatus) newStatus.value = 'agendada';
-            if (newMontoVenta) newMontoVenta.value = '';
             if (newCostoServicio) {
                 const costoServicioFormateado = window.formatearMontoVenta('0');
                 newCostoServicio.value = costoServicioFormateado;
@@ -15092,30 +15121,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 modalElement.addEventListener('shown.bs.modal', actualizarResumenOnShow, { once: true });
             }
             
-            // Agregar event listeners para actualizar resumen financiero
-            setTimeout(() => {
-                const newMontoVentaInput = document.getElementById('newMontoVenta');
-                if (newMontoVentaInput) {
-                    // Formatear cuando se presiona Enter o se pierde el foco
-                    newMontoVentaInput.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const valorNumerico = window.extraerValorNumerico(newMontoVentaInput.value);
-                            newMontoVentaInput.value = window.formatearMontoVenta(valorNumerico);
-                            newMontoVentaInput.blur();
-                        }
-                    });
-                    newMontoVentaInput.addEventListener('blur', () => {
-                        const valorNumerico = window.extraerValorNumerico(newMontoVentaInput.value);
-                        newMontoVentaInput.value = window.formatearMontoVenta(valorNumerico);
-                    });
-                    newMontoVentaInput.addEventListener('input', () => {
-                        if (window.actualizarResumenFinancieroNew) {
-                            window.actualizarResumenFinancieroNew();
-                        }
-                        // actualizarEncabezadoAutoNuevaCita(); // Función eliminada - encabezado removido
-                    });
-                }
                 
                 const newCostoServicioInput = document.getElementById('newCostoServicio');
                 if (newCostoServicioInput) {
@@ -15235,7 +15240,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const newCoordenadas = document.getElementById('newCoordenadas');
             const newOtrasSenas = document.getElementById('newOtrasSenas');
             const newStatus = document.getElementById('newStatus');
-            const newMontoVenta = document.getElementById('newMontoVenta');
             const newCostoServicio = document.getElementById('newCostoServicio');
             const newDescription = document.getElementById('newDescription');
             
@@ -15244,7 +15248,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             if (newCoordenadas) newCoordenadas.value = '';
             if (newOtrasSenas) newOtrasSenas.value = '';
             if (newStatus) newStatus.value = 'agendada';
-            if (newMontoVenta) newMontoVenta.value = '';
             if (newCostoServicio) {
                 const costoServicioFormateado = window.formatearMontoVenta('0');
                 newCostoServicio.value = costoServicioFormateado;
@@ -15334,16 +15337,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 modalElement.addEventListener('shown.bs.modal', actualizarResumenOnShow, { once: true });
             }
             
-            // Agregar event listeners para actualizar resumen financiero
-            setTimeout(() => {
-                const newMontoVentaInput = document.getElementById('newMontoVenta');
-                if (newMontoVentaInput) {
-                    newMontoVentaInput.addEventListener('input', () => {
-                        if (window.actualizarResumenFinancieroNew) {
-                            window.actualizarResumenFinancieroNew();
-                        }
-                    });
-                }
                 
                 const newCostoServicioInput = document.getElementById('newCostoServicio');
                 if (newCostoServicioInput) {
