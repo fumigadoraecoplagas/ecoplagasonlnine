@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación del Sistema</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .check-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        .info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Verificación del Sistema</h1>
+    <div id="resultado">
+        <div class="container">
+            <p>Verificando...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+        const firebaseConfig = {
+            projectId: "cursorwebapp-f376d",
+            appId: "1:719990096116:web:07c1ff697e7655b2cd9ea1",
+            databaseURL: "https://cursorwebapp-f376d-default-rtdb.firebaseio.com",
+            storageBucket: "cursorwebapp-f376d.firebasestorage.app",
+            apiKey: "AIzaSyC-IQj0yHR8cELr-mw-v2xlnw6LlJYFUyk",
+            authDomain: "cursorwebapp-f376d.firebaseapp.com",
+            messagingSenderId: "719990096116",
+            measurementId: "G-DJXLKFR7CD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        async function verificarSistema() {
+            const resultadoDiv = document.getElementById('resultado');
+            let html = '';
+            const checks = [];
+
+            // 1. Verificar Firebase
+            html += '<div class="container"><h2>1️⃣ Verificación de Firebase</h2>';
+            try {
+                // Verificar si Firebase está inicializado
+                if (app && db) {
+                    checks.push({ tipo: 'success', mensaje: '✅ Firebase SDK inicializado correctamente' });
+                    html += '<div class="check-item success">✅ Firebase SDK inicializado correctamente</div>';
+                    
+                    // Intentar conectar (puede fallar si no hay autenticación)
+                    try {
+                        const empleadosRef = collection(db, 'empleados');
+                        const snapshot = await getDocs(empleadosRef);
+                        checks.push({ tipo: 'success', mensaje: `✅ Firebase conectado correctamente (${snapshot.size} empleados encontrados)` });
+                        html += '<div class="check-item success">✅ Firebase conectado correctamente</div>';
+                        html += `<div class="check-item info">📊 Empleados en la base de datos: ${snapshot.size}</div>`;
+                    } catch (authError) {
+                        checks.push({ tipo: 'warning', mensaje: `⚠️ Firebase requiere autenticación: ${authError.message}` });
+                        html += `<div class="check-item warning">⚠️ Firebase requiere autenticación para acceder a datos</div>`;
+                        html += '<div class="check-item info">💡 Esto es normal si no estás autenticado. Las funciones del sistema funcionarán cuando inicies sesión.</div>';
+                    }
+                } else {
+                    checks.push({ tipo: 'error', mensaje: '❌ Firebase SDK no está disponible' });
+                    html += '<div class="check-item error">❌ Firebase SDK no está disponible</div>';
+                }
+            } catch (error) {
+                checks.push({ tipo: 'error', mensaje: `❌ Error verificando Firebase: ${error.message}` });
+                html += `<div class="check-item error">❌ Error: ${error.message}</div>`;
+            }
+            html += '</div>';
+
+            // 2. Verificar funciones de calendario
+            html += '<div class="container"><h2>2️⃣ Verificación de Funciones de Calendario</h2>';
+            const funcionesCalendario = [
+                'actualizarResumenFinanciero',
+                'actualizarResumenFinancieroNew',
+                'actualizarPrecioTotalServicios',
+                'obtenerServiciosSeleccionados',
+                'obtenerProductosSeleccionados'
+            ];
+            
+            const paginaActual = window.location.pathname.split('/').pop() || '';
+            const esCalendario = paginaActual.includes('calendario');
+            
+            if (!esCalendario) {
+                html += '<div class="check-item warning">⚠️ Estas funciones solo están disponibles en calendario.html</div>';
+                html += '<div class="check-item info">💡 Abre calendario.html para verificar estas funciones</div>';
+            }
+            
+            funcionesCalendario.forEach(func => {
+                if (typeof window[func] === 'function') {
+                    checks.push({ tipo: 'success', mensaje: `✅ Función ${func} disponible` });
+                    html += `<div class="check-item success">✅ Función ${func} disponible</div>`;
+                } else {
+                    if (esCalendario) {
+                        checks.push({ tipo: 'error', mensaje: `❌ Función ${func} NO disponible` });
+                        html += `<div class="check-item error">❌ Función ${func} NO disponible</div>`;
+                    } else {
+                        checks.push({ tipo: 'warning', mensaje: `⚠️ Función ${func} NO disponible (normal si no estás en calendario.html)` });
+                        html += `<div class="check-item warning">⚠️ Función ${func} NO disponible</div>`;
+                    }
+                }
+            });
+            html += '</div>';
+
+            // 3. Verificar jason.solis
+            html += '<div class="container"><h2>3️⃣ Verificación de jason.solis</h2>';
+            try {
+                if (!db) {
+                    checks.push({ tipo: 'warning', mensaje: '⚠️ Firebase no está disponible' });
+                    html += '<div class="check-item warning">⚠️ Firebase no está disponible</div>';
+                } else {
+                    try {
+                        const docRef = doc(db, 'empleados', 'jason.solis');
+                        const docSnap = await getDoc(docRef);
+                        
+                        if (docSnap.exists()) {
+                            const datos = docSnap.data();
+                            checks.push({ tipo: 'success', mensaje: '✅ jason.solis encontrado en Firestore' });
+                            html += '<div class="check-item success">✅ jason.solis encontrado en Firestore</div>';
+                            html += `<div class="check-item info">Username: ${datos.username || 'N/A'}</div>`;
+                            html += `<div class="check-item info">Email: ${datos.email || datos.firebaseAuthEmail || 'N/A'}</div>`;
+                            html += `<div class="check-item info">Firebase Auth UID: ${datos.firebaseAuthUID || 'N/A'}</div>`;
+                            html += `<div class="check-item info">Estado: ${datos.estado || datos.activo || 'N/A'}</div>`;
+                        } else {
+                            checks.push({ tipo: 'warning', mensaje: '⚠️ jason.solis NO encontrado en Firestore' });
+                            html += '<div class="check-item warning">⚠️ jason.solis NO encontrado en Firestore</div>';
+                        }
+                    } catch (authError) {
+                        checks.push({ tipo: 'warning', mensaje: `⚠️ Se requiere autenticación para verificar jason.solis: ${authError.message}` });
+                        html += `<div class="check-item warning">⚠️ Se requiere autenticación para verificar jason.solis</div>`;
+                        html += '<div class="check-item info">💡 Inicia sesión en el sistema para verificar este usuario</div>';
+                    }
+                }
+            } catch (error) {
+                checks.push({ tipo: 'error', mensaje: `❌ Error verificando jason.solis: ${error.message}` });
+                html += `<div class="check-item error">❌ Error: ${error.message}</div>`;
+            }
+            html += '</div>';
+
+            // 4. Verificar errores en consola
+            html += '<div class="container"><h2>4️⃣ Verificación de Errores</h2>';
+            const erroresEncontrados = [];
+            const warningsEncontrados = [];
+
+            // Capturar errores de la consola
+            const originalError = console.error;
+            const originalWarn = console.warn;
+            
+            console.error = function(...args) {
+                erroresEncontrados.push(args.join(' '));
+                originalError.apply(console, args);
+            };
+            
+            console.warn = function(...args) {
+                warningsEncontrados.push(args.join(' '));
+                originalWarn.apply(console, args);
+            };
+
+            // Esperar un momento para capturar errores
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            if (erroresEncontrados.length === 0 && warningsEncontrados.length === 0) {
+                checks.push({ tipo: 'success', mensaje: '✅ No se encontraron errores en la consola' });
+                html += '<div class="check-item success">✅ No se encontraron errores en la consola</div>';
+            } else {
+                if (erroresEncontrados.length > 0) {
+                    checks.push({ tipo: 'error', mensaje: `❌ Se encontraron ${erroresEncontrados.length} errores` });
+                    html += `<div class="check-item error">❌ Se encontraron ${erroresEncontrados.length} errores</div>`;
+                    erroresEncontrados.slice(0, 5).forEach(err => {
+                        html += `<div class="check-item warning"><pre>${err}</pre></div>`;
+                    });
+                }
+                if (warningsEncontrados.length > 0) {
+                    checks.push({ tipo: 'warning', mensaje: `⚠️ Se encontraron ${warningsEncontrados.length} advertencias` });
+                    html += `<div class="check-item warning">⚠️ Se encontraron ${warningsEncontrados.length} advertencias</div>`;
+                }
+            }
+            html += '</div>';
+
+            // 5. Resumen
+            html += '<div class="container"><h2>📊 Resumen</h2>';
+            const exitosos = checks.filter(c => c.tipo === 'success').length;
+            const errores = checks.filter(c => c.tipo === 'error').length;
+            const warnings = checks.filter(c => c.tipo === 'warning').length;
+
+            html += `<div class="check-item ${errores === 0 ? 'success' : 'error'}">`;
+            html += `<strong>Total de verificaciones:</strong> ${checks.length}<br>`;
+            html += `<strong>Exitosas:</strong> ${exitosos}<br>`;
+            html += `<strong>Errores:</strong> ${errores}<br>`;
+            html += `<strong>Advertencias:</strong> ${warnings}`;
+            html += '</div>';
+
+            if (errores === 0) {
+                html += '<div class="check-item success"><strong>✅ El sistema está funcionando correctamente</strong></div>';
+            } else {
+                html += '<div class="check-item error"><strong>❌ Se encontraron errores que requieren atención</strong></div>';
+            }
+            
+            html += '<div class="check-item info">';
+            html += '<strong>💡 Notas importantes:</strong><br>';
+            html += '• Las funciones de calendario solo están disponibles en calendario.html<br>';
+            html += '• Las funciones de empleados solo están disponibles en empleados.html<br>';
+            html += '• Para verificar Firebase Auth, necesitas estar autenticado<br>';
+            html += '• Ejecuta este script en la consola de las páginas reales para verificación completa';
+            html += '</div>';
+            html += '</div>';
+
+            resultadoDiv.innerHTML = html;
+
+            // Mostrar en consola también
+            console.log('\n' + '='.repeat(60));
+            console.log('📊 RESUMEN DE VERIFICACIÓN');
+            console.log('='.repeat(60));
+            checks.forEach(check => {
+                console.log(check.mensaje);
+            });
+            console.log('='.repeat(60) + '\n');
+        }
+
+        verificarSistema().catch(error => {
+            document.getElementById('resultado').innerHTML = 
+                `<div class="container"><div class="check-item error"><h3>❌ Error en la verificación</h3><pre>${error.stack}</pre></div></div>`;
+            console.error('Error:', error);
+        });
+    </script>
+</body>
+</html>
