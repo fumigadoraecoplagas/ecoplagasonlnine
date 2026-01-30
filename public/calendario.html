@@ -393,7 +393,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             background: #f8f9fa;
             border-right: 2px solid #e9ecef;
             padding: 0 10px;
-            min-height: 792px; /* Altura del timeline (24 horas * 33px) */
+            min-height: 960px; /* Altura del timeline (24 horas * 40px = 1cm por hora) */
             position: relative; /* Posición relativa para que el transform funcione dentro del contenedor */
             flex-shrink: 0; /* No reducir tamaño */
             z-index: 5;
@@ -401,7 +401,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         }
 
         .hora-marcador {
-            height: 33px;
+            height: 40px; /* 1cm por hora */
             display: flex;
             align-items: center;
             font-size: 0.7rem;
@@ -771,9 +771,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
 
         .citas-timeline {
             position: relative;
-            height: 792px; /* Altura del timeline (24 horas * 33px) */
-            min-height: 792px; /* Mantener altura mínima */
-            max-height: 792px; /* Altura máxima fija */
+            height: 960px; /* Altura del timeline (24 horas * 40px = 1cm por hora) */
+            min-height: 960px; /* Mantener altura mínima */
+            max-height: 960px; /* Altura máxima fija */
             padding-left: 0; /* Sin padding para que los marcadores estén alineados */
             margin-top: 0; /* Sin margen superior */
             top: 0; /* Empezar justo después del header */
@@ -788,7 +788,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             position: absolute;
             left: 0;
             width: 100%;
-            height: 33px;
+            height: 40px; /* 1cm por hora */
             /* Sin border-bottom, las líneas divisorias ya están manejadas por .linea-divisoria-hora */
             pointer-events: none;
             z-index: 1;
@@ -1485,6 +1485,20 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
 
             <!-- Vista de Cronograma -->
             <div id="vistaCronograma" class="vista-dia" style="display: none;">
+                <!-- Buscador de Citas -->
+                <div class="buscador-citas-container mb-3" style="padding: 8px; background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <div class="position-relative">
+                        <label class="form-label mb-2" style="font-size: 0.9rem; font-weight: 600; color: #000000;">
+                            <i class="fas fa-search me-2"></i>Buscar Citas por Cliente o Teléfono
+                        </label>
+                        <input type="text" id="buscadorCitas" class="form-control" placeholder="Escribe el nombre del cliente o número de teléfono..." 
+                               style="border: 1px solid #e0e0e0; font-size: 1rem; padding: 0.75rem; border-radius: 8px;">
+                        <div id="resultadosBusquedaCitas" class="dropdown-menu" style="display: none; width: 100%; max-height: 400px; overflow-y: auto; z-index: 1050; margin-top: 4px;">
+                            <!-- Los resultados se mostrarán aquí -->
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Cajas de recursos sin asignar -->
                 <div class="recursos-sin-asignar-container mb-1" style="padding: 8px; margin-top: 0;">
                     <div class="recurso-caja">
@@ -1646,7 +1660,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                         <option value="660">11 horas</option>
                                         <option value="720">12 horas</option>
                                     </select>
-                                        </div>
+                                </div>
+                                
+                                <!-- Hora de Fin (calculada) -->
+                                <div class="col-12 col-md" style="flex: 0 0 auto; max-width: 230px;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Hora de Fin</label>
+                                    <input type="text" id="editEndTime" class="form-control" readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f8f9fa; border-radius: 8px; color: #000000; cursor: not-allowed;">
+                                </div>
                                 
                                 <!-- Ruta -->
                                 <div class="col-12 col-md" style="flex: 0 0 auto; max-width: 120px;">
@@ -1836,8 +1856,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                 <!-- Monto de Venta (calculado automáticamente) -->
                                 <div class="col-md-6">
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Monto de Venta (₡)</label>
-                                    <input type="text" id="editMontoVenta" class="form-control" placeholder="0" readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f8f9fa; border-radius: 8px; color: #000000; cursor: not-allowed;">
-                                    <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Calculado automáticamente: Precio Total + Costo del Servicio</small>
+                                    <input type="text" id="editMontoVenta" class="form-control" placeholder="0" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                    <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Se calcula automáticamente (Servicios + Productos + Costo del Servicio). Puede editarse manualmente.</small>
     </div>
                                 
                                 <!-- Método de Pago -->
@@ -2151,6 +2171,12 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                     </select>
                                 </div>
                                 
+                                <!-- Hora de Fin (calculada) -->
+                                <div class="col-12 col-md" style="flex: 0 0 auto; max-width: 230px;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Hora de Fin</label>
+                                    <input type="text" id="newEndTime" class="form-control" readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f8f9fa; border-radius: 8px; color: #000000; cursor: not-allowed;">
+                                </div>
+                                
                                 <!-- Ruta -->
                                 <div class="col-12 col-md" style="flex: 0 0 auto; max-width: 120px;">
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Ruta <span style="color: #ea0e2a;">*</span></label>
@@ -2340,8 +2366,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                 <!-- Monto de Venta (calculado automáticamente) -->
                                 <div class="col-md-6">
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Monto de Venta (₡)</label>
-                                    <input type="text" id="newMontoVenta" class="form-control" placeholder="0" readonly style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f8f9fa; border-radius: 8px; color: #000000; cursor: not-allowed;">
-                                    <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Calculado automáticamente: Precio Total + Costo del Servicio</small>
+                                    <input type="text" id="newMontoVenta" class="form-control" placeholder="0" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                    <small class="d-block mt-1" style="font-size: 0.85rem; color: #000000; opacity: 0.7; font-family: 'Inter', sans-serif;">Se calcula automáticamente (Servicios + Productos + Costo del Servicio). Puede editarse manualmente.</small>
                         </div>
                                 
                                 <!-- Método de Pago -->
@@ -3201,6 +3227,53 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         }
 
         // Función global para abrir modal de edición
+        // Función para calcular y mostrar la hora de fin basándose en la hora de inicio y duración
+        window.calcularHoraFin = function(prefix = 'edit') {
+            const startTimeInput = document.getElementById(prefix === 'edit' ? 'editStartTime' : 'newStartTime');
+            const durationSelect = document.getElementById(prefix === 'edit' ? 'editDuration' : 'newDuration');
+            const endTimeInput = document.getElementById(prefix === 'edit' ? 'editEndTime' : 'newEndTime');
+            
+            if (!startTimeInput || !durationSelect || !endTimeInput) {
+                return;
+            }
+            
+            const startTimeValue = startTimeInput.value;
+            const durationValue = parseInt(durationSelect.value) || 0;
+            
+            if (!startTimeValue || durationValue === 0) {
+                endTimeInput.value = '';
+                return;
+            }
+            
+            try {
+                // Crear objeto Date desde el valor datetime-local
+                const startDate = new Date(startTimeValue);
+                
+                if (isNaN(startDate.getTime())) {
+                    endTimeInput.value = '';
+                    return;
+                }
+                
+                // Agregar la duración en minutos
+                const endDate = new Date(startDate.getTime() + durationValue * 60000);
+                
+                // Formatear la fecha de fin en formato legible (DD/MM/YYYY HH:MM AM/PM)
+                const day = String(endDate.getDate()).padStart(2, '0');
+                const month = String(endDate.getMonth() + 1).padStart(2, '0');
+                const year = endDate.getFullYear();
+                const hours = endDate.getHours();
+                const minutes = String(endDate.getMinutes()).padStart(2, '0');
+                const ampm = hours >= 12 ? 'p. m.' : 'a. m.';
+                const hours12 = hours % 12 || 12;
+                
+                const horaFinFormateada = `${day}/${month}/${year} ${hours12}:${minutes} ${ampm}`;
+                endTimeInput.value = horaFinFormateada;
+            } catch (error) {
+                console.error('Error calculando hora de fin:', error);
+                endTimeInput.value = '';
+            }
+        };
+        
         async function abrirModalEdicion(citaId) {
             console.log('🔍 ===== INICIANDO abrirModalEdicion =====');
             console.log('🔍 Cita ID recibido:', citaId);
@@ -3401,6 +3474,32 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 duracionSeleccionada = 480;
             }
             document.getElementById('editDuration').value = duracionSeleccionada;
+            
+            // Calcular y mostrar hora de fin
+            window.calcularHoraFin('edit');
+            
+            // Agregar event listeners para actualizar hora de fin automáticamente
+            const editStartTimeInput = document.getElementById('editStartTime');
+            const editDurationSelect = document.getElementById('editDuration');
+            
+            // Remover listeners anteriores si existen para evitar duplicados
+            const newEditStartTimeHandler = () => window.calcularHoraFin('edit');
+            const newEditDurationHandler = () => window.calcularHoraFin('edit');
+            
+            // Guardar referencias para poder removerlos después
+            if (editStartTimeInput) {
+                editStartTimeInput.removeEventListener('change', window._editStartTimeHandler);
+                editStartTimeInput.removeEventListener('input', window._editStartTimeHandler);
+                window._editStartTimeHandler = newEditStartTimeHandler;
+                editStartTimeInput.addEventListener('change', window._editStartTimeHandler);
+                editStartTimeInput.addEventListener('input', window._editStartTimeHandler);
+            }
+            
+            if (editDurationSelect) {
+                editDurationSelect.removeEventListener('change', window._editDurationHandler);
+                window._editDurationHandler = newEditDurationHandler;
+                editDurationSelect.addEventListener('change', window._editDurationHandler);
+            }
             
             // Vendedores: cargar empleados y inicializar búsqueda
             if (!window.empleados || window.empleados.length === 0) {
@@ -3778,6 +3877,22 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             
             const montoVentaInput = document.getElementById('editMontoVenta');
             if (montoVentaInput) {
+                // Detectar cuando el usuario empieza a editar manualmente
+                montoVentaInput.addEventListener('focus', () => {
+                    window.editandoMontoVentaManual.edit = true;
+                });
+                
+                // Detectar cuando el usuario termina de editar
+                montoVentaInput.addEventListener('blur', () => {
+                    window.editandoMontoVentaManual.edit = false;
+                    // Formatear el valor al perder el foco
+                    const valorNumerico = window.extraerValorNumerico(montoVentaInput.value);
+                    if (valorNumerico !== '') {
+                        montoVentaInput.value = window.formatearMontoVenta(valorNumerico);
+                    }
+                    window.actualizarResumenFinanciero();
+                });
+                
                 // Formatear cuando se presiona Enter o se pierde el foco
                 montoVentaInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
@@ -3787,10 +3902,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         montoVentaInput.blur();
                     }
                 });
-                montoVentaInput.addEventListener('blur', () => {
-                    const valorNumerico = window.extraerValorNumerico(montoVentaInput.value);
-                    montoVentaInput.value = window.formatearMontoVenta(valorNumerico);
-                });
+                // El blur ya está manejado arriba
                 montoVentaInput.addEventListener('input', () => {
                     window.actualizarResumenFinanciero();
                 });
@@ -3813,9 +3925,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     if (window.actualizarResumenFinanciero) {
                         window.actualizarResumenFinanciero();
                     }
+                    // Calcular monto de venta automáticamente
+                    window.calcularMontoVenta('edit');
                 });
                 costoServicioInput.addEventListener('input', () => {
                     window.actualizarResumenFinanciero();
+                    // Calcular monto de venta automáticamente
+                    window.calcularMontoVenta('edit');
                 });
             }
             
@@ -3850,20 +3966,49 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             console.log('🔍 Modal classes:', modalElement ? modalElement.className : 'No encontrado');
             
             try {
-                const modal = new bootstrap.Modal(modalElement);
-                console.log('🔍 Modal instance creada:', modal);
+                // Obtener o crear instancia del modal
+                let modal = bootstrap.Modal.getInstance(modalElement);
+                if (!modal) {
+                    modal = new bootstrap.Modal(modalElement, {
+                        backdrop: true,
+                        keyboard: true,
+                        focus: true
+                    });
+                }
+                
+                // Asegurar que el modal esté configurado correctamente
+                modalElement.setAttribute('aria-hidden', 'false');
+                modalElement.removeAttribute('aria-modal');
+                
+                // Mostrar el modal
                 modal.show();
                 console.log('✅ Modal.show() ejecutado');
+                
+                // Esperar a que el modal se muestre completamente
+                modalElement.addEventListener('shown.bs.modal', function onModalShown() {
+                    modalElement.removeEventListener('shown.bs.modal', onModalShown);
+                    console.log('✅ Modal completamente visible');
+                    // Asegurar que aria-hidden esté en false
+                    modalElement.setAttribute('aria-hidden', 'false');
+                }, { once: true });
                 
                 // Verificar si el modal se abrió
                 setTimeout(() => {
                     console.log('🔍 Modal visible después de 100ms:', modalElement.classList.contains('show'));
-                    console.log('🔍 Modal display style:', modalElement.style.display);
+                    console.log('🔍 Modal display style:', window.getComputedStyle(modalElement).display);
                     console.log('🔍 Modal aria-hidden:', modalElement.getAttribute('aria-hidden'));
                 }, 100);
                 
             } catch (error) {
                 console.error('❌ Error al abrir modal:', error);
+                // Fallback: mostrar el modal manualmente
+                modalElement.classList.add('show');
+                modalElement.style.display = 'block';
+                modalElement.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('modal-open');
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
             }
             
             console.log('🔍 ===== FIN abrirModalEdicion =====');
@@ -4673,7 +4818,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                         data-prefix="${prefix}"
                                         style="font-size: 0.9rem; resize: vertical; border: 1px solid #ced4da;"
                                         onblur="guardarComentariosServicio('${serv.id}', '${prefix}')"
-                                        oninput="validarComentariosServicio('${serv.id}', '${prefix}')"
+                                        oninput="window.validarComentarioServicioIndividual && window.validarComentarioServicioIndividual('${serv.id}', '${prefix}')"
                                     >${comentariosEscapados}</textarea>
                                     <small id="errorComentarios-${prefix}-${serv.id}" style="color: #dc3545; display: none; font-size: 0.8rem; margin-top: 0.25rem;">Este campo es obligatorio</small>
                                 </div>
@@ -4715,8 +4860,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     // Actualizar resumen financiero cuando se cambia el precio total manualmente
                     if (prefix === 'edit' && window.actualizarResumenFinanciero) {
                         window.actualizarResumenFinanciero();
+                        window.calcularMontoVenta('edit');
                     } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
                         window.actualizarResumenFinancieroNew();
+                        window.calcularMontoVenta('new');
                     }
                     
                     return;
@@ -4765,8 +4912,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Actualizar resumen financiero cuando se actualiza el precio total
                 if (prefix === 'edit' && window.actualizarResumenFinanciero) {
                     window.actualizarResumenFinanciero();
+                    window.calcularMontoVenta('edit');
                 } else if (prefix === 'new' && window.actualizarResumenFinancieroNew) {
                     window.actualizarResumenFinancieroNew();
+                    window.calcularMontoVenta('new');
                 }
             };
             
@@ -4913,6 +5062,49 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             };
             
             // Función para validar que todos los servicios tengan comentarios (obligatorio)
+            // Función para validar comentarios de un servicio individual (en tiempo real)
+            window.validarComentarioServicioIndividual = function(servicioId, prefix) {
+                const textarea = document.getElementById(`textareaComentarios-${prefix}-${servicioId}`);
+                const errorMsg = document.getElementById(`errorComentarios-${prefix}-${servicioId}`);
+                
+                if (!textarea) return;
+                
+                const comentarios = textarea.value.trim();
+                
+                // Actualizar comentarios en el array de servicios seleccionados
+                const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
+                const servicioIndex = selected.findIndex(serv => {
+                    const id = typeof serv === 'string' ? serv : serv.id;
+                    return id === servicioId;
+                });
+                
+                if (servicioIndex !== -1) {
+                    const serv = selected[servicioIndex];
+                    if (typeof serv === 'object') {
+                        serv.comentarios = comentarios;
+                    } else {
+                        // Convertir string a objeto
+                        selected[servicioIndex] = {
+                            id: serv,
+                            comentarios: comentarios
+                        };
+                    }
+                }
+                
+                // Validar y mostrar/ocultar error
+                if (comentarios === '') {
+                    textarea.classList.add('is-invalid');
+                    if (errorMsg) {
+                        errorMsg.style.display = 'block';
+                    }
+                } else {
+                    textarea.classList.remove('is-invalid');
+                    if (errorMsg) {
+                        errorMsg.style.display = 'none';
+                    }
+                }
+            };
+            
             window.validarComentariosServicios = function(prefix) {
                 const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
                 const serviciosSinComentarios = [];
@@ -6255,19 +6447,106 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             return window.obtenerCampoCita(cita, 'monto', 0);
         };
         
+        // Función para calcular la ganancia neta de una cita
+        // Los servicios son ganancia (ingresos), no costos
+        // Ganancia neta = Servicios + Productos + Costo del servicio
+        window.obtenerGananciaNeta = function(cita) {
+            if (!cita) {
+                console.warn('⚠️ [obtenerGananciaNeta] Cita no proporcionada');
+                return 0;
+            }
+            
+            // Calcular total de servicios (suma de precios de servicios seleccionados - estos son ganancia)
+            const servicios = window.obtenerServicios ? window.obtenerServicios(cita) : [];
+            let totalServicios = 0;
+            if (Array.isArray(servicios)) {
+                servicios.forEach(serv => {
+                    if (typeof serv === 'object') {
+                        if (serv.precio !== undefined) {
+                            // Servicio con precio personalizado
+                            const cantidad = serv.cantidad || 1;
+                            const precioServicio = (serv.precio || 0) * cantidad;
+                            totalServicios += precioServicio;
+                            console.log('🔍 [obtenerGananciaNeta] Servicio con precio:', { precio: serv.precio, cantidad, total: precioServicio });
+                        } else if (serv.id) {
+                            // Objeto con id pero sin precio, buscar precio en todosLosServicios
+                            if (window.todosLosServicios) {
+                                const servicio = window.todosLosServicios.find(s => s.id === serv.id);
+                                if (servicio) {
+                                    const cantidad = serv.cantidad || 1;
+                                    const precioServicio = (servicio.precio || 0) * cantidad;
+                                    totalServicios += precioServicio;
+                                    console.log('🔍 [obtenerGananciaNeta] Servicio objeto con ID:', { id: serv.id, cantidad, precio: servicio.precio, total: precioServicio });
+                                }
+                            }
+                        }
+                    } else if (typeof serv === 'string') {
+                        // ID de servicio, buscar precio en todosLosServicios
+                        if (window.todosLosServicios) {
+                            const servicio = window.todosLosServicios.find(s => s.id === serv);
+                            if (servicio) {
+                                const precioServicio = servicio.precio || 0;
+                                totalServicios += precioServicio;
+                                console.log('🔍 [obtenerGananciaNeta] Servicio por ID string:', { id: serv, precio: precioServicio });
+                            }
+                        }
+                    }
+                });
+            }
+            console.log('🔍 [obtenerGananciaNeta] Total servicios:', totalServicios);
+            
+            // Calcular total de productos (costos de productos x cantidad)
+            const productos = window.obtenerProductos ? window.obtenerProductos(cita) : [];
+            let totalProductos = 0;
+            if (Array.isArray(productos)) {
+                productos.forEach(item => {
+                    const productoId = typeof item === 'object' ? item.id : item;
+                    const cantidad = typeof item === 'object' ? (item.cantidad || 1) : 1;
+                    
+                    if (window.todosLosProductos) {
+                        const producto = window.todosLosProductos.find(p => p.id === productoId);
+                        if (producto) {
+                            const costoUnitario = producto.precioUnitario || producto.precio || 0;
+                            const costoProducto = costoUnitario * cantidad;
+                            totalProductos += costoProducto;
+                            console.log('🔍 [obtenerGananciaNeta] Producto:', { id: productoId, cantidad, costoUnitario, total: costoProducto });
+                        }
+                    }
+                });
+            }
+            console.log('🔍 [obtenerGananciaNeta] Total productos:', totalProductos);
+            
+            // Obtener costo del servicio desde metadata.costo_servicio
+            const costoServicio = window.obtenerCampoCita ? window.obtenerCampoCita(cita, 'costo_servicio', 0) : 0;
+            console.log('🔍 [obtenerGananciaNeta] Costo servicio:', costoServicio);
+            
+            // Calcular ganancia neta: Servicios + Productos + Costo del servicio
+            // (Los servicios son ganancia, por lo que se suman positivamente)
+            const gananciaNeta = totalServicios + totalProductos + costoServicio;
+            console.log('🔍 [obtenerGananciaNeta] Ganancia neta final:', gananciaNeta, '= Servicios(', totalServicios, ') + Productos(', totalProductos, ') + Costo(', costoServicio, ')');
+            
+            return gananciaNeta;
+        };
+        
         // Función para formatear número con símbolo ₡ y puntos para miles
         window.formatearMontoVenta = function(valor) {
-            if (!valor || valor === '' || valor === '0') {
+            // Convertir a número si es string
+            let numero = typeof valor === 'string' ? parseFloat(valor.toString().replace(/[^\d.-]/g, '')) : valor;
+            
+            // Si no es un número válido, retornar cadena vacía
+            if (isNaN(numero) || numero === null || numero === undefined) {
                 return '';
             }
-            // Extraer solo números del valor
-            const numero = valor.toString().replace(/[^\d]/g, '');
-            if (!numero || numero === '0') {
+            
+            // Si el número es 0, también retornar cadena vacía (no mostrar ₡0)
+            if (numero === 0) {
                 return '';
             }
-            // Convertir a número y formatear con puntos para miles
-            const numeroFormateado = parseInt(numero, 10).toLocaleString('es-CR');
-            return `₡${numeroFormateado}`;
+            
+            // Formatear con puntos para miles
+            const numeroFormateado = Math.abs(numero).toLocaleString('es-CR');
+            const signo = numero < 0 ? '-' : '';
+            return `${signo}₡${numeroFormateado}`;
         };
         
         // Función para extraer el valor numérico sin formato
@@ -10452,6 +10731,49 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             });
         };
         
+        // Variable para rastrear si el usuario está editando manualmente el monto de venta
+        window.editandoMontoVentaManual = { edit: false, new: false };
+        
+        // Función para calcular el monto de venta automáticamente
+        window.calcularMontoVenta = function(prefix = 'edit') {
+            // Si el usuario está editando manualmente, no sobrescribir
+            if (window.editandoMontoVentaManual[prefix]) {
+                return;
+            }
+            
+            // Obtener el precio total de servicios del campo (puede ser manual o calculado)
+            const precioTotalServiciosInput = document.getElementById(prefix === 'edit' ? 'editPrecioTotalServicios' : 'newPrecioTotalServicios');
+            const valorNumericoServicios = precioTotalServiciosInput ? window.extraerValorNumerico(precioTotalServiciosInput.value) : '0';
+            const totalServicios = parseFloat(valorNumericoServicios) || 0;
+            
+            // Calcular total de productos (costos)
+            const productosSeleccionados = window.obtenerProductosSeleccionados();
+            let totalProductos = 0;
+            productosSeleccionados.forEach(item => {
+                const producto = window.todosLosProductos.find(p => p.id === item.id);
+                if (producto) {
+                    const costoUnitario = producto.precioUnitario || producto.precio || 0;
+                    const cantidad = item.cantidad || 1;
+                    totalProductos += costoUnitario * cantidad;
+                }
+            });
+            
+            // Obtener costo del servicio (extraer valor numérico sin formato)
+            const costoServicioInput = document.getElementById(prefix === 'edit' ? 'editCostoServicio' : 'newCostoServicio');
+            const valorNumericoCosto = costoServicioInput ? window.extraerValorNumerico(costoServicioInput.value) : '0';
+            const costoServicio = parseFloat(valorNumericoCosto) || 0;
+            
+            // Calcular monto de venta: Servicios + Productos + Costo del servicio
+            const montoVentaCalculado = totalServicios + totalProductos + costoServicio;
+            
+            // Actualizar el campo de monto de venta
+            const montoVentaInput = document.getElementById(prefix === 'edit' ? 'editMontoVenta' : 'newMontoVenta');
+            if (montoVentaInput) {
+                const montoFormateado = window.formatearMontoVenta(montoVentaCalculado);
+                montoVentaInput.value = montoFormateado;
+            }
+        };
+        
         // Función para calcular y actualizar resumen financiero
         window.actualizarResumenFinanciero = function() {
             // Obtener el precio total de servicios del campo (puede ser manual o calculado)
@@ -10460,7 +10782,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const totalServicios = parseFloat(valorNumericoServicios) || 0;
             
             // Calcular total de productos (costos)
-            const productosSeleccionados = window.obtenerProductosSeleccionados('edit');
+            const productosSeleccionados = window.obtenerProductosSeleccionados();
             let totalProductos = 0;
             productosSeleccionados.forEach(item => {
                 const producto = window.todosLosProductos.find(p => p.id === item.id);
@@ -10476,16 +10798,20 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const valorNumericoCosto = costoServicioInput ? window.extraerValorNumerico(costoServicioInput.value) : '0';
             const costoServicio = parseFloat(valorNumericoCosto) || 0;
             
-            // Total de costos (servicios + productos + costo del servicio)
-            const totalCostos = totalServicios + totalProductos + costoServicio;
+            // Total de costos (solo productos + costo del servicio, los servicios son ganancia)
+            const totalCostos = totalProductos + costoServicio;
+            
+            // Calcular monto de venta automáticamente si no está siendo editado manualmente
+            window.calcularMontoVenta('edit');
             
             // Obtener monto de venta (extraer valor numérico sin formato)
             const montoVentaInput = document.getElementById('editMontoVenta');
             const valorNumerico = montoVentaInput ? window.extraerValorNumerico(montoVentaInput.value) : '0';
             const montoVenta = parseFloat(valorNumerico) || 0;
             
-            // Calcular neto
-            const neto = montoVenta - totalCostos;
+            // Calcular ganancia neta: Servicios + Productos + Costo del servicio
+            // (Los servicios son ganancia/ingresos, por lo que se suman positivamente)
+            const neto = totalServicios + totalProductos + costoServicio;
             
             // Actualizar UI
             document.getElementById('totalServicios').textContent = `₡${totalServicios.toLocaleString('es-CR')}`;
@@ -10531,16 +10857,20 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const valorNumericoCosto = costoServicioInput ? window.extraerValorNumerico(costoServicioInput.value) : '0';
             const costoServicio = parseFloat(valorNumericoCosto) || 0;
             
-            // Total de costos (servicios + productos + costo del servicio)
-            const totalCostos = totalServicios + totalProductos + costoServicio;
+            // Total de costos (solo productos + costo del servicio, los servicios son ganancia)
+            const totalCostos = totalProductos + costoServicio;
+            
+            // Calcular monto de venta automáticamente si no está siendo editado manualmente
+            window.calcularMontoVenta('new');
             
             // Obtener monto de venta (extraer valor numérico sin formato)
             const montoVentaInput = document.getElementById('newMontoVenta');
             const valorNumerico = montoVentaInput ? window.extraerValorNumerico(montoVentaInput.value) : '0';
             const montoVenta = parseFloat(valorNumerico) || 0;
             
-            // Calcular neto
-            const neto = montoVenta - totalCostos;
+            // Calcular ganancia neta: Servicios + Productos + Costo del servicio
+            // (Los servicios son ganancia/ingresos, por lo que se suman positivamente)
+            const neto = totalServicios + totalProductos + costoServicio;
             
             // Actualizar UI
             const totalServiciosEl = document.getElementById('newTotalServicios');
@@ -10730,7 +11060,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 }).filter(s => s !== null);
                 
                 // Obtener productos
-                const productosSeleccionados = window.obtenerProductosSeleccionados('edit');
+                const productosSeleccionados = window.obtenerProductosSeleccionados();
                 let totalProductos = 0;
                 const productosDetalle = productosSeleccionados.map(item => {
                     const producto = window.todosLosProductos.find(p => p.id === item.id);
@@ -11220,6 +11550,17 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Cargar mapa de encuestas en paralelo
                 await cargarMapaEncuestas();
 
+                // Cargar servicios y productos ANTES de generar el calendario
+                // (necesarios para calcular la ganancia neta en la vista de citas)
+                if (!window.todosLosServicios || window.todosLosServicios.length === 0) {
+                    console.log('🔍 Cargando servicios para cálculo de ganancia neta...');
+                    await window.cargarServicios();
+                }
+                if (!window.todosLosProductos || window.todosLosProductos.length === 0) {
+                    console.log('🔍 Cargando productos para cálculo de ganancia neta...');
+                    await window.cargarProductos();
+                }
+
                 console.log('🔍 Creando query para Firebase...');
                 // NOTA: Esta consulta es para VISUALIZACIÓN (mostrar calendario)
                 // El calendario necesita todas las citas para filtrar y mostrar correctamente
@@ -11283,6 +11624,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 }
                 
                 console.log('✅ ===== FIN cargarDatos =====');
+                
+                // Inicializar buscador de citas después de cargar los datos
+                if (window.inicializarBuscadorCitas) {
+                    window.inicializarBuscadorCitas();
+                }
 
             } catch (error) {
                 console.error('Error cargando datos:', error);
@@ -11643,9 +11989,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                         if (clienteNombre && clienteNombre !== 'Sin nombre') lineaInferior.push(clienteNombre);
                                         
                                         citaElement.innerHTML = `
-                                            ${indicadorGPS}
                                             <div class="cita-duracion">${obtenerDuracion(cita)}min</div>
-                                            <div class="cita-hora">${emojiTurno} ${textoPrincipal}${indicadorEncuesta}</div>
+                                            <div class="cita-hora">${textoPrincipal}</div>
                                             ${lineaInferior.length > 0 ? `<div style="font-size: 0.7rem; line-height: 1.3; margin-top: 0.15rem; color: #ffffff;">${lineaInferior.join(' • ')}</div>` : ''}
                                             <div class="cita-descripcion">${obtenerDescripcion(cita)}</div>
                                             <div class="mt-2">
@@ -11808,7 +12153,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Calcular minutos desde el inicio del timeline visible - IGUAL QUE EN DROP
                 // En vista total: yInicioCita = 0px corresponde a 5 AM (0 minutos desde 5 AM)
                 // En vista compacta: yInicioCita = 0px corresponde a minutosInicioConMargen
-                const minutosDesdeInicioTimeline = (yInicioCita / 33) * 60;
+                const minutosDesdeInicioTimeline = (yInicioCita / 40) * 60; // 40px por hora = 1cm
                 
                 // Convertir a minutos desde las 5 AM (sumando el offset del inicio del timeline) - IGUAL QUE EN DROP
                 const minutosDesde5AM = Math.max(0, Math.min(1439, minutosDesdeInicioTimeline + offsetInicioTimeline));
@@ -11922,7 +12267,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Calcular minutos desde el inicio del timeline visible
                 // En vista total: yInicioCita = 0px corresponde a 5 AM (0 minutos desde 5 AM)
                 // En vista compacta: yInicioCita = 0px corresponde a minutosInicioConMargen
-                const minutosDesdeInicioTimeline = (yInicioCita / 33) * 60;
+                const minutosDesdeInicioTimeline = (yInicioCita / 40) * 60; // 40px por hora = 1cm
                 
                 // Convertir a minutos desde las 5 AM (sumando el offset del inicio del timeline)
                 const minutosDesde5AM = Math.max(0, Math.min(1439, minutosDesdeInicioTimeline + offsetInicioTimeline));
@@ -12101,7 +12446,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     // Calcular minutos desde el inicio del timeline visible
                     // En vista total: inicioY = 0px corresponde a 5 AM (0 minutos desde 5 AM)
                     // En vista compacta: inicioY = 0px corresponde a minutosInicioConMargen
-                    const minutosDesdeInicioTimeline = (inicioY / 33) * 60;
+                    const minutosDesdeInicioTimeline = (inicioY / 40) * 60; // 40px por hora = 1cm
                     
                     // Convertir a minutos desde las 5 AM (sumando el offset del inicio del timeline)
                     const minutosDesde5AM = Math.max(0, Math.min(1439, minutosDesdeInicioTimeline + offsetInicioTimeline));
@@ -12131,7 +12476,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     const minutosRedondeadosInicio = Math.round(minutosInicio / 15) * 15;
                     
                     // Calcular duración basada en finY
-                    const minutosDesdeInicioTimelineFin = (finY / 33) * 60;
+                    const minutosDesdeInicioTimelineFin = (finY / 40) * 60; // 40px por hora = 1cm
                     const minutosDesde5AMFin = Math.max(0, Math.min(1439, minutosDesdeInicioTimelineFin + offsetInicioTimeline));
                     const minutosRedondeadosDesde5AMFin = Math.round(minutosDesde5AMFin / 15) * 15;
                     const duracionMinutos = Math.max(15, minutosRedondeadosDesde5AMFin - minutosRedondeadosDesde5AM);
@@ -12318,13 +12663,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             const generarMarcadoresHora = () => {
                 let html = '';
                 for (let hora = 0; hora < 24; hora++) {
-                    const top = hora * 33; // Posición desde el inicio (33px por hora)
+                    const top = hora * 40; // Posición desde el inicio (40px por hora = 1cm)
                     const horaFormateada = hora === 0 ? '12:00 AM' : 
                                          hora < 12 ? `${hora}:00 AM` : 
                                          hora === 12 ? '12:00 PM' : 
                                          `${hora - 12}:00 PM`;
                     html += `
-                        <div class="marcador-hora-timeline" style="top: ${top}px; position: absolute; left: 0; width: 100%; height: 33px;">
+                        <div class="marcador-hora-timeline" style="top: ${top}px; position: absolute; left: 0; width: 100%; height: 40px;">
                             <span class="marcador-hora-timeline-label" style="position: absolute; left: 5px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: #000000; font-weight: 700;">${horaFormateada}</span>
                         </div>
                     `;
@@ -13042,14 +13387,14 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     if (!contenedor) return;
                     
                     // Calcular altura del timeline en vista compacta
-                    let alturaTimeline = 792; // Altura por defecto (24 horas * 33px)
+                    let alturaTimeline = 960; // Altura por defecto (24 horas * 40px = 1cm por hora)
                     let offsetTop = 0; // Offset para reposicionar elementos
                     
                     if (colapsar && minutosInicioConMargen !== null && minutosFinConMargen !== null) {
                         // Calcular altura basada en el rango visible (con margen)
                         const minutosTotales = minutosFinConMargen - minutosInicioConMargen;
-                        alturaTimeline = (minutosTotales / 60) * 33;
-                        offsetTop = (minutosInicioConMargen / 60) * 33; // Offset para reposicionar
+                        alturaTimeline = (minutosTotales / 60) * 40; // 40px por hora = 1cm
+                        offsetTop = (minutosInicioConMargen / 60) * 40; // Offset para reposicionar (40px por hora = 1cm)
                     }
                     
                     // Obtener todas las columnas de rutas en esta sección
@@ -13075,8 +13420,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         const marcadores = timeline.querySelectorAll('.marcador-hora-timeline');
                         marcadores.forEach(marcador => {
                             const topOriginal = parseFloat(marcador.style.top) || 0;
-                            // Convertir top (px) a minutos desde las 5 AM: top / 33 * 60
-                            const minutosDesde5AM = (topOriginal / 33) * 60;
+                            // Convertir top (px) a minutos desde las 5 AM: top / 40 * 60 (40px por hora = 1cm)
+                            const minutosDesde5AM = (topOriginal / 40) * 60;
                             
                             if (!colapsar || minutosInicioConMargen === null || minutosFinConMargen === null) {
                                 // Vista total: mostrar todas las horas en su posición original
@@ -13100,8 +13445,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         const lineas = timeline.querySelectorAll('.linea-divisoria-hora');
                         lineas.forEach(linea => {
                             const topOriginal = parseFloat(linea.style.top) || 0;
-                            // Convertir top (px) a minutos desde las 5 AM: top / 33 * 60
-                            const minutosDesde5AM = (topOriginal / 33) * 60;
+                            // Convertir top (px) a minutos desde las 5 AM: top / 40 * 60 (40px por hora = 1cm)
+                            const minutosDesde5AM = (topOriginal / 40) * 60;
                             
                             if (!colapsar || minutosInicioConMargen === null || minutosFinConMargen === null) {
                                 // Vista total: mostrar todas las líneas en su posición original
@@ -13126,8 +13471,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                             citas.forEach(cita => {
                                 const topOriginal = parseFloat(cita.style.top) || 0;
                                 const alturaCita = parseFloat(cita.style.height) || 0;
-                                const minutosCitaInicio = (topOriginal / 33) * 60;
-                                const minutosCitaFin = minutosCitaInicio + (alturaCita / 33) * 60;
+                                const minutosCitaInicio = (topOriginal / 40) * 60; // 40px por hora = 1cm
+                                const minutosCitaFin = minutosCitaInicio + (alturaCita / 40) * 60; // 40px por hora = 1cm
                                 
                                 // Verificar si la cita está dentro del rango visible (o se superpone)
                                 if (minutosCitaFin >= minutosInicioConMargen && minutosCitaInicio <= minutosFinConMargen) {
@@ -13236,7 +13581,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             for (let i = 0; i < 24; i++) {
                 // Hora del día laborable: 5 AM + i horas
                 const horaReal = (5 + i) % 24; // 5, 6, 7, ..., 23, 0, 1, 2, 3, 4
-                const top = i * 33; // Posición desde el inicio del contenedor (sin offset de header)
+                const top = i * 40; // Posición desde el inicio del contenedor (40px por hora = 1cm)
                 timelineHTML += `
                     <div class="linea-divisoria-hora" style="top: ${top}px;"></div>
                 `;
@@ -13247,7 +13592,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Agregar marcadores de hora (24 horas, empezando desde 5 AM)
                 for (let i = 0; i < 24; i++) {
                     const horaReal = (5 + i) % 24; // 5, 6, 7, ..., 23, 0, 1, 2, 3, 4
-                    const top = i * 33; // Posición desde el inicio del contenedor (sin offset de header)
+                    const top = i * 40; // Posición desde el inicio del contenedor (40px por hora = 1cm)
                     const horaFormateada = horaReal === 0 ? '12:00 AM' : 
                                          horaReal < 12 ? `${horaReal}:00 AM` : 
                                          horaReal === 12 ? '12:00 PM' : 
@@ -13329,11 +13674,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const duracion = obtenerDuracion(cita);
                 const minutosFinDesde5AM = minutosDesde5AM + duracion;
 
-                // Calcular posición y altura (33px por hora)
-                // 5:00 AM = 0px, cada hora = 33px
+                // Calcular posición y altura (40px por hora = 1cm)
+                // 5:00 AM = 0px, cada hora = 40px
                 // Las citas están dentro del contenedor .citas-timeline, que comienza después del header
-                const top = (minutosDesde5AM / 60) * 33; // Posición desde las 5 AM
-                const height = Math.max((duracion / 60) * 33, 20); // Mínimo 20px de altura
+                const top = (minutosDesde5AM / 60) * 40; // Posición desde las 5 AM
+                const height = Math.max((duracion / 60) * 40, 20); // Mínimo 20px de altura
 
                 // Ya no mostramos "Tiempo libre", solo las líneas divisorias de hora
                 // Las líneas ya están agregadas al inicio de la función
@@ -13447,9 +13792,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 
                 citaBloque.innerHTML = `
                     <div class="cita-estado-cronograma ${obtenerEstado(cita)}"></div>
-                    ${indicadorGPS}
                     <div class="cita-hora-cronograma">
-                        ${emojiTurno} ${textoPrincipal}${indicadorEncuesta}
+                        ${textoPrincipal}
                     </div>
                     ${lineaInferior.length > 0 ? `<div style="font-size: 0.65rem; line-height: 1.2; margin-top: 0.15rem; color: #ffffff; opacity: 0.9;">${lineaInferior.join(' • ')}</div>` : ''}
                 `;
@@ -13614,8 +13958,19 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     const fechaInicioVista = window.formatearFecha ? window.formatearFecha(window.obtenerInicio(cita)) : null;
                     const horaMostrarVista = fechaInicioVista ? fechaInicioVista.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' }) : '';
                     
-                    // Obtener precio
-                    const precioMostrarVista = window.obtenerMonto && window.obtenerMonto(cita) ? window.formatearMontoVenta(window.obtenerMonto(cita)) : '';
+                    // Obtener ganancia neta (en lugar del monto de venta)
+                    const gananciaNeta = window.obtenerGananciaNeta ? window.obtenerGananciaNeta(cita) : 0;
+                    console.log('🔍 [CALENDARIO] Ganancia neta calculada:', gananciaNeta, 'para cita:', cita.id);
+                    // Mostrar la ganancia neta siempre que sea un número válido (incluso si es 0)
+                    let precioMostrarVista = '';
+                    if (gananciaNeta !== null && gananciaNeta !== undefined && !isNaN(gananciaNeta)) {
+                        // Formatear manualmente para asegurar que se muestre
+                        const numeroFormateado = Math.abs(gananciaNeta).toLocaleString('es-CR');
+                        precioMostrarVista = `₡${numeroFormateado}`;
+                        console.log('🔍 [CALENDARIO] Precio formateado:', precioMostrarVista);
+                    } else {
+                        console.log('🔍 [CALENDARIO] Ganancia neta no es un número válido (valor:', gananciaNeta, ', tipo:', typeof gananciaNeta, ')');
+                    }
                     
                     // Obtener ubicación (Provincia, Cantón, Distrito en ese orden)
                     const ubicacionPartesVista = [];
@@ -13650,8 +14005,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     if (clienteNombre && clienteNombre !== 'Sin nombre') lineaInferiorVista.push(clienteNombre);
                     
                     citaElement.innerHTML = `
-                        ${indicadorGPS}
-                        <span>${emojiTurno} ${textoPrincipal}${indicadorEncuesta}</span>
+                        <span>${textoPrincipal}</span>
                         ${lineaInferiorVista.length > 0 ? `<div style="font-size: 0.65rem; line-height: 1.2; margin-top: 0.15rem; color: #ffffff; opacity: 0.9;">${lineaInferiorVista.join(' • ')}</div>` : ''}
                     `;
                     // GPS ahora se obtiene desde la sucursal, no desde la cita
@@ -14023,9 +14377,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     // Actualizar sucursal si cambian coordenadas o nombre
                     const coordsTexto = document.getElementById('editCoordenadas')?.value.trim();
                     const nombreSucursal = document.getElementById('editNombreSucursal')?.value.trim();
-                    const provinciaId = document.getElementById('editProvincia')?.value || '';
-                    const cantonId = document.getElementById('editCanton')?.value || '';
-                    const distritoId = document.getElementById('editDistrito')?.value || '';
+                    // provinciaId, cantonId, distritoId se declaran más abajo para evitar duplicación
                     const direccion = document.getElementById('editDireccion')?.value.trim() || '';
                     const otrasSenas = document.getElementById('editOtrasSenas')?.value.trim() || '';
                     
@@ -14120,7 +14472,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const plagasSeleccionadas = window.obtenerPlagasSeleccionadas('edit');
                 
                 // Obtener productos seleccionados
-                const productosSeleccionados = window.obtenerProductosSeleccionados('edit');
+                const productosSeleccionados = window.obtenerProductosSeleccionados();
                 
                 // Obtener equipo seleccionado
                 const equipoSeleccionado = window.obtenerEquipoSeleccionado('edit');
@@ -14133,10 +14485,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const valorNumericoCosto = costoServicioInput ? window.extraerValorNumerico(costoServicioInput.value) : '0';
                 const costoServicio = parseInt(valorNumericoCosto) || 0;
                 
-                // Obtener valores de ubicación
-                const provinciaId = document.getElementById('editProvincia')?.value || '';
-                const cantonId = document.getElementById('editCanton')?.value || '';
-                const distritoId = document.getElementById('editDistrito')?.value || '';
+                // Obtener valores de ubicación (declarar fuera del bloque if/else para que estén disponibles)
+                let provinciaId = document.getElementById('editProvincia')?.value || '';
+                let cantonId = document.getElementById('editCanton')?.value || '';
+                let distritoId = document.getElementById('editDistrito')?.value || '';
                 
                 // Preparar datos para actualizar
                 const datosActualizacion = {
@@ -15087,15 +15439,57 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         if (window.actualizarResumenFinancieroNew) {
                             window.actualizarResumenFinancieroNew();
                         }
+                        // Calcular y mostrar hora de fin
+                        window.calcularHoraFin('new');
                     }, 300);
                 };
                 modalElement.addEventListener('shown.bs.modal', actualizarResumenOnShow, { once: true });
             }
             
+            // Agregar event listeners para actualizar hora de fin automáticamente
+            setTimeout(() => {
+                const newStartTimeInput = document.getElementById('newStartTime');
+                const newDurationSelect = document.getElementById('newDuration');
+                
+                if (newStartTimeInput) {
+                    const newStartTimeHandler = () => window.calcularHoraFin('new');
+                    newStartTimeInput.removeEventListener('change', window._newStartTimeHandler);
+                    newStartTimeInput.removeEventListener('input', window._newStartTimeHandler);
+                    window._newStartTimeHandler = newStartTimeHandler;
+                    newStartTimeInput.addEventListener('change', window._newStartTimeHandler);
+                    newStartTimeInput.addEventListener('input', window._newStartTimeHandler);
+                }
+                
+                if (newDurationSelect) {
+                    const newDurationHandler = () => window.calcularHoraFin('new');
+                    newDurationSelect.removeEventListener('change', window._newDurationHandler);
+                    window._newDurationHandler = newDurationHandler;
+                    newDurationSelect.addEventListener('change', window._newDurationHandler);
+                }
+            }, 100);
+            
             // Agregar event listeners para actualizar resumen financiero
             setTimeout(() => {
                 const newMontoVentaInput = document.getElementById('newMontoVenta');
                 if (newMontoVentaInput) {
+                    // Detectar cuando el usuario empieza a editar manualmente
+                    newMontoVentaInput.addEventListener('focus', () => {
+                        window.editandoMontoVentaManual.new = true;
+                    });
+                    
+                    // Detectar cuando el usuario termina de editar
+                    newMontoVentaInput.addEventListener('blur', () => {
+                        window.editandoMontoVentaManual.new = false;
+                        // Formatear el valor al perder el foco
+                        const valorNumerico = window.extraerValorNumerico(newMontoVentaInput.value);
+                        if (valorNumerico !== '') {
+                            newMontoVentaInput.value = window.formatearMontoVenta(valorNumerico);
+                        }
+                        if (window.actualizarResumenFinancieroNew) {
+                            window.actualizarResumenFinancieroNew();
+                        }
+                    });
+                    
                     // Formatear cuando se presiona Enter o se pierde el foco
                     newMontoVentaInput.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
@@ -15104,10 +15498,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                             newMontoVentaInput.value = window.formatearMontoVenta(valorNumerico);
                             newMontoVentaInput.blur();
                         }
-                    });
-                    newMontoVentaInput.addEventListener('blur', () => {
-                        const valorNumerico = window.extraerValorNumerico(newMontoVentaInput.value);
-                        newMontoVentaInput.value = window.formatearMontoVenta(valorNumerico);
                     });
                     newMontoVentaInput.addEventListener('input', () => {
                         if (window.actualizarResumenFinancieroNew) {
@@ -15123,6 +15513,15 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         if (window.actualizarResumenFinancieroNew) {
                             window.actualizarResumenFinancieroNew();
                         }
+                        // Calcular monto de venta automáticamente
+                        window.calcularMontoVenta('new');
+                    });
+                    newCostoServicioInput.addEventListener('blur', () => {
+                        if (window.actualizarResumenFinancieroNew) {
+                            window.actualizarResumenFinancieroNew();
+                        }
+                        // Calcular monto de venta automáticamente
+                        window.calcularMontoVenta('new');
                     });
                 }
                 
@@ -15329,10 +15728,34 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         if (window.actualizarResumenFinancieroNew) {
                             window.actualizarResumenFinancieroNew();
                         }
+                        // Calcular y mostrar hora de fin
+                        window.calcularHoraFin('new');
                     }, 300);
                 };
                 modalElement.addEventListener('shown.bs.modal', actualizarResumenOnShow, { once: true });
             }
+            
+            // Agregar event listeners para actualizar hora de fin automáticamente
+            setTimeout(() => {
+                const newStartTimeInput = document.getElementById('newStartTime');
+                const newDurationSelect = document.getElementById('newDuration');
+                
+                if (newStartTimeInput) {
+                    const newStartTimeHandler = () => window.calcularHoraFin('new');
+                    newStartTimeInput.removeEventListener('change', window._newStartTimeHandler);
+                    newStartTimeInput.removeEventListener('input', window._newStartTimeHandler);
+                    window._newStartTimeHandler = newStartTimeHandler;
+                    newStartTimeInput.addEventListener('change', window._newStartTimeHandler);
+                    newStartTimeInput.addEventListener('input', window._newStartTimeHandler);
+                }
+                
+                if (newDurationSelect) {
+                    const newDurationHandler = () => window.calcularHoraFin('new');
+                    newDurationSelect.removeEventListener('change', window._newDurationHandler);
+                    window._newDurationHandler = newDurationHandler;
+                    newDurationSelect.addEventListener('change', window._newDurationHandler);
+                }
+            }, 100);
             
             // Agregar event listeners para actualizar resumen financiero
             setTimeout(() => {
@@ -15351,6 +15774,15 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         if (window.actualizarResumenFinancieroNew) {
                             window.actualizarResumenFinancieroNew();
                         }
+                        // Calcular monto de venta automáticamente
+                        window.calcularMontoVenta('new');
+                    });
+                    newCostoServicioInput.addEventListener('blur', () => {
+                        if (window.actualizarResumenFinancieroNew) {
+                            window.actualizarResumenFinancieroNew();
+                        }
+                        // Calcular monto de venta automáticamente
+                        window.calcularMontoVenta('new');
                     });
                 }
             }, 500);
@@ -15470,8 +15902,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                             marcadores.forEach(m => {
                                 m.style.display = 'block';
                                 // Restaurar posición original (se recalcula desde minutos)
-                                const minutosDesdeMedianoche = parseFloat(m.getAttribute('data-minutos-original')) || (parseFloat(m.style.top) || 0) / 33 * 60;
-                                m.style.top = `${(minutosDesdeMedianoche / 60) * 33}px`;
+                                const minutosDesdeMedianoche = parseFloat(m.getAttribute('data-minutos-original')) || (parseFloat(m.style.top) || 0) / 40 * 60; // 40px por hora = 1cm
+                                m.style.top = `${(minutosDesdeMedianoche / 60) * 40}px`;
                             });
                             
                             // Restaurar líneas divisorias
@@ -15479,8 +15911,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                             lineas.forEach(l => {
                                 l.style.display = 'block';
                                 // Restaurar posición original
-                                const minutosDesdeMedianoche = parseFloat(l.getAttribute('data-minutos-original')) || (parseFloat(l.style.top) || 0) / 33 * 60;
-                                l.style.top = `${(minutosDesdeMedianoche / 60) * 33}px`;
+                                const minutosDesdeMedianoche = parseFloat(l.getAttribute('data-minutos-original')) || (parseFloat(l.style.top) || 0) / 40 * 60; // 40px por hora = 1cm
+                                l.style.top = `${(minutosDesdeMedianoche / 60) * 40}px`;
                             });
                             
                             // Las citas se reposicionan automáticamente al regenerar el cronograma
@@ -15508,8 +15940,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                             
                             // Calcular altura del timeline en vista compacta
                             const minutosTotales = minutosFin - minutosInicio;
-                            const alturaTimeline = (minutosTotales / 60) * 33;
-                            const offsetTop = (minutosInicio / 60) * 33;
+                            const alturaTimeline = (minutosTotales / 60) * 40; // 40px por hora = 1cm
+                            const offsetTop = (minutosInicio / 60) * 40; // 40px por hora = 1cm
                             
                             const columnas = contenedor.querySelectorAll('.vehiculo-columna-cronograma');
                             columnas.forEach(columna => {
@@ -18467,6 +18899,165 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 await cambiarVista('cronograma');
                 await cargarDatos();
             });
+            
+        // Función para inicializar el buscador de citas
+        window.inicializarBuscadorCitas = function() {
+            const buscadorInput = document.getElementById('buscadorCitas');
+            const resultadosDropdown = document.getElementById('resultadosBusquedaCitas');
+            
+            if (!buscadorInput || !resultadosDropdown) {
+                console.warn('⚠️ Campos del buscador de citas no encontrados');
+                return;
+            }
+            
+            let timeoutBusqueda;
+            
+            // Event listener para la búsqueda
+            buscadorInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+                
+                // Limpiar timeout anterior
+                clearTimeout(timeoutBusqueda);
+                
+                if (query.length < 2) {
+                    resultadosDropdown.style.display = 'none';
+                    resultadosDropdown.innerHTML = '';
+                    return;
+                }
+                
+                // Debounce: esperar 300ms antes de buscar
+                timeoutBusqueda = setTimeout(() => {
+                    buscarCitas(query);
+                }, 300);
+            });
+            
+            // Ocultar dropdown al hacer clic fuera
+            document.addEventListener('click', (e) => {
+                if (!buscadorInput.contains(e.target) && !resultadosDropdown.contains(e.target)) {
+                    resultadosDropdown.style.display = 'none';
+                }
+            });
+            
+            // Función para buscar citas
+            async function buscarCitas(query) {
+                if (!window.todasLasCitas || window.todasLasCitas.length === 0) {
+                    resultadosDropdown.innerHTML = '<div class="dropdown-item-text text-muted">No hay citas disponibles</div>';
+                    resultadosDropdown.style.display = 'block';
+                    return;
+                }
+                
+                const queryLower = query.toLowerCase();
+                const resultados = [];
+                
+                // Buscar en todas las citas
+                for (const cita of window.todasLasCitas) {
+                    // Buscar por teléfono
+                    const telefono = cita.telefono || '';
+                    const telefonoNormalizado = telefono.replace(/\D/g, ''); // Solo números
+                    const queryNormalizada = query.replace(/\D/g, ''); // Solo números de la búsqueda
+                    
+                    let coincide = false;
+                    
+                    // Coincidencia por teléfono
+                    if (telefonoNormalizado.includes(queryNormalizada) || telefono.includes(queryLower)) {
+                        coincide = true;
+                    }
+                    
+                    // Coincidencia por nombre del cliente
+                    if (!coincide) {
+                        let nombreCliente = '';
+                        if (window.obtenerClienteNombreSync) {
+                            nombreCliente = window.obtenerClienteNombreSync(cita) || '';
+                        } else if (cita.metadata?.cliente_nombre) {
+                            nombreCliente = cita.metadata.cliente_nombre;
+                        }
+                        
+                        if (nombreCliente.toLowerCase().includes(queryLower)) {
+                            coincide = true;
+                        }
+                    }
+                    
+                    if (coincide) {
+                        // Obtener información de la cita
+                        const fechaInicio = window.formatearFecha ? window.formatearFecha(window.obtenerInicio(cita)) : null;
+                        const fechaFormateada = fechaInicio ? fechaInicio.toLocaleDateString('es-CR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : 'Fecha no disponible';
+                        
+                        let nombreCliente = '';
+                        if (window.obtenerClienteNombreSync) {
+                            nombreCliente = window.obtenerClienteNombreSync(cita) || 'Sin nombre';
+                        } else if (cita.metadata?.cliente_nombre) {
+                            nombreCliente = cita.metadata.cliente_nombre;
+                        } else {
+                            nombreCliente = 'Sin nombre';
+                        }
+                        
+                        const telefonoMostrar = telefono || 'Sin teléfono';
+                        const estado = window.obtenerEstado ? window.obtenerEstado(cita) : 'agendada';
+                        
+                        resultados.push({
+                            cita: cita,
+                            nombre: nombreCliente,
+                            telefono: telefonoMostrar,
+                            fecha: fechaFormateada,
+                            estado: estado
+                        });
+                    }
+                }
+                
+                // Limitar a 10 resultados
+                const resultadosLimitados = resultados.slice(0, 10);
+                
+                // Mostrar resultados
+                if (resultadosLimitados.length === 0) {
+                    resultadosDropdown.innerHTML = '<div class="dropdown-item-text text-muted">No se encontraron citas</div>';
+                } else {
+                    resultadosDropdown.innerHTML = resultadosLimitados.map(item => {
+                        const estadoClass = item.estado === 'completada' ? 'success' : 
+                                          item.estado === 'cancelada' ? 'danger' : 
+                                          item.estado === 'confirmada' ? 'info' : 'secondary';
+                        return `
+                            <a href="#" class="dropdown-item" data-cita-id="${item.cita.id}" style="padding: 0.75rem; border-bottom: 1px solid #e9ecef;">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: #000; margin-bottom: 4px;">${item.nombre}</div>
+                                        <div style="font-size: 0.85rem; color: #666; margin-bottom: 2px;">
+                                            <i class="fas fa-phone me-1"></i>${item.telefono}
+                                        </div>
+                                        <div style="font-size: 0.85rem; color: #666;">
+                                            <i class="fas fa-calendar me-1"></i>${item.fecha}
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-${estadoClass}" style="margin-left: 8px;">${item.estado}</span>
+                                </div>
+                            </a>
+                        `;
+                    }).join('');
+                    
+                    // Agregar event listeners a los resultados
+                    resultadosDropdown.querySelectorAll('.dropdown-item').forEach(item => {
+                        item.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const citaId = item.getAttribute('data-cita-id');
+                            if (citaId && window.abrirModalEdicion) {
+                                // Cerrar dropdown
+                                resultadosDropdown.style.display = 'none';
+                                buscadorInput.value = '';
+                                // Abrir modal de edición
+                                window.abrirModalEdicion(citaId);
+                            }
+                        });
+                    });
+                }
+                
+                resultadosDropdown.style.display = 'block';
+            }
+        };
             
         // Variables globales para gráficos
         // Código del reporte táctico movido a reporte_tactico.html
