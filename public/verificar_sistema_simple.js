@@ -1,0 +1,154 @@
+// ============================================
+// SCRIPT DE VERIFICACIÓN DEL SISTEMA
+// Copia y pega TODO este código en la consola del navegador
+// cuando estés en calendario.html o empleados.html
+// ============================================
+
+(async function() {
+    console.log('\n' + '='.repeat(60));
+    console.log('🔍 VERIFICACIÓN DEL SISTEMA');
+    console.log('='.repeat(60) + '\n');
+
+    const resultados = {
+        exitosos: [],
+        errores: [],
+        advertencias: []
+    };
+
+    // 1. Verificar Firebase
+    console.log('1️⃣ Verificando Firebase...');
+    try {
+        if (typeof firebase !== 'undefined' || window.db) {
+            resultados.exitosos.push('✅ Firebase SDK cargado');
+            console.log('   ✅ Firebase SDK cargado');
+        } else {
+            resultados.errores.push('❌ Firebase SDK no está disponible');
+            console.log('   ❌ Firebase SDK no está disponible');
+        }
+    } catch (error) {
+        resultados.errores.push(`❌ Error verificando Firebase: ${error.message}`);
+        console.log(`   ❌ Error: ${error.message}`);
+    }
+
+    // 2. Verificar funciones de calendario
+    console.log('\n2️⃣ Verificando funciones de calendario...');
+    const funcionesCalendario = [
+        'actualizarResumenFinanciero',
+        'actualizarResumenFinancieroNew',
+        'actualizarPrecioTotalServicios',
+        'obtenerServiciosSeleccionados',
+        'obtenerProductosSeleccionados'
+    ];
+
+    const paginaActual = window.location.pathname.split('/').pop() || '';
+    const esCalendario = paginaActual.includes('calendario');
+
+    if (!esCalendario) {
+        console.log('   ⚠️ Estas funciones solo están disponibles en calendario.html');
+        console.log('   💡 Abre calendario.html para verificar estas funciones');
+    }
+
+    funcionesCalendario.forEach(func => {
+        if (typeof window[func] === 'function') {
+            resultados.exitosos.push(`✅ Función ${func} disponible`);
+            console.log(`   ✅ Función ${func} disponible`);
+        } else {
+            if (esCalendario) {
+                resultados.errores.push(`❌ Función ${func} NO disponible`);
+                console.log(`   ❌ Función ${func} NO disponible`);
+            } else {
+                resultados.advertencias.push(`⚠️ Función ${func} NO disponible (normal si no estás en calendario.html)`);
+                console.log(`   ⚠️ Función ${func} NO disponible`);
+            }
+        }
+    });
+
+    // 3. Verificar funciones de empleados
+    console.log('\n3️⃣ Verificando funciones de empleados...');
+    const funcionesEmpleados = [
+        'cargarEmpleados',
+        'mostrarEmpleados',
+        'verificarCodigoDesbloqueo'
+    ];
+
+    const esEmpleados = paginaActual.includes('empleados');
+
+    funcionesEmpleados.forEach(func => {
+        if (typeof window[func] === 'function') {
+            resultados.exitosos.push(`✅ Función ${func} disponible`);
+            console.log(`   ✅ Función ${func} disponible`);
+        } else {
+            if (esEmpleados) {
+                resultados.advertencias.push(`⚠️ Función ${func} NO disponible`);
+                console.log(`   ⚠️ Función ${func} NO disponible`);
+            } else {
+                console.log(`   ℹ️ Función ${func} NO disponible (normal si no estás en empleados.html)`);
+            }
+        }
+    });
+
+    // 4. Verificar elementos DOM críticos
+    console.log('\n4️⃣ Verificando elementos DOM...');
+    const elementosCriticos = [
+        { id: 'editPrecioTotalServicios', desc: 'Input precio total servicios (editar)' },
+        { id: 'newPrecioTotalServicios', desc: 'Input precio total servicios (nuevo)' },
+        { id: 'editCostoServicio', desc: 'Input costo servicio (editar)' },
+        { id: 'newCostoServicio', desc: 'Input costo servicio (nuevo)' },
+        { id: 'totalServicios', desc: 'Display total servicios' },
+        { id: 'totalCostos', desc: 'Display total costos' },
+        { id: 'netoVenta', desc: 'Display neto venta' }
+    ];
+
+    elementosCriticos.forEach(elem => {
+        const elemento = document.getElementById(elem.id);
+        if (elemento) {
+            resultados.exitosos.push(`✅ Elemento ${elem.id} encontrado`);
+            console.log(`   ✅ ${elem.desc}: encontrado`);
+        } else {
+            if (esCalendario) {
+                resultados.advertencias.push(`⚠️ Elemento ${elem.id} no encontrado`);
+                console.log(`   ⚠️ ${elem.desc}: no encontrado`);
+            } else {
+                console.log(`   ℹ️ ${elem.desc}: no encontrado (normal si no estás en calendario.html)`);
+            }
+        }
+    });
+
+    // 5. Verificar errores en consola
+    console.log('\n5️⃣ Verificando errores en consola...');
+    console.log('   ℹ️ Revisa manualmente la consola para ver si hay errores en rojo');
+    console.log('   ℹ️ Los errores de "Tracking Prevention" son normales y no afectan el funcionamiento');
+
+    // 6. Verificar página actual
+    console.log('\n6️⃣ Información de la página actual...');
+    console.log(`   📄 Página actual: ${paginaActual}`);
+    console.log(`   📍 URL completa: ${window.location.href}`);
+
+    // Resumen final
+    console.log('\n' + '='.repeat(60));
+    console.log('📊 RESUMEN');
+    console.log('='.repeat(60));
+    console.log(`✅ Exitosos: ${resultados.exitosos.length}`);
+    console.log(`❌ Errores: ${resultados.errores.length}`);
+    console.log(`⚠️ Advertencias: ${resultados.advertencias.length}`);
+    console.log('='.repeat(60));
+
+    if (resultados.errores.length === 0) {
+        console.log('\n✅ El sistema está funcionando correctamente');
+    } else {
+        console.log('\n❌ Se encontraron errores que requieren atención:');
+        resultados.errores.forEach(err => console.log(`   ${err}`));
+    }
+
+    if (resultados.advertencias.length > 0) {
+        console.log('\n⚠️ Advertencias:');
+        resultados.advertencias.forEach(adv => console.log(`   ${adv}`));
+    }
+
+    console.log('\n💡 NOTA: Algunas funciones y elementos solo están disponibles en páginas específicas.');
+    console.log('   - Funciones de calendario: solo en calendario.html');
+    console.log('   - Funciones de empleados: solo en empleados.html');
+    console.log('   - Para verificar Firebase Auth, necesitas estar autenticado\n');
+
+    return resultados;
+})();
