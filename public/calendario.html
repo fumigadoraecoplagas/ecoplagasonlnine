@@ -238,6 +238,30 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            position: relative; /* Para posicionar el punto indicador */
+        }
+        
+        /* Punto indicador de estado de encuesta */
+        .indicador-encuesta-punto {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            z-index: 10;
+        }
+        
+        .indicador-encuesta-punto.rojo {
+            background-color: #f44336;
+        }
+        
+        .indicador-encuesta-punto.amarillo {
+            background-color: #ffc107;
+        }
+        
+        .indicador-encuesta-punto.verde {
+            background-color: #4caf50;
         }
 
         .cita-item:hover {
@@ -1533,6 +1557,26 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     </div>
                 </div>
             </div>
+
+                <!-- Cajas de recursos sin asignar para Rutas Nocturnas -->
+                <div class="recursos-sin-asignar-container mb-1" style="padding: 8px; margin-top: 2px; margin-bottom: 2px;">
+                    <div class="recurso-caja">
+                        <div class="recurso-caja-header">
+                            <i class="fas fa-users me-2"></i>Técnicos
+                        </div>
+                        <div class="recurso-caja-body" id="tecnicosNocturnasContainer">
+                            <!-- Los técnicos se generarán dinámicamente -->
+                        </div>
+                    </div>
+                    <div class="recurso-caja">
+                        <div class="recurso-caja-header">
+                            <i class="fas fa-truck me-2"></i>Vehículos (APV's)
+                        </div>
+                        <div class="recurso-caja-body" id="vehiculosNocturnasContainer">
+                            <!-- Los vehículos se generarán dinámicamente -->
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Sección Rutas Nocturnas / Especiales - BLOQUE COMPLETAMENTE INDEPENDIENTE -->
                 <div id="seccionRutasNocturnas" style="width: 100%; margin-top: 2px; padding: 4px; background: #f5f3ff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
@@ -3879,18 +3923,45 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             if (montoVentaInput) {
                 // Detectar cuando el usuario empieza a editar manualmente
                 montoVentaInput.addEventListener('focus', () => {
-                    window.editandoMontoVentaManual.edit = true;
+                    // No activar el flag todavía, solo cuando presione Enter
                 });
                 
-                // Detectar cuando el usuario termina de editar
-                montoVentaInput.addEventListener('blur', () => {
-                    window.editandoMontoVentaManual.edit = false;
-                    // Formatear el valor al perder el foco
-                    const valorNumerico = window.extraerValorNumerico(montoVentaInput.value);
-                    if (valorNumerico !== '') {
-                        montoVentaInput.value = window.formatearMontoVenta(valorNumerico);
+                // Detectar cuando el usuario presiona Enter para confirmar valor manual
+                montoVentaInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        // Activar modo manual y formatear el valor
+                        const valorNumerico = window.extraerValorNumerico(montoVentaInput.value);
+                        if (valorNumerico !== null && !isNaN(valorNumerico)) {
+                            montoVentaInput.value = window.formatearMontoVenta(valorNumerico);
+                            window.editandoMontoVentaManual.edit = true;
+                            // Actualizar resumen financiero con el valor manual
+                            window.actualizarResumenFinanciero();
+                        }
+                        montoVentaInput.blur(); // Quitar el foco del campo
                     }
-                    window.actualizarResumenFinanciero();
+                });
+                
+                // Detectar cuando el usuario termina de editar (sin Enter)
+                montoVentaInput.addEventListener('blur', () => {
+                    // Si no se presionó Enter, volver a modo automático
+                    if (!window.editandoMontoVentaManual.edit) {
+                        // Formatear el valor al perder el foco
+                        const valorNumerico = window.extraerValorNumerico(montoVentaInput.value);
+                        if (valorNumerico !== '') {
+                            montoVentaInput.value = window.formatearMontoVenta(valorNumerico);
+                        }
+                        // Recalcular automáticamente
+                        window.calcularMontoVenta('edit');
+                        window.actualizarResumenFinanciero();
+                    } else {
+                        // Si se presionó Enter, solo formatear sin recalcular
+                        const valorNumerico = window.extraerValorNumerico(montoVentaInput.value);
+                        if (valorNumerico !== '') {
+                            montoVentaInput.value = window.formatearMontoVenta(valorNumerico);
+                        }
+                        window.actualizarResumenFinanciero();
+                    }
                 });
                 
                 // Formatear cuando se presiona Enter o se pierde el foco
@@ -4188,7 +4259,10 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         // Función para generar botones de días del mes
         function generarBotonesDiasMes(fecha) {
             const container = document.getElementById('datePickerContainer');
-            if (!container) return;
+            if (!container) {
+                console.warn('⚠️ [BOTONES] datePickerContainer no encontrado');
+                return;
+            }
             
             // Asegurar que el botón esté en el estado correcto
             const btnToggle = document.getElementById('btnToggleVistaCompacta');
@@ -4201,8 +4275,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 }
             }
             
-            // Verificar si estamos en vista compacta
+            // Verificar si estamos en vista compacta (basado en el estado del botón)
             const estaEnVistaCompacta = btnToggle && !btnToggle.classList.contains('active');
+            console.log('📅 [BOTONES] Generando botones de días', {
+                fecha: fecha,
+                estaEnVistaCompacta: estaEnVistaCompacta,
+                botonActivo: btnToggle ? btnToggle.classList.contains('active') : 'N/A'
+            });
             
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
@@ -4283,8 +4362,130 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             
             if (vistaActual === 'cronograma') {
                 await generarCronograma();
+            } else {
+                // Si estamos en vista compacta, actualizar recursos disponibles para el día seleccionado
+                await actualizarRecursosDisponibles(fechaString);
             }
         };
+        
+        // Función para actualizar recursos disponibles cuando se cambia de día
+        async function actualizarRecursosDisponibles(fechaString) {
+            try {
+                const [year, month, day] = fechaString.split('-').map(Number);
+                const fechaFormateada = fechaString;
+                
+                // Obtener todas las rutas disponibles
+                const rutasDisponibles = ['Sin asignar', 'Ruta 1', 'Ruta 2', 'Ruta 3', 'Ruta 4', 'Ruta 5', 
+                                         'Ruta 6', 'Ruta 7', 'Ruta 8', 'Ruta 9', 'Ruta 10', 'Ruta 11', 
+                                         'Ruta 12', 'Ruta 13', 'Ruta 14', 'Ruta 15', 'Ruta 16', 'Ruta 17', 
+                                         'Ruta 18', 'Ruta 19', 'Ruta 20'];
+                
+                // Separar rutas en diurnas (1-10) y nocturnas/especiales (11-20)
+                const rutasDiurnas = ['Sin asignar', ...rutasDisponibles.filter(r => {
+                    if (r === 'Sin asignar') return false;
+                    const num = parseInt(r.replace('Ruta ', '')) || 0;
+                    return num >= 1 && num <= 10;
+                })];
+                
+                const rutasNocturnas = ['Sin asignar', ...rutasDisponibles.filter(r => {
+                    if (r === 'Sin asignar') return false;
+                    const num = parseInt(r.replace('Ruta ', '')) || 0;
+                    return num >= 11 && num <= 20;
+                })];
+                
+                // Cargar datos de ruteador para el día seleccionado
+                const datosRuteadorMap = {};
+                const promesasRuteador = [];
+                
+                [...rutasDiurnas, ...rutasNocturnas].forEach(ruta => {
+                    if (ruta !== 'Sin asignar') {
+                        promesasRuteador.push(
+                            cargarRuteador(fechaFormateada, ruta).then(datos => ({
+                                ruta: ruta,
+                                datos: datos
+                            }))
+                        );
+                    }
+                });
+                
+                const resultadosRuteador = await Promise.all(promesasRuteador);
+                resultadosRuteador.forEach(({ ruta, datos }) => {
+                    datosRuteadorMap[ruta] = datos;
+                });
+                
+                // Obtener vehículos y técnicos asignados en todas las rutas (excepto "Sin asignar")
+                const vehiculosAsignados = new Set();
+                const tecnicosAsignados = new Set();
+                
+                [...rutasDiurnas, ...rutasNocturnas].forEach(r => {
+                    if (r !== 'Sin asignar') {
+                        const datos = datosRuteadorMap[r] || { tecnicos: [], vehiculos: [] };
+                        // Normalizar vehículos antes de agregarlos al Set
+                        datos.vehiculos.forEach(v => {
+                            const vNormalizado = v ? String(v).trim() : '';
+                            if (vNormalizado) {
+                                vehiculosAsignados.add(vNormalizado);
+                            }
+                        });
+                        datos.tecnicos.forEach(t => tecnicosAsignados.add(t));
+                    }
+                });
+                
+                // Calcular vehículos y técnicos sin asignar
+                const todosLosVehiculos = ['APV 01', 'APV 02', 'APV 03', 'APV 04', 'APV 05', 
+                                           'APV 06', 'APV 07', 'APV 08', 'Kangoo', 'Yaris', 'Prado', 'Rojo'];
+                
+                const vehiculosSinAsignar = todosLosVehiculos.filter(v => {
+                    const vNormalizado = String(v).trim();
+                    return !vehiculosAsignados.has(vNormalizado);
+                });
+                
+                const tecnicosSinAsignar = (window.empleados || [])
+                    .filter(e => {
+                        const username = e.username || e.id;
+                        if (!username || String(username).trim() === '') {
+                            return false;
+                        }
+                        return !tecnicosAsignados.has(username);
+                    })
+                    .map(e => {
+                        const username = e.username || e.id;
+                        if (!username || String(username).trim() === '') {
+                            return null;
+                        }
+                        
+                        const primerNombre = (e.primerNombre || '').trim();
+                        const primerApellido = (e.primerApellido || '').trim();
+                        const inicialApellido = primerApellido ? primerApellido.charAt(0).toUpperCase() + '.' : '';
+                        const nombreFormateado = `${primerNombre} ${inicialApellido}`.trim() || username;
+                        
+                        return {
+                            username: username,
+                            id: e.id,
+                            nombre: nombreFormateado,
+                            departamento: e.departamento || ''
+                        };
+                    })
+                    .filter(t => t !== null && t.username && String(t.username).trim() !== '')
+                    .sort((a, b) => {
+                        const depA = (a.departamento || '').trim().toLowerCase();
+                        const depB = (b.departamento || '').trim().toLowerCase();
+                        const esFumigacionA = depA === 'fumigación' || depA === 'fumigacion';
+                        const esFumigacionB = depB === 'fumigación' || depB === 'fumigacion';
+                        
+                        if (esFumigacionA && !esFumigacionB) return -1;
+                        if (!esFumigacionA && esFumigacionB) return 1;
+                        return 0;
+                    });
+                
+                // Actualizar la visualización de recursos sin asignar
+                renderizarRecursosSinAsignar(tecnicosSinAsignar, vehiculosSinAsignar, fechaFormateada);
+                renderizarRecursosNocturnas(tecnicosSinAsignar, vehiculosSinAsignar);
+                
+            } catch (error) {
+                console.error('Error actualizando recursos disponibles:', error);
+            }
+        }
         
         // Sincronizar datePicker con diaSeleccionado cuando cambien los botones
         const btnPrevMonthCronograma = document.getElementById('btnPrevMonthCronograma');
@@ -9293,6 +9494,76 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             }, 50);
         }
         
+        // Función para renderizar técnicos y vehículos en la sección de rutas nocturnas
+        function renderizarRecursosNocturnas(tecnicos, vehiculos) {
+            console.log('[RENDER] 🌙 Iniciando renderizado de recursos para rutas nocturnas', {
+                totalTecnicos: tecnicos.length,
+                totalVehiculos: vehiculos.length
+            });
+            
+            const tecnicosContainer = document.getElementById('tecnicosNocturnasContainer');
+            const vehiculosContainer = document.getElementById('vehiculosNocturnasContainer');
+            
+            if (!tecnicosContainer || !vehiculosContainer) {
+                console.error('[RENDER] ❌ Contenedores nocturnas no encontrados', {
+                    tecnicosContainer: !!tecnicosContainer,
+                    vehiculosContainer: !!vehiculosContainer
+                });
+                return;
+            }
+            
+            // Renderizar técnicos (misma lógica que la función principal)
+            const tecnicosFiltrados = tecnicos.filter(t => {
+                const username = t.username || t.id;
+                return username && String(username).trim() !== '';
+            });
+            
+            tecnicosContainer.innerHTML = tecnicosFiltrados.length > 0
+                ? tecnicosFiltrados.map(t => {
+                    const username = t.username || t.id || '';
+                    const nombre = t.nombre || username;
+                    const usernameEscapado = String(username).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                    const nombreEscapado = String(nombre).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                    
+                    const departamento = (t.departamento || '').trim().toLowerCase();
+                    const esFumigacion = departamento === 'fumigación' || departamento === 'fumigacion';
+                    const estiloColor = esFumigacion 
+                        ? '' 
+                        : 'background: #9E9E9E !important; color: white !important;';
+                    
+                    return `
+                    <div class="recurso-item recurso-tecnico" 
+                         draggable="true" 
+                         data-tipo="tecnico" 
+                         data-username="${usernameEscapado}"
+                         data-nombre="${nombreEscapado}"
+                         ${estiloColor ? `style="${estiloColor}"` : ''}>
+                        ${nombreEscapado}
+                    </div>
+                `;
+                }).join('')
+                : '<div class="text-muted" style="font-size: 0.8rem; padding: 10px;">Todos los técnicos están asignados</div>';
+            
+            // Renderizar vehículos (misma lógica que la función principal)
+            vehiculosContainer.innerHTML = vehiculos.length > 0
+                ? vehiculos.map(v => {
+                    const vNormalizado = v ? String(v).trim() : '';
+                    if (!vNormalizado) return null;
+                    
+                    const vEscapado = vNormalizado.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                    
+                    return `
+                    <div class="recurso-item recurso-vehiculo" 
+                         draggable="true" 
+                         data-tipo="vehiculo" 
+                         data-vehiculo="${vEscapado}">
+                        ${vEscapado}
+                    </div>
+                `;
+                }).filter(html => html !== null).join('')
+                : '<div class="text-muted" style="font-size: 0.8rem; padding: 10px;">Todos los vehículos están asignados</div>';
+        }
+        
         // Variable global para almacenar el tipo de recurso que se está arrastrando
         let tipoRecursoArrastrando = null;
         
@@ -11926,20 +12197,25 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                         // Obtener estado de la encuesta
                                         const estadoEncuesta = obtenerEstadoEncuesta(cita);
                                         let indicadorEncuesta = '';
+                                        let colorPuntoEncuesta = '';
                                         if (estadoEncuesta === 0) {
                                             // Sin link generado - rojo
                                             indicadorEncuesta = '<i class="fas fa-heart" style="color: #f44336; font-size: 14px; margin-left: 4px;" title="Encuesta no enviada"></i>';
+                                            colorPuntoEncuesta = 'rojo';
                                         } else if (estadoEncuesta === 1) {
                                             // Link generado sin respuesta - amarillo
                                             indicadorEncuesta = '<i class="fas fa-heart" style="color: #ffc107; font-size: 14px; margin-left: 4px;" title="Encuesta enviada, esperando respuesta"></i>';
+                                            colorPuntoEncuesta = 'amarillo';
                                         } else if (estadoEncuesta === 2) {
                                             // Cliente respondió - verde
                                             indicadorEncuesta = '<i class="fas fa-heart" style="color: #4caf50; font-size: 14px; margin-left: 4px;" title="Cliente respondió la encuesta"></i>';
+                                            colorPuntoEncuesta = 'verde';
                                         } else if (estadoEncuesta === 3) {
                                             // Justificada sin encuesta - azul
                                             const justificacion = obtenerJustificacion(cita);
                                             const tituloJustificacion = justificacion ? `Justificada: ${justificacion.substring(0, 50)}${justificacion.length > 50 ? '...' : ''}` : 'Cita justificada sin encuesta';
                                             indicadorEncuesta = `<i class="fas fa-heart" style="color: #2196f3; font-size: 14px; margin-left: 4px;" title="${tituloJustificacion}"></i>`;
+                                            colorPuntoEncuesta = ''; // No mostrar punto para justificadas
                                         }
                                         
                                         // Obtener datos para mostrar en las citas (usando datos existentes de los formularios)
@@ -11989,6 +12265,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                                         if (clienteNombre && clienteNombre !== 'Sin nombre') lineaInferior.push(clienteNombre);
                                         
                                         citaElement.innerHTML = `
+                                            ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                                             <div class="cita-duracion">${obtenerDuracion(cita)}min</div>
                                             <div class="cita-hora">${textoPrincipal}</div>
                                             ${lineaInferior.length > 0 ? `<div style="font-size: 0.7rem; line-height: 1.3; margin-top: 0.15rem; color: #ffffff;">${lineaInferior.join(' • ')}</div>` : ''}
@@ -12940,6 +13217,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             // Renderizar cajas de recursos sin asignar
             renderizarRecursosSinAsignar(tecnicosSinAsignar, vehiculosSinAsignar, fechaFormateada);
             
+            // Renderizar técnicos y vehículos para rutas nocturnas (arriba de rutas nocturnas)
+            renderizarRecursosNocturnas(tecnicosSinAsignar, vehiculosSinAsignar);
+            
             // Usar alturas fijas para mantener consistencia visual
             // Vehículos: 28px fijo (delgado)
             // Técnicos: altura automática para permitir múltiples técnicos
@@ -13728,20 +14008,25 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Obtener estado de la encuesta
                 const estadoEncuesta = obtenerEstadoEncuesta(cita);
                 let indicadorEncuesta = '';
+                let colorPuntoEncuesta = '';
                 if (estadoEncuesta === 0) {
                     // Sin link generado - rojo
                     indicadorEncuesta = '<i class="fas fa-heart" style="color: #f44336; font-size: 14px; margin-left: 4px;" title="Encuesta no enviada"></i>';
+                    colorPuntoEncuesta = 'rojo';
                 } else if (estadoEncuesta === 1) {
                     // Link generado sin respuesta - amarillo
                     indicadorEncuesta = '<i class="fas fa-heart" style="color: #ffc107; font-size: 14px; margin-left: 4px;" title="Encuesta enviada, esperando respuesta"></i>';
+                    colorPuntoEncuesta = 'amarillo';
                 } else if (estadoEncuesta === 2) {
                     // Cliente respondió - verde
                     indicadorEncuesta = '<i class="fas fa-heart" style="color: #4caf50; font-size: 14px; margin-left: 4px;" title="Cliente respondió la encuesta"></i>';
+                    colorPuntoEncuesta = 'verde';
                 } else if (estadoEncuesta === 3) {
                     // Justificada sin encuesta - azul
                     const justificacion = obtenerJustificacion(cita);
                     const tituloJustificacion = justificacion ? `Justificada: ${justificacion.substring(0, 50)}${justificacion.length > 50 ? '...' : ''}` : 'Cita justificada sin encuesta';
                     indicadorEncuesta = `<i class="fas fa-heart" style="color: #2196f3; font-size: 14px; margin-left: 4px;" title="${tituloJustificacion}"></i>`;
+                    colorPuntoEncuesta = ''; // No mostrar punto para justificadas
                 }
                 
                 // Obtener datos para mostrar en las citas (usando datos existentes de los formularios)
@@ -13791,6 +14076,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 if (clienteNombre && clienteNombre !== 'Sin nombre') lineaInferior.push(clienteNombre);
                 
                 citaBloque.innerHTML = `
+                    ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                     <div class="cita-estado-cronograma ${obtenerEstado(cita)}"></div>
                     <div class="cita-hora-cronograma">
                         ${textoPrincipal}
@@ -13930,20 +14216,25 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     // Obtener estado de la encuesta
                     const estadoEncuesta = obtenerEstadoEncuesta(cita);
                     let indicadorEncuesta = '';
+                    let colorPuntoEncuesta = '';
                     if (estadoEncuesta === 0) {
                         // Sin link generado - rojo
                         indicadorEncuesta = '<i class="fas fa-heart" style="color: #f44336; font-size: 12px; margin-left: 4px;" title="Encuesta no enviada"></i>';
+                        colorPuntoEncuesta = 'rojo';
                     } else if (estadoEncuesta === 1) {
                         // Link generado sin respuesta - amarillo
                         indicadorEncuesta = '<i class="fas fa-heart" style="color: #ffc107; font-size: 12px; margin-left: 4px;" title="Encuesta enviada, esperando respuesta"></i>';
+                        colorPuntoEncuesta = 'amarillo';
                     } else if (estadoEncuesta === 2) {
                         // Cliente respondió - verde
                         indicadorEncuesta = '<i class="fas fa-heart" style="color: #4caf50; font-size: 12px; margin-left: 4px;" title="Cliente respondió la encuesta"></i>';
+                        colorPuntoEncuesta = 'verde';
                     } else if (estadoEncuesta === 3) {
                         // Justificada sin encuesta - azul
                         const justificacion = obtenerJustificacion(cita);
                         const tituloJustificacion = justificacion ? `Justificada: ${justificacion.substring(0, 50)}${justificacion.length > 50 ? '...' : ''}` : 'Cita justificada sin encuesta';
                         indicadorEncuesta = `<i class="fas fa-heart" style="color: #2196f3; font-size: 12px; margin-left: 4px;" title="${tituloJustificacion}"></i>`;
+                        colorPuntoEncuesta = ''; // No mostrar punto para justificadas
                     }
                     
                     // Obtener datos para mostrar en las citas (usando datos existentes de los formularios)
@@ -14005,6 +14296,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     if (clienteNombre && clienteNombre !== 'Sin nombre') lineaInferiorVista.push(clienteNombre);
                     
                     citaElement.innerHTML = `
+                        ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                         <span>${textoPrincipal}</span>
                         ${lineaInferiorVista.length > 0 ? `<div style="font-size: 0.65rem; line-height: 1.2; margin-top: 0.15rem; color: #ffffff; opacity: 0.9;">${lineaInferiorVista.join(' • ')}</div>` : ''}
                     `;
@@ -15474,29 +15766,50 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 if (newMontoVentaInput) {
                     // Detectar cuando el usuario empieza a editar manualmente
                     newMontoVentaInput.addEventListener('focus', () => {
-                        window.editandoMontoVentaManual.new = true;
+                        // No activar el flag todavía, solo cuando presione Enter
                     });
                     
-                    // Detectar cuando el usuario termina de editar
-                    newMontoVentaInput.addEventListener('blur', () => {
-                        window.editandoMontoVentaManual.new = false;
-                        // Formatear el valor al perder el foco
-                        const valorNumerico = window.extraerValorNumerico(newMontoVentaInput.value);
-                        if (valorNumerico !== '') {
-                            newMontoVentaInput.value = window.formatearMontoVenta(valorNumerico);
-                        }
-                        if (window.actualizarResumenFinancieroNew) {
-                            window.actualizarResumenFinancieroNew();
-                        }
-                    });
-                    
-                    // Formatear cuando se presiona Enter o se pierde el foco
+                    // Detectar cuando el usuario presiona Enter para confirmar valor manual
                     newMontoVentaInput.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
+                            // Activar modo manual y formatear el valor
                             const valorNumerico = window.extraerValorNumerico(newMontoVentaInput.value);
-                            newMontoVentaInput.value = window.formatearMontoVenta(valorNumerico);
+                            if (valorNumerico !== null && !isNaN(valorNumerico)) {
+                                newMontoVentaInput.value = window.formatearMontoVenta(valorNumerico);
+                                window.editandoMontoVentaManual.new = true;
+                                // Actualizar resumen financiero con el valor manual
+                                if (window.actualizarResumenFinancieroNew) {
+                                    window.actualizarResumenFinancieroNew();
+                                }
+                            }
                             newMontoVentaInput.blur();
+                        }
+                    });
+                    
+                    // Detectar cuando el usuario termina de editar (sin Enter)
+                    newMontoVentaInput.addEventListener('blur', () => {
+                        // Si no se presionó Enter, volver a modo automático
+                        if (!window.editandoMontoVentaManual.new) {
+                            // Formatear el valor al perder el foco
+                            const valorNumerico = window.extraerValorNumerico(newMontoVentaInput.value);
+                            if (valorNumerico !== '') {
+                                newMontoVentaInput.value = window.formatearMontoVenta(valorNumerico);
+                            }
+                            // Recalcular automáticamente
+                            window.calcularMontoVenta('new');
+                            if (window.actualizarResumenFinancieroNew) {
+                                window.actualizarResumenFinancieroNew();
+                            }
+                        } else {
+                            // Si se presionó Enter, solo formatear sin recalcular
+                            const valorNumerico = window.extraerValorNumerico(newMontoVentaInput.value);
+                            if (valorNumerico !== '') {
+                                newMontoVentaInput.value = window.formatearMontoVenta(valorNumerico);
+                            }
+                            if (window.actualizarResumenFinancieroNew) {
+                                window.actualizarResumenFinancieroNew();
+                            }
                         }
                     });
                     newMontoVentaInput.addEventListener('input', () => {
@@ -15819,196 +16132,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         //     });
         // }
         
-        // Event listener para toggle de vista compacta
-        // Event listeners para navegación de semana
-        const btnSemanaAnterior = document.getElementById('btnSemanaAnterior');
-        const btnSemanaSiguiente = document.getElementById('btnSemanaSiguiente');
-        
-        if (btnSemanaAnterior) {
-            btnSemanaAnterior.addEventListener('click', async () => {
-                if (!semanaActual) {
-                    semanaActual = obtenerLunesSemana(new Date());
-                }
-                semanaActual.setDate(semanaActual.getDate() - 7);
-                if (vistaActual === 'cronograma') {
-                    await generarCronograma();
-                    // Actualizar botones de días para mostrar la nueva semana
-                    if (diaSeleccionado) {
-                        generarBotonesDiasMes(diaSeleccionado);
-                    }
-                }
-            });
-        }
-        
-        if (btnSemanaSiguiente) {
-            btnSemanaSiguiente.addEventListener('click', async () => {
-                if (!semanaActual) {
-                    semanaActual = obtenerLunesSemana(new Date());
-                }
-                semanaActual.setDate(semanaActual.getDate() + 7);
-                if (vistaActual === 'cronograma') {
-                    await generarCronograma();
-                    // Actualizar botones de días para mostrar la nueva semana
-                    if (diaSeleccionado) {
-                        generarBotonesDiasMes(diaSeleccionado);
-                    }
-                }
-            });
-        }
-        
-        const btnToggleVistaCompacta = document.getElementById('btnToggleVistaCompacta');
-        if (btnToggleVistaCompacta) {
-            btnToggleVistaCompacta.addEventListener('click', async () => {
-                const estaActiva = btnToggleVistaCompacta.classList.contains('active');
-                
-                if (estaActiva) {
-                    // Cambiar de vista total a vista compacta
-                    btnToggleVistaCompacta.classList.remove('active');
-                    btnToggleVistaCompacta.style.background = '#6c757d';
-                    btnToggleVistaCompacta.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
-                    
-                    // Inicializar semana actual si no está definida
-                    if (!semanaActual) {
-                        semanaActual = obtenerLunesSemana(new Date());
-                    }
-                    // Actualizar botones de días para mostrar solo la semana
-                    if (diaSeleccionado) {
-                        generarBotonesDiasMes(diaSeleccionado);
-                    }
-                    // Regenerar cronograma para mostrar vista compacta
-                    await generarCronograma();
-                } else {
-                    // Cambiar de vista compacta a vista total
-                    btnToggleVistaCompacta.classList.add('active');
-                    btnToggleVistaCompacta.style.background = '#4CAF50';
-                    btnToggleVistaCompacta.innerHTML = '<i class="fas fa-expand-alt me-2"></i>Vista Total';
-                    
-                    // Restaurar vista total: mostrar todas las horas y restaurar altura
-                    const restaurarVistaTotal = (contenedorId) => {
-                        const contenedor = document.getElementById(contenedorId);
-                        if (!contenedor) return;
-                        const columnas = contenedor.querySelectorAll('.vehiculo-columna-cronograma');
-                        columnas.forEach(columna => {
-                            const timeline = columna.querySelector('.citas-timeline');
-                            if (!timeline) return;
-                            
-                            // Restaurar altura original
-                            timeline.style.height = '792px';
-                            timeline.style.minHeight = '792px';
-                            timeline.style.overflow = 'visible';
-                            
-                            // Restaurar marcadores de hora
-                            const marcadores = timeline.querySelectorAll('.marcador-hora-timeline');
-                            marcadores.forEach(m => {
-                                m.style.display = 'block';
-                                // Restaurar posición original (se recalcula desde minutos)
-                                const minutosDesdeMedianoche = parseFloat(m.getAttribute('data-minutos-original')) || (parseFloat(m.style.top) || 0) / 40 * 60; // 40px por hora = 1cm
-                                m.style.top = `${(minutosDesdeMedianoche / 60) * 40}px`;
-                            });
-                            
-                            // Restaurar líneas divisorias
-                            const lineas = timeline.querySelectorAll('.linea-divisoria-hora');
-                            lineas.forEach(l => {
-                                l.style.display = 'block';
-                                // Restaurar posición original
-                                const minutosDesdeMedianoche = parseFloat(l.getAttribute('data-minutos-original')) || (parseFloat(l.style.top) || 0) / 40 * 60; // 40px por hora = 1cm
-                                l.style.top = `${(minutosDesdeMedianoche / 60) * 40}px`;
-                            });
-                            
-                            // Las citas se reposicionan automáticamente al regenerar el cronograma
-                        });
-                    };
-                    
-                    // Regenerar cronograma para restaurar posiciones originales
-                    await generarCronograma();
-                    // Actualizar botones de días para mostrar todo el mes
-                    if (diaSeleccionado) {
-                        generarBotonesDiasMes(diaSeleccionado);
-                    }
-                }
-                
-                // Colapsar filas de horas fuera del rango (solo si estamos en vista compacta)
-                const estaEnVistaCompactaDespues = !btnToggleVistaCompacta.classList.contains('active');
-                if (estaEnVistaCompactaDespues) {
-                    // Colapsar filas de horas fuera del rango
-                    if (window.rangosHoras) {
-                        const colapsarFilasHoras = (contenedorId, minutosInicio, minutosFin) => {
-                            if (minutosInicio === null || minutosFin === null) return;
-                            
-                            const contenedor = document.getElementById(contenedorId);
-                            if (!contenedor) return;
-                            
-                            // Calcular altura del timeline en vista compacta
-                            const minutosTotales = minutosFin - minutosInicio;
-                            const alturaTimeline = (minutosTotales / 60) * 40; // 40px por hora = 1cm
-                            const offsetTop = (minutosInicio / 60) * 40; // 40px por hora = 1cm
-                            
-                            const columnas = contenedor.querySelectorAll('.vehiculo-columna-cronograma');
-                            columnas.forEach(columna => {
-                                const timeline = columna.querySelector('.citas-timeline');
-                                if (!timeline) return;
-                                
-                                // Ajustar altura del timeline
-                                timeline.style.height = `${alturaTimeline}px`;
-                                timeline.style.minHeight = `${alturaTimeline}px`;
-                                timeline.style.overflow = 'hidden';
-                                
-                                // Reposicionar marcadores de hora
-                                const marcadores = timeline.querySelectorAll('.marcador-hora-timeline');
-                                marcadores.forEach(marcador => {
-                                    const topOriginal = parseFloat(marcador.style.top) || 0;
-                                    const minutosDesde5AM = (topOriginal / 33) * 60; // Ya está en minutos desde 5 AM
-                                    if (minutosDesde5AM < minutosInicio || minutosDesde5AM > minutosFin) {
-                                        marcador.style.display = 'none';
-                                    } else {
-                                        marcador.style.display = 'block';
-                                        const nuevoTop = topOriginal - offsetTop;
-                                        marcador.style.top = `${nuevoTop}px`;
-                                    }
-                                });
-                                
-                                // Reposicionar líneas divisorias
-                                const lineas = timeline.querySelectorAll('.linea-divisoria-hora');
-                                lineas.forEach(linea => {
-                                    const topOriginal = parseFloat(linea.style.top) || 0;
-                                    const minutosDesde5AM = (topOriginal / 33) * 60; // Ya está en minutos desde 5 AM
-                                    if (minutosDesde5AM < minutosInicio || minutosDesde5AM > minutosFin) {
-                                        linea.style.display = 'none';
-                                    } else {
-                                        linea.style.display = 'block';
-                                        const nuevoTop = topOriginal - offsetTop;
-                                        linea.style.top = `${nuevoTop}px`;
-                                    }
-                                });
-                                
-                                // Reposicionar u ocultar citas
-                                const citas = timeline.querySelectorAll('.cita-bloque');
-                                citas.forEach(cita => {
-                                    const topOriginal = parseFloat(cita.style.top) || 0;
-                                    const alturaCita = parseFloat(cita.style.height) || 0;
-                                    const minutosCitaInicio = (topOriginal / 33) * 60; // Ya está en minutos desde 5 AM
-                                    const minutosCitaFin = minutosCitaInicio + (alturaCita / 33) * 60;
-                                    
-                                    // Verificar si la cita está dentro del rango visible (o se superpone)
-                                    if (minutosCitaFin >= minutosInicio && minutosCitaInicio <= minutosFin) {
-                                        // La cita está dentro o se superpone con el rango visible
-                                        cita.style.display = 'block';
-                                        const nuevoTop = topOriginal - offsetTop;
-                                        cita.style.top = `${nuevoTop}px`;
-                                    } else {
-                                        // La cita está completamente fuera del rango visible
-                                        cita.style.display = 'none';
-                                    }
-                                });
-                            });
-                        };
-                        
-                        colapsarFilasHoras('vehiculosCronogramaDiurnas', window.rangosHoras.diurnas.inicio, window.rangosHoras.diurnas.fin);
-                        colapsarFilasHoras('vehiculosCronogramaNocturnas', window.rangosHoras.nocturnas.inicio, window.rangosHoras.nocturnas.fin);
-                    }
-                }
-            });
-        }
+        // Event listeners para navegación de semana y toggle de vista - MOVIDOS A window.load
         
 
         // Event listeners del reporte táctico removidos - ahora está en reporte_tactico.html
@@ -18898,6 +19022,140 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Mostrar cronograma por defecto (ahora con botón ya configurado)
                 await cambiarVista('cronograma');
                 await cargarDatos();
+                
+                // Event listeners para navegación de semana (después de que el DOM esté listo)
+                console.log('🔧 [load] Registrando event listeners para navegación de semana');
+                const btnSemanaAnterior = document.getElementById('btnSemanaAnterior');
+                const btnSemanaSiguiente = document.getElementById('btnSemanaSiguiente');
+                
+                console.log('🔧 [load] Botones encontrados:', {
+                    anterior: !!btnSemanaAnterior,
+                    siguiente: !!btnSemanaSiguiente
+                });
+                
+                if (btnSemanaAnterior) {
+                    btnSemanaAnterior.addEventListener('click', async () => {
+                        console.log('🔙 [NAVEGACION] Botón semana anterior clickeado');
+                        if (!semanaActual) {
+                            semanaActual = obtenerLunesSemana(new Date());
+                        }
+                        semanaActual.setDate(semanaActual.getDate() - 7);
+                        console.log('🔙 [NAVEGACION] Nueva semana actual:', semanaActual);
+                        
+                        // Actualizar botones de días para mostrar la nueva semana
+                        const lunesSemana = obtenerLunesSemana(semanaActual);
+                        generarBotonesDiasMes(lunesSemana);
+                        
+                        // Actualizar día seleccionado al lunes de la nueva semana
+                        diaSeleccionado = new Date(lunesSemana);
+                        const datePicker = document.getElementById('datePicker');
+                        if (datePicker) {
+                            datePicker.value = formatearFechaParaInput(lunesSemana);
+                        }
+                        
+                        // Siempre regenerar cronograma cuando cambia la semana
+                        await generarCronograma();
+                    });
+                    console.log('✅ [load] Event listener registrado para btnSemanaAnterior');
+                } else {
+                    console.error('❌ [load] btnSemanaAnterior no encontrado');
+                }
+                
+                if (btnSemanaSiguiente) {
+                    btnSemanaSiguiente.addEventListener('click', async () => {
+                        console.log('➡️ [NAVEGACION] Botón semana siguiente clickeado');
+                        if (!semanaActual) {
+                            semanaActual = obtenerLunesSemana(new Date());
+                        }
+                        semanaActual.setDate(semanaActual.getDate() + 7);
+                        console.log('➡️ [NAVEGACION] Nueva semana actual:', semanaActual);
+                        
+                        // Actualizar botones de días para mostrar la nueva semana
+                        const lunesSemana = obtenerLunesSemana(semanaActual);
+                        generarBotonesDiasMes(lunesSemana);
+                        
+                        // Actualizar día seleccionado al lunes de la nueva semana
+                        diaSeleccionado = new Date(lunesSemana);
+                        const datePicker = document.getElementById('datePicker');
+                        if (datePicker) {
+                            datePicker.value = formatearFechaParaInput(lunesSemana);
+                        }
+                        
+                        // Siempre regenerar cronograma cuando cambia la semana
+                        await generarCronograma();
+                    });
+                    console.log('✅ [load] Event listener registrado para btnSemanaSiguiente');
+                } else {
+                    console.error('❌ [load] btnSemanaSiguiente no encontrado');
+                }
+                
+                // Event listener para toggle de vista compacta (re-registrar para asegurar que funcione)
+                // Reutilizar la variable ya declarada arriba
+                const btnToggleVistaCompacta2 = document.getElementById('btnToggleVistaCompacta');
+                if (btnToggleVistaCompacta2) {
+                    // Clonar el botón para remover listeners anteriores
+                    const nuevoBtnToggle = btnToggleVistaCompacta2.cloneNode(true);
+                    btnToggleVistaCompacta2.parentNode.replaceChild(nuevoBtnToggle, btnToggleVistaCompacta2);
+                    
+                    nuevoBtnToggle.addEventListener('click', async () => {
+                        console.log('🔄 [VISTA] Toggle de vista clickeado');
+                        const estaActiva = nuevoBtnToggle.classList.contains('active');
+                        console.log('🔄 [VISTA] Estado actual:', estaActiva ? 'Vista Total' : 'Vista Compacta');
+                        
+                        if (estaActiva) {
+                            // Cambiar de vista total a vista compacta
+                            console.log('🔄 [VISTA] Cambiando a Vista Compacta');
+                            nuevoBtnToggle.classList.remove('active');
+                            nuevoBtnToggle.style.background = '#6c757d';
+                            nuevoBtnToggle.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
+                            vistaActual = 'cronograma';
+                            
+                            // Inicializar semana actual si no está definida
+                            if (!semanaActual) {
+                                semanaActual = obtenerLunesSemana(new Date());
+                            }
+                            
+                            // Asegurar que diaSeleccionado esté en la semana actual
+                            if (!diaSeleccionado) {
+                                diaSeleccionado = new Date(semanaActual);
+                            } else {
+                                const lunesSemana = obtenerLunesSemana(semanaActual);
+                                const lunesSeleccionado = obtenerLunesSemana(diaSeleccionado);
+                                // Si el día seleccionado no está en la semana actual, moverlo al lunes de la semana actual
+                                if (lunesSeleccionado.getTime() !== lunesSemana.getTime()) {
+                                    diaSeleccionado = new Date(lunesSemana);
+                                }
+                            }
+                            
+                            // Actualizar botones de días para mostrar solo la semana
+                            generarBotonesDiasMes(diaSeleccionado || semanaActual);
+                            
+                            // Regenerar cronograma para mostrar vista compacta
+                            await generarCronograma();
+                        } else {
+                            // Cambiar de vista compacta a vista total
+                            console.log('🔄 [VISTA] Cambiando a Vista Total');
+                            nuevoBtnToggle.classList.add('active');
+                            nuevoBtnToggle.style.background = '#4CAF50';
+                            nuevoBtnToggle.innerHTML = '<i class="fas fa-expand-alt me-2"></i>Vista Total';
+                            vistaActual = 'cronograma';
+                            
+                            // Asegurar que diaSeleccionado esté definido
+                            if (!diaSeleccionado) {
+                                diaSeleccionado = new Date();
+                            }
+                            
+                            // Actualizar botones de días para mostrar todo el mes ANTES de regenerar cronograma
+                            generarBotonesDiasMes(diaSeleccionado);
+                            
+                            // Regenerar cronograma para restaurar posiciones originales
+                            await generarCronograma();
+                        }
+                    });
+                    console.log('✅ [load] Event listener registrado para btnToggleVistaCompacta');
+                } else {
+                    console.error('❌ [load] btnToggleVistaCompacta no encontrado');
+                }
             });
             
         // Función para inicializar el buscador de citas
@@ -19061,13 +19319,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             
         // Variables globales para gráficos
         // Código del reporte táctico movido a reporte_tactico.html
-            
-        // Código del reporte táctico movido a reporte_tactico.html
-            
-        } catch (error) {
-            console.error('❌ Error al cargar Firebase:', error);
-            alert('Error al cargar Firebase. Verifica la consola para más detalles.');
-        }
     </script>
 
     <script>
@@ -19159,26 +19410,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 }
             }
             
-            // Inicializar vista compacta como predeterminada
-            const btnToggleVistaCompacta = document.getElementById('btnToggleVistaCompacta');
-            if (btnToggleVistaCompacta && !btnToggleVistaCompacta.classList.contains('active')) {
-                // Estamos en vista compacta (predeterminada), inicializar semana actual si no está definida
-                if (!window.semanaActual) {
-                    // Función helper para obtener el lunes de la semana (mismo código que en generarBotonesDiasMes)
-                    function obtenerLunesSemanaLocal(fecha) {
-                        const d = new Date(fecha);
-                        const day = d.getDay();
-                        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Ajustar para que lunes sea 0
-                        return new Date(d.setDate(diff));
-                    }
-                    window.semanaActual = obtenerLunesSemanaLocal(new Date());
-                }
-                // Mostrar navegación de semana
-                const navegacionSemana = document.getElementById('navegacionSemana');
-                if (navegacionSemana) {
-                    navegacionSemana.style.display = 'flex';
-                }
-            }
+            // Inicializar vista compacta como predeterminada (ya se hace en el otro bloque window.load)
+            // Este bloque solo verifica autenticación, no necesita duplicar la lógica de vista compacta
         });
         
         // Función para vista previa de migración
