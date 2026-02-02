@@ -1,0 +1,2385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centinela - Monitoreo PCCP - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="eco-plagas-styles.css" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
+    <!-- QRCode se genera usando API online (más confiable que CDN) -->
+    <!-- Solo requiere autenticación, no permisos adicionales -->
+    <script type="module" src="csrf-token.js"></script>
+    
+    <!-- Sistema de Autenticación - Solo requiere autenticación, sin permisos adicionales -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+        
+        window.firebaseAuth = auth;
+        
+        // Ocultar contenido hasta verificar autenticación
+        if (document.body) {
+            document.body.style.display = 'none';
+        }
+        
+        // Verificar autenticación usando onAuthStateChanged (más confiable)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Usuario autenticado - mostrar contenido
+                console.log('✅ [CENTINELA] Usuario autenticado');
+                
+                if (window.secureAuthManager) {
+                    window.authManager = window.secureAuthManager;
+                }
+                
+                if (document.body) {
+                    document.body.style.display = 'block';
+                    document.body.classList.add('authenticated');
+                }
+            } else {
+                // Usuario no autenticado - redirigir a login
+                console.log('❌ [CENTINELA] Usuario no autenticado, redirigiendo...');
+                
+                if (document.body) {
+                    document.body.style.display = 'none';
+                }
+                
+                // Evitar loop de redirección
+                if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                    try {
+                        sessionStorage.setItem('postLoginRedirect', window.location.href);
+                    } catch (e) {
+                        console.error('Error guardando redirect:', e);
+                    }
+                    window.location.replace('iniciar_sesion.html');
+                }
+            }
+        }, (error) => {
+            // Error en la verificación de autenticación
+            console.error('❌ [CENTINELA] Error verificando autenticación:', error);
+            
+            if (document.body) {
+                document.body.style.display = 'none';
+            }
+            
+            if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                try {
+                    sessionStorage.setItem('postLoginRedirect', window.location.href);
+                } catch (e) {
+                    console.error('Error guardando redirect:', e);
+                }
+                window.location.replace('iniciar_sesion.html');
+            }
+        });
+    </script>
+    
+    <style>
+        body {
+            display: none !important;
+        }
+        body.authenticated {
+            display: block !important;
+        }
+        
+        .centinela-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        
+        .card-modern {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card-header-modern {
+            background: linear-gradient(135deg, #0b7835 0%, #0d8a3f 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 20px;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        
+        .btn-primary-modern {
+            background: #0b7835;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary-modern:hover {
+            background: #0d8a3f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(11, 120, 53, 0.3);
+        }
+        
+        .btn-secondary-modern {
+            background: #6c757d;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-weight: 600;
+        }
+        
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .qr-code {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .info-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #e7f3ff;
+            border-radius: 20px;
+            color: #0066cc;
+            font-size: 0.9rem;
+            margin: 5px;
+        }
+        
+        .gps-status {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .gps-status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .gps-status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .gps-status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .timestamp-display {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0b7835;
+            padding: 10px;
+            background: #f0f8f4;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .form-control:focus {
+            border-color: #0b7835;
+            box-shadow: 0 0 0 0.2rem rgba(11, 120, 53, 0.25);
+        }
+        
+        .trampa-option {
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .trampa-option:hover {
+            border-color: #0b7835;
+            background: #f0f8f4;
+        }
+        
+        .trampa-option.selected {
+            border-color: #0b7835;
+            background: #e7f5ec;
+        }
+        
+        .trampa-option input[type="radio"] {
+            margin-right: 10px;
+        }
+        
+        .alert-modern {
+            border-radius: 10px;
+            border: none;
+            padding: 15px 20px;
+        }
+        
+        .centinelas-list {
+            max-height: none;
+        }
+        
+        .centinela-item {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+        }
+        
+        .centinela-item.editing {
+            background: #fff;
+            border-color: #0b7835;
+            box-shadow: 0 2px 8px rgba(11, 120, 53, 0.2);
+        }
+        
+        .centinela-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .centinela-header h5 {
+            margin: 0;
+            color: #0b7835;
+        }
+        
+        .centinela-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .centinela-field {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .centinela-field label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .centinela-field input,
+        .centinela-field select {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 0.95rem;
+        }
+        
+        .centinela-field input:read-only {
+            background-color: #e9ecef;
+        }
+        
+        .inspecciones-container {
+            margin-top: 15px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+        }
+        
+        .inspecciones-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .inspecciones-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .inspeccion-item {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+        }
+        
+        .inspeccion-item.editing {
+            border-color: #0b7835;
+            box-shadow: 0 2px 6px rgba(11, 120, 53, 0.15);
+        }
+        
+        .inspeccion-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body class="authenticated">
+    <div class="centinela-container">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h1 class="display-4 mb-2">
+                <i class="fas fa-shield-alt text-success"></i> Centinela
+            </h1>
+            <p class="text-muted">Sistema de Monitoreo de Puntos Críticos de Control de Plagas</p>
+        </div>
+
+        <!-- Modo: Crear Centinela o Inspección -->
+        <div id="modoSelector" class="card card-modern mb-4">
+            <div class="card-body text-center">
+                <h5 class="mb-3">¿Qué deseas hacer?</h5>
+                <button class="btn btn-primary-modern me-2 mb-2" onclick="mostrarCrearCentinela()">
+                    <i class="fas fa-plus-circle"></i> Crear Nuevo Centinela
+                </button>
+                <button class="btn btn-secondary-modern mb-2" onclick="mostrarInspeccion()">
+                    <i class="fas fa-clipboard-check"></i> Registrar Inspección
+                </button>
+            </div>
+        </div>
+
+        <!-- Sección: Crear Centinela -->
+        <div id="crearCentinelaSection" class="card card-modern" style="display: none;">
+            <div class="card-header-modern">
+                <i class="fas fa-qrcode"></i> Crear Nuevo Centinela
+            </div>
+            <div class="card-body">
+                <form id="formCrearCentinela">
+                    <div class="mb-3">
+                        <label class="form-label">ID del Centinela (Automático)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">CENT</span>
+                            <input type="text" id="centinelaId" class="form-control" 
+                                   placeholder="Generando..." readonly style="background-color: #f8f9fa;">
+                            <button type="button" class="btn btn-outline-secondary" onclick="generarNuevoId()" id="btnGenerarId">
+                                <i class="fas fa-sync-alt"></i> Generar ID
+                            </button>
+                        </div>
+                        <small class="text-muted">El ID se genera automáticamente de forma secuencial</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono del Cliente</label>
+                        <input type="tel" id="telefonoCliente" class="form-control" 
+                               placeholder="88887777" pattern="[0-9]{8}" maxlength="8" required>
+                        <small class="text-muted">8 dígitos (ej: 88887777)</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombre/Descripción del Punto (Opcional)</label>
+                        <input type="text" id="nombreCentinela" class="form-control" 
+                               placeholder="Ej: Cocina principal, Almacén trasero">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Dirección (Opcional)</label>
+                        <input type="text" id="direccionCentinela" class="form-control" 
+                               placeholder="Ej: Calle 123, San José">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Trampa *</label>
+                        
+                        <div class="trampa-option" onclick="seleccionarTrampaCrear('rodenticida_cebo')">
+                            <input type="radio" name="tipoTrampaCrear" id="trampaCeboCrear" value="rodenticida_cebo" required>
+                            <label for="trampaCeboCrear" style="cursor: pointer; margin: 0;">
+                                <strong>Trampa Rodenticida con Cebo</strong>
+                                <br><small class="text-muted">Evidencias: Número de cebos consumidos</small>
+                            </label>
+                        </div>
+                        
+                        <div class="trampa-option" onclick="seleccionarTrampaCrear('rodenticida_mecanica')">
+                            <input type="radio" name="tipoTrampaCrear" id="trampaMecanicaCrear" value="rodenticida_mecanica" required>
+                            <label for="trampaMecanicaCrear" style="cursor: pointer; margin: 0;">
+                                <strong>Trampa Rodenticida Mecánica</strong>
+                                <br><small class="text-muted">Evidencias: Trampas activadas</small>
+                            </label>
+                        </div>
+                        
+                        <div class="trampa-option" onclick="seleccionarTrampaCrear('monitoreo_luminosa')">
+                            <input type="radio" name="tipoTrampaCrear" id="trampaLuminosaCrear" value="monitoreo_luminosa" required>
+                            <label for="trampaLuminosaCrear" style="cursor: pointer; margin: 0;">
+                                <strong>Trampa Luminosa de Monitoreo de Insectos</strong>
+                                <br><small class="text-muted">Evidencias: Insectos en la trampa</small>
+                            </label>
+                        </div>
+                        
+                        <div class="trampa-option" onclick="seleccionarTrampaCrear('monitoreo_adhesiva')">
+                            <input type="radio" name="tipoTrampaCrear" id="trampaAdhesivaCrear" value="monitoreo_adhesiva" required>
+                            <label for="trampaAdhesivaCrear" style="cursor: pointer; margin: 0;">
+                                <strong>Trampa Adhesiva de Monitoreo de Insectos</strong>
+                                <br><small class="text-muted">Evidencias: Insectos en la trampa</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-modern w-100">
+                        <i class="fas fa-save"></i> Crear Centinela y Generar QR
+                    </button>
+                </form>
+
+                <!-- QR Generado -->
+                <div id="qrResultado" style="display: none;">
+                    <hr>
+                    <div class="qr-container">
+                        <h5 class="mb-3">Código QR Generado</h5>
+                        <div id="qrCode" class="qr-code"></div>
+                        <div class="mt-3">
+                            <p class="mb-2"><strong>ID:</strong> <span id="qrIdDisplay"></span></p>
+                            <p class="mb-2"><strong>URL:</strong> <span id="qrUrlDisplay" class="text-break"></span></p>
+                        </div>
+                        <button class="btn btn-primary-modern mt-3" onclick="imprimirQR()">
+                            <i class="fas fa-print"></i> Imprimir QR
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección: Registrar Inspección -->
+        <div id="inspeccionSection" class="card card-modern" style="display: none;">
+            <div class="card-header-modern">
+                <i class="fas fa-clipboard-check"></i> Registrar Inspección
+            </div>
+            <div class="card-body">
+                <!-- Información del Centinela -->
+                <div id="centinelaInfo" class="alert alert-info alert-modern" style="display: none;">
+                    <h6><i class="fas fa-info-circle"></i> Información del Centinela</h6>
+                    <p class="mb-1"><strong>ID:</strong> <span id="infoId"></span></p>
+                    <p class="mb-1"><strong>Teléfono Cliente:</strong> <span id="infoTelefono"></span></p>
+                    <p class="mb-1" id="infoNombre" style="display: none;"><strong>Nombre:</strong> <span id="infoNombreTexto"></span></p>
+                    <p class="mb-0"><strong>Tipo de Trampa:</strong> <span id="infoTipoTrampa"></span></p>
+                </div>
+
+                <!-- Datos Automáticos -->
+                <div class="mb-3">
+                    <label class="form-label">Fecha y Hora (Automático)</label>
+                    <div class="timestamp-display" id="timestampDisplay">
+                        <i class="fas fa-clock"></i> Obteniendo fecha y hora...
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Ubicación GPS (Automático)</label>
+                    <div id="gpsStatus" class="gps-status loading">
+                        <i class="fas fa-spinner fa-spin"></i> Obteniendo ubicación GPS...
+                    </div>
+                    <div id="gpsCoords" style="display: none; margin-top: 10px;">
+                        <span class="info-badge"><i class="fas fa-map-marker-alt"></i> Lat: <span id="gpsLat"></span></span>
+                        <span class="info-badge"><i class="fas fa-map-marker-alt"></i> Lng: <span id="gpsLng"></span></span>
+                    </div>
+                </div>
+
+                <!-- Formulario de Inspección -->
+                <form id="formInspeccion">
+                    <input type="hidden" id="puntoIdInspeccion">
+                    <input type="hidden" id="telefonoClienteInspeccion">
+                    <input type="hidden" id="tipoTrampaInspeccion">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Evidencias *</label>
+                        <input type="number" id="evidencias" class="form-control" 
+                               min="0" step="1" required>
+                        <small class="text-muted">Ingresa el número de evidencias encontradas</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Estado de Mantenimiento/Condiciones *</label>
+                        <select id="estadoMantenimiento" class="form-control" required>
+                            <option value="">Seleccione una opción</option>
+                            <option value="mantenimiento_reciente">Mantenimiento notorio reciente</option>
+                            <option value="sucia_malas_condiciones">Se encuentra sucia o en malas condiciones</option>
+                            <option value="optimas_condiciones">En óptimas condiciones funcionales</option>
+                        </select>
+                        <small class="text-muted">Indique el estado funcional de la trampa</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Nivel de Limpieza *</label>
+                        <select id="nivelLimpieza" class="form-select" required>
+                            <option value="1">Mal</option>
+                            <option value="10" selected>Bien</option>
+                        </select>
+                        <small class="text-muted d-block mt-1">Seleccione el estado de limpieza de la trampa</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Fotos de la Inspección</label>
+                        <input type="file" id="fotosInspeccion" class="form-control" 
+                               accept="image/*" multiple>
+                        <small class="text-muted">Puede seleccionar una o varias fotos</small>
+                        <div id="fotosPreview" class="mt-3"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones (Opcional)</label>
+                        <textarea id="observaciones" class="form-control" rows="3" 
+                                  placeholder="Notas adicionales sobre la inspección..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-modern w-100">
+                        <i class="fas fa-save"></i> Guardar Inspección
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Mensajes de Éxito/Error -->
+        <div id="mensajeAlerta" style="display: none;"></div>
+
+        <!-- Modal de Confirmación para Eliminar Centinela -->
+        <div class="modal fade" id="modalEliminarCentinela" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <strong>¡Advertencia!</strong> Esta acción eliminará permanentemente:
+                            <ul class="mb-0 mt-2">
+                                <li>El centinela <strong id="centinelaIdEliminar"></strong></li>
+                                <li>Todas sus inspecciones registradas</li>
+                                <li>Todas las fotos asociadas</li>
+                            </ul>
+                            <p class="mb-0 mt-2"><strong>Esta acción no se puede deshacer.</strong></p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Para confirmar, resuelve esta operación matemática:</label>
+                            <div class="d-flex align-items-center justify-content-center mb-3">
+                                <span class="fs-4 me-3" id="operacionMatematica"></span>
+                                <input type="number" class="form-control" id="respuestaMatematica" 
+                                       placeholder="Resultado" style="max-width: 150px;" required>
+                            </div>
+                            <input type="hidden" id="resultadoCorrecto">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">
+                            <i class="fas fa-trash"></i> Eliminar Permanentemente
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Generar Stickers PDF -->
+        <div class="modal fade" id="modalGenerarStickers" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-qrcode"></i> Generar Stickers PDF
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted">Genera un PDF con stickers de QR codes para un rango de centinelas.</p>
+                        <p class="text-muted"><small>Cada sticker mide 5cm x 5cm y se imprimen en hojas carta.</small></p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Centinela Inicial</label>
+                            <div class="input-group">
+                                <span class="input-group-text">CENT</span>
+                                <input type="number" class="form-control" id="centinelaInicio" 
+                                       placeholder="001" min="1" max="999" required>
+                            </div>
+                            <small class="text-muted">Ejemplo: 1 para CENT001</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Centinela Final</label>
+                            <div class="input-group">
+                                <span class="input-group-text">CENT</span>
+                                <input type="number" class="form-control" id="centinelaFin" 
+                                       placeholder="099" min="1" max="999" required>
+                            </div>
+                            <small class="text-muted">Ejemplo: 99 para CENT099</small>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Se generarán stickers desde <strong id="previewInicio">CENT001</strong> hasta <strong id="previewFin">CENT099</strong>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="button" class="btn btn-primary" id="btnGenerarStickers">
+                            <i class="fas fa-file-pdf"></i> Generar PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección: Gestión de Centinelas -->
+        <div id="gestionCentinelasSection" class="card card-modern">
+            <div class="card-header-modern">
+                <i class="fas fa-list"></i> Gestión de Centinelas
+                <div class="float-end">
+                    <button class="btn btn-sm btn-outline-light me-2" onclick="mostrarModalGenerarStickers()">
+                        <i class="fas fa-qrcode"></i> Generar Stickers PDF
+                    </button>
+                    <button class="btn btn-sm btn-outline-light" onclick="cargarTodosCentinelas()">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="centinelasList" class="centinelas-list">
+                    <p class="text-center text-muted">Cargando centinelas...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, updateDoc, deleteDoc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+        
+        const db = getFirestore();
+        
+        // Inicializar Storage
+        let storage = null;
+        try {
+            if (window.firebaseAuth && window.firebaseAuth.app) {
+                storage = getStorage(window.firebaseAuth.app);
+            } else if (auth && auth.app) {
+                storage = getStorage(auth.app);
+            } else {
+                // Intentar obtener la app de Firebase
+                const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+                const apps = getApps();
+                if (apps.length > 0) {
+                    storage = getStorage(apps[0]);
+                }
+            }
+        } catch (error) {
+            console.warn('⚠️ No se pudo inicializar Storage:', error);
+        }
+        window.db = db;
+        window.auth = auth;
+        
+        // Variables globales
+        let gpsCoords = null;
+        let timestamp = null;
+        let puntoIdActual = null;
+        
+        // Verificar si hay ID en la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const puntoId = urlParams.get('id');
+        
+        if (puntoId) {
+            // Modo inspección - cargar datos del centinela
+            document.getElementById('modoSelector').style.display = 'none';
+            document.getElementById('inspeccionSection').style.display = 'block';
+            cargarCentinela(puntoId);
+        } else {
+            // Modo selector
+            document.getElementById('modoSelector').style.display = 'block';
+        }
+        
+        // Función para mostrar crear centinela
+        window.mostrarCrearCentinela = async function() {
+            document.getElementById('modoSelector').style.display = 'none';
+            document.getElementById('inspeccionSection').style.display = 'none';
+            document.getElementById('crearCentinelaSection').style.display = 'block';
+            
+            // Generar ID automáticamente al mostrar el formulario
+            await generarNuevoId();
+        };
+        
+        // Función para generar el siguiente ID disponible
+        // Estrategia: Buscar secuencialmente desde CENT001 hasta encontrar uno disponible
+        // Esto evita necesitar permisos para leer toda la colección
+        window.generarNuevoId = async function() {
+            const idInput = document.getElementById('centinelaId');
+            const btnGenerar = document.getElementById('btnGenerarId');
+            
+            idInput.value = 'Generando...';
+            idInput.disabled = true;
+            if (btnGenerar) btnGenerar.disabled = true;
+            
+            try {
+                // Buscar secuencialmente desde CENT001
+                let numeroBuscar = 1;
+                let idDisponible = null;
+                const maxIntentos = 999; // Límite de seguridad
+                
+                while (!idDisponible && numeroBuscar <= maxIntentos) {
+                    const idTest = 'CENT' + String(numeroBuscar).padStart(3, '0');
+                    const testRef = doc(db, 'centinelas', idTest);
+                    
+                    try {
+                        const testSnap = await getDoc(testRef);
+                        
+                        if (!testSnap.exists()) {
+                            // ID disponible encontrado
+                            idDisponible = idTest;
+                            break; // Salir del bucle
+                        } else {
+                            // ID existe, probar siguiente
+                            numeroBuscar++;
+                        }
+                    } catch (error) {
+                        // Manejar errores de permisos de manera más cuidadosa
+                        if (error.code === 'permission-denied' || error.message?.includes('permission')) {
+                            // Si no hay permisos de lectura, intentar usar el ID pero con advertencia
+                            // El sistema intentará crear el documento y si ya existe, Firebase lo rechazará
+                            console.warn('⚠️ Permisos de lectura limitados. Se intentará usar ID:', idTest);
+                            console.warn('Si el ID ya existe, Firebase rechazará la creación automáticamente.');
+                            idDisponible = idTest;
+                            break; // Usar este ID y dejar que Firebase valide al crear
+                        } else {
+                            // Otro error, continuar buscando
+                            console.warn('Error verificando ID', idTest, ':', error.message);
+                            numeroBuscar++;
+                        }
+                    }
+                }
+                
+                if (idDisponible) {
+                    idInput.value = idDisponible.substring(4); // Solo el número
+                } else {
+                    mostrarAlerta('No se encontró un ID disponible (límite alcanzado). Por favor contacta al administrador.', 'warning');
+                    idInput.value = '';
+                }
+                
+            } catch (error) {
+                console.error('Error generando ID:', error);
+                
+                // Si es error de permisos, usar un ID por defecto basado en timestamp
+                if (error.code === 'permission-denied' || error.message.includes('permission')) {
+                    // Generar ID basado en timestamp como fallback
+                    const timestampId = String(Date.now()).slice(-3); // Últimos 3 dígitos del timestamp
+                    const idFallback = 'CENT' + timestampId;
+                    idInput.value = timestampId;
+                    mostrarAlerta('Usando ID temporal. Verifica que no exista antes de crear.', 'warning');
+                } else {
+                    mostrarAlerta('Error al generar ID automático: ' + error.message, 'danger');
+                    idInput.value = '';
+                }
+            } finally {
+                idInput.disabled = false;
+                if (btnGenerar) btnGenerar.disabled = false;
+            }
+        };
+        
+        // Función para mostrar inspección
+        window.mostrarInspeccion = function() {
+            document.getElementById('modoSelector').style.display = 'none';
+            document.getElementById('crearCentinelaSection').style.display = 'none';
+            document.getElementById('inspeccionSection').style.display = 'block';
+            
+            // Solicitar ID manualmente
+            const idManual = prompt('Ingresa el ID del Centinela (ej: CENT001):');
+            if (idManual) {
+                const idLimpio = idManual.replace('CENT', '').trim();
+                cargarCentinela('CENT' + idLimpio.padStart(3, '0'));
+            }
+        };
+        
+        // Función para cargar datos del centinela
+        async function cargarCentinela(id) {
+            try {
+                puntoIdActual = id;
+                document.getElementById('puntoIdInspeccion').value = id;
+                
+                const centinelaRef = doc(db, 'centinelas', id);
+                const centinelaSnap = await getDoc(centinelaRef);
+                
+                if (!centinelaSnap.exists()) {
+                    mostrarAlerta('El centinela con ID ' + id + ' no existe.', 'danger');
+                    return;
+                }
+                
+                const datos = centinelaSnap.data();
+                
+                // Mostrar información
+                document.getElementById('infoId').textContent = id;
+                document.getElementById('infoTelefono').textContent = datos.telefonoCliente || 'No disponible';
+                document.getElementById('telefonoClienteInspeccion').value = datos.telefonoCliente || '';
+                
+                if (datos.nombre) {
+                    document.getElementById('infoNombreTexto').textContent = datos.nombre;
+                    document.getElementById('infoNombre').style.display = 'block';
+                }
+                
+                // Mostrar tipo de trampa
+                const tipoTrampa = datos.tipoTrampa || 'No especificado';
+                let tipoTrampaTexto = '';
+                switch(tipoTrampa) {
+                    case 'rodenticida_cebo':
+                        tipoTrampaTexto = 'Trampa Rodenticida con Cebo';
+                        break;
+                    case 'rodenticida_mecanica':
+                        tipoTrampaTexto = 'Trampa Rodenticida Mecánica';
+                        break;
+                    case 'monitoreo_luminosa':
+                        tipoTrampaTexto = 'Trampa Luminosa de Monitoreo de Insectos';
+                        break;
+                    case 'monitoreo_adhesiva':
+                        tipoTrampaTexto = 'Trampa Adhesiva de Monitoreo de Insectos';
+                        break;
+                    case 'monitoreo_insectos': // Mantener compatibilidad con datos antiguos
+                        tipoTrampaTexto = 'Trampa de Monitoreo de Insectos';
+                        break;
+                    default:
+                        tipoTrampaTexto = tipoTrampa;
+                }
+                document.getElementById('infoTipoTrampa').textContent = tipoTrampaTexto;
+                
+                // Guardar tipo de trampa para usar en la inspección
+                document.getElementById('tipoTrampaInspeccion').value = tipoTrampa;
+                
+                // Configurar label de evidencias según el tipo de trampa
+                configurarLabelEvidencias(tipoTrampa);
+                
+                document.getElementById('centinelaInfo').style.display = 'block';
+                
+                // Inicializar datos automáticos
+                inicializarDatosAutomaticos();
+                
+            } catch (error) {
+                console.error('Error cargando centinela:', error);
+                mostrarAlerta('Error al cargar el centinela: ' + error.message, 'danger');
+            }
+        }
+        
+        // Función para inicializar datos automáticos
+        function inicializarDatosAutomaticos() {
+            console.log('🕐 [CENTINELA] Inicializando datos automáticos...');
+            
+            // Timestamp - Inmediato, no bloquea
+            try {
+                const timestampDisplay = document.getElementById('timestampDisplay');
+                if (timestampDisplay) {
+                    const ahora = new Date();
+                    timestamp = ahora.toISOString();
+                    const fechaLocal = ahora.toLocaleString('es-CR', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        timeZone: 'America/Costa_Rica'
+                    });
+                    timestampDisplay.innerHTML = '<i class="fas fa-clock"></i> ' + fechaLocal;
+                    console.log('✅ [CENTINELA] Timestamp inicializado:', fechaLocal);
+                } else {
+                    console.warn('⚠️ [CENTINELA] timestampDisplay no encontrado en el DOM');
+                }
+            } catch (error) {
+                console.error('❌ [CENTINELA] Error inicializando timestamp:', error);
+            }
+            
+            // GPS - Asíncrono, no bloquea
+            setTimeout(() => {
+                obtenerGPS();
+            }, 100); // Pequeño delay para no bloquear el renderizado
+        }
+        
+        // Función para obtener GPS
+        function obtenerGPS() {
+            console.log('📍 [CENTINELA] Iniciando obtención de GPS...');
+            const gpsStatus = document.getElementById('gpsStatus');
+            const gpsCoordsDiv = document.getElementById('gpsCoords');
+            
+            if (!gpsStatus) {
+                console.warn('⚠️ [CENTINELA] gpsStatus no encontrado en el DOM');
+                return;
+            }
+            
+            if (!navigator.geolocation) {
+                console.warn('⚠️ [CENTINELA] Geolocation no disponible en este navegador');
+                gpsStatus.className = 'gps-status error';
+                gpsStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> GPS no disponible en este dispositivo';
+                return;
+            }
+            
+            gpsStatus.className = 'gps-status loading';
+            gpsStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Obteniendo ubicación GPS...';
+            
+            // Timeout más corto y configuración optimizada
+            const opcionesGPS = {
+                enableHighAccuracy: false, // Cambiar a false para obtener más rápido (menos preciso pero más rápido)
+                timeout: 5000, // Reducir de 10s a 5s
+                maximumAge: 60000 // Permitir usar posición cacheada de hasta 1 minuto
+            };
+            
+            console.log('📍 [CENTINELA] Solicitando posición GPS con opciones:', opcionesGPS);
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    console.log('✅ [CENTINELA] GPS obtenido exitosamente:', position.coords);
+                    gpsCoords = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    
+                    gpsStatus.className = 'gps-status success';
+                    gpsStatus.innerHTML = '<i class="fas fa-check-circle"></i> Ubicación GPS obtenida correctamente';
+                    
+                    const gpsLat = document.getElementById('gpsLat');
+                    const gpsLng = document.getElementById('gpsLng');
+                    if (gpsLat) gpsLat.textContent = gpsCoords.lat.toFixed(6);
+                    if (gpsLng) gpsLng.textContent = gpsCoords.lng.toFixed(6);
+                    if (gpsCoordsDiv) gpsCoordsDiv.style.display = 'block';
+                },
+                function(error) {
+                    console.error('❌ [CENTINELA] Error obteniendo GPS:', error);
+                    gpsStatus.className = 'gps-status error';
+                    let mensajeError = 'Error al obtener GPS';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            mensajeError = 'Permiso de ubicación denegado. Por favor habilita la ubicación en tu navegador.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            mensajeError = 'Ubicación no disponible. Verifica tu conexión GPS.';
+                            break;
+                        case error.TIMEOUT:
+                            mensajeError = 'Tiempo de espera agotado. Intenta nuevamente.';
+                            break;
+                        default:
+                            mensajeError = 'Error al obtener GPS: ' + error.message;
+                            break;
+                    }
+                    
+                    gpsStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + mensajeError;
+                },
+                opcionesGPS
+            );
+        }
+        
+        // Función para seleccionar tipo de trampa al crear centinela
+        window.seleccionarTrampaCrear = function(tipo) {
+            // Deseleccionar todos en el formulario de crear
+            document.querySelectorAll('#crearCentinelaSection .trampa-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Seleccionar el clickeado
+            event.currentTarget.classList.add('selected');
+        };
+        
+        // Función para configurar label de evidencias (ya no se usa, todos usan el mismo label genérico)
+        function configurarLabelEvidencias(tipo) {
+            // Todos los tipos de centinela usan el mismo label genérico "Evidencias"
+            // Esta función se mantiene por compatibilidad pero no modifica nada
+            return;
+        }
+        
+        // Event listener para el slider de limpieza
+        document.addEventListener('DOMContentLoaded', function() {
+            // El selector de limpieza ya no necesita event listener, es un select simple
+            
+            // Event listener para las fotos
+            const fotosInput = document.getElementById('fotosInspeccion');
+            if (fotosInput) {
+                fotosInput.addEventListener('change', function() {
+                    mostrarPreviewFotos(this.files);
+                });
+            }
+        });
+        
+        // Función para mostrar preview de fotos
+        function mostrarPreviewFotos(files) {
+            const previewDiv = document.getElementById('fotosPreview');
+            previewDiv.innerHTML = '';
+            
+            if (!files || files.length === 0) return;
+            
+            Array.from(files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fotoDiv = document.createElement('div');
+                    fotoDiv.className = 'mb-3 p-3 border rounded';
+                    fotoDiv.id = `foto-preview-${index}`;
+                    fotoDiv.innerHTML = `
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <img src="${e.target.result}" class="img-thumbnail" style="max-width: 150px; max-height: 150px;">
+                            </div>
+                            <div class="col-md-9">
+                                <label class="form-label">Comentario de la foto ${index + 1} *</label>
+                                <textarea class="form-control foto-comentario" rows="2" 
+                                          data-foto-index="${index}" 
+                                          placeholder="Describe esta foto..." required></textarea>
+                                <button type="button" class="btn btn-sm btn-danger mt-2" onclick="eliminarFoto(${index})">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    previewDiv.appendChild(fotoDiv);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Función para eliminar foto del preview
+        window.eliminarFoto = function(index) {
+            const fotoDiv = document.getElementById(`foto-preview-${index}`);
+            if (fotoDiv) {
+                fotoDiv.remove();
+            }
+            
+            // Actualizar el input de archivos
+            const fotosInput = document.getElementById('fotosInspeccion');
+            const dt = new DataTransfer();
+            const files = Array.from(fotosInput.files);
+            files.forEach((file, i) => {
+                if (i !== index) {
+                    dt.items.add(file);
+                }
+            });
+            fotosInput.files = dt.files;
+            
+            // Re-renderizar preview
+            mostrarPreviewFotos(fotosInput.files);
+        };
+        
+        // Función para comprimir imagen usando canvas
+        async function comprimirImagen(file, maxWidth = 1920, maxHeight = 1920, quality = 0.85) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Redimensionar si es necesario
+                        if (width > maxWidth || height > maxHeight) {
+                            const ratio = Math.min(maxWidth / width, maxHeight / height);
+                            width = width * ratio;
+                            height = height * ratio;
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Convertir a blob con compresión
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(blob);
+                            } else {
+                                reject(new Error('Error al comprimir imagen'));
+                            }
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Función para subir fotos a Firebase Storage
+        async function subirFotos(files, puntoId) {
+            if (!files || files.length === 0) return [];
+            if (!storage) {
+                throw new Error('Firebase Storage no está inicializado');
+            }
+            
+            const fotosUrls = [];
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                try {
+                    // Comprimir imagen
+                    const compressedBlob = await comprimirImagen(file);
+                    console.log(`✅ Foto ${i + 1} comprimida: ${(file.size / 1024).toFixed(2)}KB → ${(compressedBlob.size / 1024).toFixed(2)}KB`);
+                    
+                    // Generar nombre único
+                    const timestamp = Date.now();
+                    const randomId = Math.random().toString(36).substring(2, 15);
+                    const fileName = `centinelas/${puntoId}/inspecciones/${timestamp}_${randomId}.jpg`;
+                    
+                    // Subir a Storage
+                    const storageRef = ref(storage, fileName);
+                    await uploadBytes(storageRef, compressedBlob);
+                    
+                    // Obtener URL
+                    const downloadURL = await getDownloadURL(storageRef);
+                    fotosUrls.push(downloadURL);
+                    
+                } catch (error) {
+                    console.error(`❌ Error procesando foto ${i + 1}:`, error);
+                    throw error;
+                }
+            }
+            
+            return fotosUrls;
+        }
+        
+        // Formulario crear centinela
+        document.getElementById('formCrearCentinela').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const idNumero = document.getElementById('centinelaId').value.trim();
+            const telefono = document.getElementById('telefonoCliente').value.trim();
+            const nombre = document.getElementById('nombreCentinela').value.trim();
+            const direccion = document.getElementById('direccionCentinela').value.trim();
+            const tipoTrampa = document.querySelector('input[name="tipoTrampaCrear"]:checked');
+            
+            // Validar teléfono (8 dígitos)
+            if (!/^[0-9]{8}$/.test(telefono)) {
+                mostrarAlerta('El teléfono debe tener exactamente 8 dígitos numéricos.', 'danger');
+                return;
+            }
+            
+            // Validar tipo de trampa
+            if (!tipoTrampa) {
+                mostrarAlerta('Por favor selecciona el tipo de trampa.', 'warning');
+                return;
+            }
+            
+            // Validar que el ID esté generado
+            if (!idNumero || idNumero === 'Generando...') {
+                mostrarAlerta('Por favor espera a que se genere el ID automático.', 'warning');
+                await generarNuevoId();
+                return;
+            }
+            
+            // Validar ID (debe ser numérico)
+            if (!/^[0-9]+$/.test(idNumero)) {
+                mostrarAlerta('Error en el ID generado. Por favor genera uno nuevo.', 'danger');
+                await generarNuevoId();
+                return;
+            }
+            
+            const idCompleto = 'CENT' + idNumero.padStart(3, '0');
+            
+            try {
+                // Intentar verificar si ya existe (puede fallar por permisos)
+                const centinelaRef = doc(db, 'centinelas', idCompleto);
+                let yaExiste = false;
+                
+                try {
+                    const centinelaSnap = await getDoc(centinelaRef);
+                    if (centinelaSnap.exists()) {
+                        yaExiste = true;
+                    }
+                } catch (readError) {
+                    // Si no hay permisos de lectura, continuar e intentar crear
+                    // Firebase rechazará automáticamente si el documento ya existe
+                    if (readError.code !== 'permission-denied') {
+                        throw readError; // Re-lanzar si es otro error
+                    }
+                    console.warn('⚠️ No se pudo verificar si el ID existe (permisos limitados). Intentando crear...');
+                }
+                
+                if (yaExiste) {
+                    mostrarAlerta('El centinela con ID ' + idCompleto + ' ya existe. Por favor genera un nuevo ID.', 'warning');
+                    await generarNuevoId();
+                    return;
+                }
+                
+                // Crear centinela
+                const datosCentinela = {
+                    telefonoCliente: telefono,
+                    tipoTrampa: tipoTrampa.value,
+                    fechaCreacion: serverTimestamp(),
+                    creadoPor: auth.currentUser.uid,
+                    activo: true
+                };
+                
+                if (nombre) datosCentinela.nombre = nombre;
+                if (direccion) datosCentinela.direccion = direccion;
+                
+                await setDoc(centinelaRef, datosCentinela);
+                
+                // Generar QR
+                const urlQR = window.location.origin + window.location.pathname + '?id=' + idCompleto;
+                generarQR(urlQR, idCompleto);
+                
+                mostrarAlerta('Centinela creado exitosamente!', 'success');
+                
+            } catch (error) {
+                console.error('Error creando centinela:', error);
+                
+                // Si el error es que el documento ya existe, generar nuevo ID
+                if (error.code === 'already-exists' || error.message?.includes('already exists')) {
+                    mostrarAlerta('El ID ' + idCompleto + ' ya existe. Generando nuevo ID...', 'warning');
+                    await generarNuevoId();
+                    mostrarAlerta('Por favor intenta crear el centinela nuevamente con el nuevo ID generado.', 'info');
+                } else if (error.code === 'permission-denied' || error.message?.includes('permission') || error.message?.includes('insufficient permissions')) {
+                    mostrarAlerta(
+                        '❌ Error de permisos: No tienes permisos para crear centinelas. ' +
+                        'Las reglas de Firestore deben permitir a usuarios autenticados crear documentos en la colección "centinelas". ' +
+                        'Contacta al administrador del sistema.',
+                        'danger'
+                    );
+                    console.error('🔒 Reglas de Firestore necesarias para centinelas:');
+                    console.error('match /centinelas/{centinelaId} {');
+                    console.error('  allow read, write: if request.auth != null;');
+                    console.error('}');
+                } else {
+                    mostrarAlerta('Error al crear el centinela: ' + error.message, 'danger');
+                }
+            }
+        });
+        
+        // Función para generar QR usando API online (confiable y sin problemas de CDN)
+        function generarQR(url, id) {
+            const qrCodeDiv = document.getElementById('qrCode');
+            qrCodeDiv.innerHTML = '';
+            
+            // Usar API de generación de QR online
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=${encodeURIComponent(url)}`;
+            const img = document.createElement('img');
+            img.src = qrApiUrl;
+            img.alt = 'QR Code';
+            img.style.maxWidth = '100%';
+            img.style.border = '2px solid #000';
+            img.style.borderRadius = '8px';
+            img.style.padding = '10px';
+            img.style.backgroundColor = '#fff';
+            
+            img.onload = function() {
+                document.getElementById('qrResultado').style.display = 'block';
+                document.getElementById('qrIdDisplay').textContent = id;
+                document.getElementById('qrUrlDisplay').textContent = url;
+                window.qrUrl = url;
+                window.qrId = id;
+            };
+            
+            img.onerror = function() {
+                mostrarAlerta('Error al generar el código QR. Por favor intenta de nuevo.', 'danger');
+            };
+            
+            qrCodeDiv.appendChild(img);
+        }
+        
+        // Función para imprimir QR
+        window.imprimirQR = function() {
+            if (!window.qrUrl) return;
+            
+            const ventana = window.open('', '_blank');
+            ventana.document.write(`
+                <html>
+                    <head>
+                        <title>QR Centinela ${window.qrId}</title>
+                        <style>
+                            body {
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: center;
+                                min-height: 100vh;
+                                font-family: Arial, sans-serif;
+                                padding: 20px;
+                            }
+                            .qr-container {
+                                text-align: center;
+                            }
+                            h2 {
+                                margin-bottom: 20px;
+                            }
+                            canvas {
+                                border: 2px solid #000;
+                                padding: 10px;
+                            }
+                            .info {
+                                margin-top: 20px;
+                                font-size: 14px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>Centinela ${window.qrId}</h2>
+                        <div class="qr-container">
+                            <canvas id="qrCanvas"></canvas>
+                            <div class="info">
+                                <p><strong>ID:</strong> ${window.qrId}</p>
+                                <p><strong>URL:</strong> ${window.qrUrl}</p>
+                            </div>
+                        </div>
+                        <script>
+                            // Usar API de QR online
+                            const qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent('${window.qrUrl}');
+                            const img = document.createElement('img');
+                            img.src = qrApiUrl;
+                            img.alt = 'QR Code';
+                            img.style.maxWidth = '100%';
+                            document.getElementById('qrCanvas').parentNode.replaceChild(img, document.getElementById('qrCanvas'));
+                            
+                            window.onload = function() {
+                                setTimeout(function() {
+                                    window.print();
+                                }, 500);
+                            };
+                        <\/script>
+                    </body>
+                </html>
+            `);
+            ventana.document.close();
+        };
+        
+        // Formulario inspección
+        document.getElementById('formInspeccion').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!puntoIdActual) {
+                mostrarAlerta('No se ha cargado un centinela válido.', 'danger');
+                return;
+            }
+            
+            if (!gpsCoords) {
+                mostrarAlerta('Esperando ubicación GPS. Por favor espera unos segundos e intenta de nuevo.', 'warning');
+                obtenerGPS();
+                return;
+            }
+            
+            // Obtener tipo de trampa del campo hidden (ya viene del centinela)
+            const tipoTrampa = document.getElementById('tipoTrampaInspeccion').value;
+            if (!tipoTrampa) {
+                mostrarAlerta('Error: No se encontró el tipo de trampa del centinela.', 'danger');
+                return;
+            }
+            
+            const evidencias = parseInt(document.getElementById('evidencias').value);
+            if (isNaN(evidencias) || evidencias < 0) {
+                mostrarAlerta('Por favor ingresa un número válido de evidencias.', 'warning');
+                return;
+            }
+            
+            const estadoMantenimiento = document.getElementById('estadoMantenimiento').value;
+            if (!estadoMantenimiento) {
+                mostrarAlerta('Por favor selecciona el estado de mantenimiento.', 'warning');
+                return;
+            }
+            
+            const nivelLimpieza = parseInt(document.getElementById('nivelLimpieza').value);
+            if (isNaN(nivelLimpieza) || (nivelLimpieza !== 1 && nivelLimpieza !== 10)) {
+                mostrarAlerta('Por favor selecciona un nivel de limpieza válido (Bien o Mal).', 'warning');
+                return;
+            }
+            
+            // Validar fotos y comentarios
+            const fotosInput = document.getElementById('fotosInspeccion');
+            const fotosFiles = Array.from(fotosInput.files || []);
+            const comentariosFotos = [];
+            
+            if (fotosFiles.length > 0) {
+                // Validar que todas las fotos tengan comentarios
+                fotosFiles.forEach((file, index) => {
+                    const comentarioInput = document.querySelector(`.foto-comentario[data-foto-index="${index}"]`);
+                    if (!comentarioInput || !comentarioInput.value.trim()) {
+                        throw new Error(`Por favor agrega un comentario para la foto ${index + 1}`);
+                    }
+                    comentariosFotos.push({
+                        index: index,
+                        comentario: comentarioInput.value.trim()
+                    });
+                });
+            }
+            
+            try {
+                // Deshabilitar botón mientras se procesa
+                const submitBtn = document.querySelector('#formInspeccion button[type="submit"]');
+                const textoOriginal = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+                
+                // Subir fotos si hay
+                let fotosData = [];
+                if (fotosFiles.length > 0) {
+                    mostrarAlerta('Comprimiendo y subiendo fotos...', 'info');
+                    const fotosUrls = await subirFotos(fotosFiles, puntoIdActual);
+                    
+                    // Combinar URLs con comentarios
+                    fotosData = fotosUrls.map((url, index) => {
+                        const comentario = comentariosFotos.find(c => c.index === index);
+                        return {
+                            url: url,
+                            comentario: comentario ? comentario.comentario : ''
+                        };
+                    });
+                }
+                
+                const inspeccionData = {
+                    puntoId: puntoIdActual,
+                    timestamp: timestamp,
+                    gps: gpsCoords,
+                    tipoTrampa: tipoTrampa,
+                    evidencias: evidencias,
+                    estadoMantenimiento: estadoMantenimiento,
+                    nivelLimpieza: nivelLimpieza,
+                    fotos: fotosData.length > 0 ? fotosData : null,
+                    observaciones: document.getElementById('observaciones').value.trim() || null,
+                    tecnico: auth.currentUser.uid,
+                    fechaRegistro: serverTimestamp()
+                };
+                
+                // Guardar en subcolección
+                const inspeccionesRef = collection(db, 'centinelas', puntoIdActual, 'inspecciones');
+                await addDoc(inspeccionesRef, inspeccionData);
+                
+                mostrarAlerta('Inspección registrada exitosamente!', 'success');
+                
+                // Limpiar formulario (excepto campos hidden que mantienen la info del centinela)
+                document.getElementById('evidencias').value = '';
+                document.getElementById('estadoMantenimiento').value = '';
+                document.getElementById('nivelLimpieza').value = '10'; // Valor por defecto: Bien
+                document.getElementById('fotosInspeccion').value = '';
+                document.getElementById('fotosPreview').innerHTML = '';
+                document.getElementById('observaciones').value = '';
+                
+                // Reinicializar datos automáticos
+                inicializarDatosAutomaticos();
+                
+                // Restaurar botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = textoOriginal;
+                
+            } catch (error) {
+                console.error('Error guardando inspección:', error);
+                mostrarAlerta('Error al guardar la inspección: ' + error.message, 'danger');
+            }
+        });
+        
+        // Función para mostrar alertas
+        function mostrarAlerta(mensaje, tipo) {
+            const alertaDiv = document.getElementById('mensajeAlerta');
+            alertaDiv.className = 'alert alert-' + tipo + ' alert-modern alert-dismissible fade show';
+            alertaDiv.innerHTML = `
+                ${mensaje}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertaDiv.style.display = 'block';
+            
+            // Auto-ocultar después de 5 segundos
+            setTimeout(() => {
+                alertaDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Hacer mostrarAlerta accesible globalmente
+        window.mostrarAlerta = mostrarAlerta;
+        
+        // ========== GESTIÓN DE CENTINELAS ==========
+        
+        // Cargar todos los centinelas
+        window.cargarTodosCentinelas = async function() {
+            const listaDiv = document.getElementById('centinelasList');
+            listaDiv.innerHTML = '<p class="text-center text-muted">Cargando centinelas...</p>';
+            
+            try {
+                const centinelasRef = collection(db, 'centinelas');
+                const q = query(centinelasRef, orderBy('fechaCreacion', 'desc'));
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    listaDiv.innerHTML = '<p class="text-center text-muted">No hay centinelas creados aún.</p>';
+                    return;
+                }
+                
+                let html = '';
+                const centinelas = [];
+                
+                snapshot.forEach((docSnap) => {
+                    centinelas.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                
+                // Cargar inspecciones para cada centinela
+                for (const centinela of centinelas) {
+                    const inspecciones = await cargarInspecciones(centinela.id);
+                    html += renderizarCentinela(centinela, inspecciones);
+                }
+                
+                listaDiv.innerHTML = html;
+                
+                // Agregar event listeners
+                agregarEventListenersCentinelas();
+                
+            } catch (error) {
+                console.error('Error cargando centinelas:', error);
+                listaDiv.innerHTML = `<p class="text-center text-danger">Error al cargar centinelas: ${error.message}</p>`;
+            }
+        };
+        
+        // Cargar inspecciones de un centinela
+        async function cargarInspecciones(centinelaId) {
+            try {
+                const inspeccionesRef = collection(db, 'centinelas', centinelaId, 'inspecciones');
+                const q = query(inspeccionesRef, orderBy('fechaRegistro', 'desc'));
+                const snapshot = await getDocs(q);
+                
+                const inspecciones = [];
+                snapshot.forEach((docSnap) => {
+                    inspecciones.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                
+                return inspecciones;
+            } catch (error) {
+                console.error(`Error cargando inspecciones de ${centinelaId}:`, error);
+                return [];
+            }
+        }
+        
+        // Renderizar un centinela con sus inspecciones
+        function renderizarCentinela(centinela, inspecciones) {
+            const fechaCreacion = centinela.fechaCreacion?.toDate ? 
+                centinela.fechaCreacion.toDate().toLocaleString('es-CR') : 'No disponible';
+            
+            let tipoTrampaTexto = '';
+            switch(centinela.tipoTrampa) {
+                case 'rodenticida_cebo':
+                    tipoTrampaTexto = 'Trampa Rodenticida con Cebo';
+                    break;
+                case 'rodenticida_mecanica':
+                    tipoTrampaTexto = 'Trampa Rodenticida Mecánica';
+                    break;
+                case 'monitoreo_luminosa':
+                    tipoTrampaTexto = 'Trampa Luminosa de Monitoreo de Insectos';
+                    break;
+                case 'monitoreo_adhesiva':
+                    tipoTrampaTexto = 'Trampa Adhesiva de Monitoreo de Insectos';
+                    break;
+                case 'monitoreo_insectos': // Compatibilidad con datos antiguos
+                    tipoTrampaTexto = 'Trampa de Monitoreo de Insectos';
+                    break;
+                default:
+                    tipoTrampaTexto = centinela.tipoTrampa || 'No especificado';
+            }
+            
+            let html = `
+                <div class="centinela-item" id="centinela-${centinela.id}">
+                    <div class="centinela-header">
+                        <h5><i class="fas fa-shield-alt"></i> ${centinela.id}</h5>
+                        <div>
+                            <button class="btn btn-sm btn-primary me-2" onclick="editarCentinela('${centinela.id}')">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn btn-sm btn-success" onclick="guardarCentinela('${centinela.id}')" style="display: none;" id="btn-guardar-${centinela.id}">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                            <button class="btn btn-sm btn-secondary" onclick="cancelarEdicionCentinela('${centinela.id}')" style="display: none;" id="btn-cancelar-${centinela.id}">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button class="btn btn-sm btn-danger ms-2" onclick="confirmarEliminarCentinela('${centinela.id}')">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="centinela-fields" id="fields-${centinela.id}">
+                        <div class="centinela-field">
+                            <label>ID del Centinela</label>
+                            <input type="text" value="${centinela.id}" readonly id="edit-id-${centinela.id}">
+                        </div>
+                        <div class="centinela-field">
+                            <label>Teléfono del Cliente</label>
+                            <input type="text" value="${centinela.telefonoCliente || ''}" readonly id="edit-telefono-${centinela.id}">
+                        </div>
+                        <div class="centinela-field">
+                            <label>Nombre/Descripción</label>
+                            <input type="text" value="${centinela.nombre || ''}" readonly id="edit-nombre-${centinela.id}">
+                        </div>
+                        <div class="centinela-field">
+                            <label>Dirección</label>
+                            <input type="text" value="${centinela.direccion || ''}" readonly id="edit-direccion-${centinela.id}">
+                        </div>
+                        <div class="centinela-field">
+                            <label>Tipo de Trampa</label>
+                            <select readonly id="edit-tipoTrampa-${centinela.id}" style="pointer-events: none; background-color: #e9ecef;">
+                                <option value="rodenticida_cebo" ${centinela.tipoTrampa === 'rodenticida_cebo' ? 'selected' : ''}>Trampa Rodenticida con Cebo</option>
+                                <option value="rodenticida_mecanica" ${centinela.tipoTrampa === 'rodenticida_mecanica' ? 'selected' : ''}>Trampa Rodenticida Mecánica</option>
+                                <option value="monitoreo_luminosa" ${centinela.tipoTrampa === 'monitoreo_luminosa' ? 'selected' : ''}>Trampa Luminosa de Monitoreo de Insectos</option>
+                                <option value="monitoreo_adhesiva" ${centinela.tipoTrampa === 'monitoreo_adhesiva' ? 'selected' : ''}>Trampa Adhesiva de Monitoreo de Insectos</option>
+                                <option value="monitoreo_insectos" ${centinela.tipoTrampa === 'monitoreo_insectos' ? 'selected' : ''}>Trampa de Monitoreo de Insectos (Antiguo)</option>
+                            </select>
+                        </div>
+                        <div class="centinela-field">
+                            <label>Fecha de Creación</label>
+                            <input type="text" value="${fechaCreacion}" readonly>
+                        </div>
+                    </div>
+                    <div class="inspecciones-container">
+                        <div class="inspecciones-header" onclick="toggleInspecciones('${centinela.id}')" style="cursor: pointer; user-select: none;">
+                            <h6>
+                                <i class="fas fa-clipboard-list"></i> Inspecciones (${inspecciones.length})
+                                <i class="fas fa-chevron-down ms-2" id="chevron-${centinela.id}" style="transition: transform 0.3s;"></i>
+                            </h6>
+                        </div>
+                        <div class="inspecciones-list" id="inspecciones-${centinela.id}" style="display: none; max-height: 500px; overflow-y: auto;">
+            `;
+            
+            if (inspecciones.length === 0) {
+                html += '<p class="text-muted">No hay inspecciones registradas aún.</p>';
+            } else {
+                inspecciones.forEach((inspeccion) => {
+                    html += renderizarInspeccion(centinela.id, inspeccion);
+                });
+            }
+            
+            html += `
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+        
+        // Renderizar una inspección
+        function renderizarInspeccion(centinelaId, inspeccion) {
+            const fechaRegistro = inspeccion.fechaRegistro?.toDate ? 
+                inspeccion.fechaRegistro.toDate().toLocaleString('es-CR') : 'No disponible';
+            const timestamp = inspeccion.timestamp ? 
+                new Date(inspeccion.timestamp).toLocaleString('es-CR') : 'No disponible';
+            const gps = inspeccion.gps ? 
+                `${inspeccion.gps.lat?.toFixed(6) || 'N/A'}, ${inspeccion.gps.lng?.toFixed(6) || 'N/A'}` : 'No disponible';
+            
+            let tipoTrampaTexto = '';
+            switch(inspeccion.tipoTrampa) {
+                case 'rodenticida_cebo':
+                    tipoTrampaTexto = 'Trampa Rodenticida con Cebo';
+                    break;
+                case 'rodenticida_mecanica':
+                    tipoTrampaTexto = 'Trampa Rodenticida Mecánica';
+                    break;
+                case 'monitoreo_luminosa':
+                    tipoTrampaTexto = 'Trampa Luminosa de Monitoreo de Insectos';
+                    break;
+                case 'monitoreo_adhesiva':
+                    tipoTrampaTexto = 'Trampa Adhesiva de Monitoreo de Insectos';
+                    break;
+                case 'monitoreo_insectos': // Compatibilidad con datos antiguos
+                    tipoTrampaTexto = 'Trampa de Monitoreo de Insectos';
+                    break;
+                default:
+                    tipoTrampaTexto = inspeccion.tipoTrampa || 'No especificado';
+            }
+            
+            // Estado de mantenimiento
+            let estadoMantenimientoTexto = '';
+            switch(inspeccion.estadoMantenimiento) {
+                case 'mantenimiento_reciente':
+                    estadoMantenimientoTexto = 'Mantenimiento notorio reciente';
+                    break;
+                case 'sucia_malas_condiciones':
+                    estadoMantenimientoTexto = 'Se encuentra sucia o en malas condiciones';
+                    break;
+                case 'optimas_condiciones':
+                    estadoMantenimientoTexto = 'En óptimas condiciones funcionales';
+                    break;
+                default:
+                    estadoMantenimientoTexto = inspeccion.estadoMantenimiento || 'No especificado';
+            }
+            
+            return `
+                <div class="inspeccion-item" id="inspeccion-${centinelaId}-${inspeccion.id}">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong>Inspección ${inspeccion.id.substring(0, 8)}...</strong>
+                        <div>
+                            <button class="btn btn-sm btn-primary me-2" onclick="editarInspeccion('${centinelaId}', '${inspeccion.id}')">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn btn-sm btn-success" onclick="guardarInspeccion('${centinelaId}', '${inspeccion.id}')" style="display: none;" id="btn-guardar-inspeccion-${centinelaId}-${inspeccion.id}">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                            <button class="btn btn-sm btn-secondary" onclick="cancelarEdicionInspeccion('${centinelaId}', '${inspeccion.id}')" style="display: none;" id="btn-cancelar-inspeccion-${centinelaId}-${inspeccion.id}">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="inspeccion-fields" id="fields-inspeccion-${centinelaId}-${inspeccion.id}">
+                        <div class="centinela-field">
+                            <label>Tipo de Trampa</label>
+                            <select readonly id="edit-inspeccion-tipoTrampa-${centinelaId}-${inspeccion.id}" style="pointer-events: none; background-color: #e9ecef;">
+                                <option value="rodenticida_cebo" ${inspeccion.tipoTrampa === 'rodenticida_cebo' ? 'selected' : ''}>Trampa Rodenticida con Cebo</option>
+                                <option value="rodenticida_mecanica" ${inspeccion.tipoTrampa === 'rodenticida_mecanica' ? 'selected' : ''}>Trampa Rodenticida Mecánica</option>
+                                <option value="monitoreo_luminosa" ${inspeccion.tipoTrampa === 'monitoreo_luminosa' ? 'selected' : ''}>Trampa Luminosa de Monitoreo de Insectos</option>
+                                <option value="monitoreo_adhesiva" ${inspeccion.tipoTrampa === 'monitoreo_adhesiva' ? 'selected' : ''}>Trampa Adhesiva de Monitoreo de Insectos</option>
+                                <option value="monitoreo_insectos" ${inspeccion.tipoTrampa === 'monitoreo_insectos' ? 'selected' : ''}>Trampa de Monitoreo de Insectos (Antiguo)</option>
+                            </select>
+                        </div>
+                        <div class="centinela-field">
+                            <label>Evidencias</label>
+                            <input type="number" value="${inspeccion.evidencias || 0}" readonly id="edit-inspeccion-evidencias-${centinelaId}-${inspeccion.id}">
+                        </div>
+                        <div class="centinela-field">
+                            <label>Estado de Mantenimiento</label>
+                            <input type="text" value="${estadoMantenimientoTexto}" readonly>
+                        </div>
+                        <div class="centinela-field">
+                            <label>Limpieza</label>
+                            <input type="text" value="${inspeccion.nivelLimpieza === 10 ? 'Bien' : inspeccion.nivelLimpieza === 1 ? 'Mal' : 'N/A'}" readonly>
+                        </div>
+                        <div class="centinela-field">
+                            <label>Fecha y Hora</label>
+                            <input type="text" value="${timestamp}" readonly>
+                        </div>
+                        <div class="centinela-field">
+                            <label>GPS</label>
+                            <input type="text" value="${gps}" readonly>
+                        </div>
+                        <div class="centinela-field">
+                            <label>Fecha de Registro</label>
+                            <input type="text" value="${fechaRegistro}" readonly>
+                        </div>
+                        <div class="centinela-field" style="grid-column: 1 / -1;">
+                            <label>Observaciones</label>
+                            <textarea readonly id="edit-inspeccion-observaciones-${centinelaId}-${inspeccion.id}" rows="2" style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 5px;">${inspeccion.observaciones || ''}</textarea>
+                        </div>
+                        ${inspeccion.fotos && inspeccion.fotos.length > 0 ? `
+                        <div class="centinela-field" style="grid-column: 1 / -1;">
+                            <label>Fotos de la Inspección</label>
+                            <div class="fotos-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
+                                ${inspeccion.fotos.map((foto, idx) => `
+                                    <div class="foto-item" style="border: 1px solid #dee2e6; border-radius: 8px; padding: 10px; background: #f8f9fa;">
+                                        <img src="${foto.url}" alt="Foto ${idx + 1}" 
+                                             style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px; cursor: pointer;"
+                                             onclick="window.open('${foto.url}', '_blank')">
+                                        <p class="mt-2 mb-0" style="font-size: 0.85rem; color: #6c757d;">
+                                            <strong>Comentario:</strong> ${foto.comentario || 'Sin comentario'}
+                                        </p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Agregar event listeners para centinelas
+        function agregarEventListenersCentinelas() {
+            // Los event listeners se agregan directamente en los botones onclick
+        }
+        
+        // Editar centinela
+        window.editarCentinela = function(centinelaId) {
+            const item = document.getElementById(`centinela-${centinelaId}`);
+            item.classList.add('editing');
+            
+            // Hacer campos editables
+            document.getElementById(`edit-telefono-${centinelaId}`).readOnly = false;
+            document.getElementById(`edit-nombre-${centinelaId}`).readOnly = false;
+            document.getElementById(`edit-direccion-${centinelaId}`).readOnly = false;
+            const tipoSelect = document.getElementById(`edit-tipoTrampa-${centinelaId}`);
+            tipoSelect.style.pointerEvents = 'auto';
+            tipoSelect.style.backgroundColor = '#fff';
+            tipoSelect.readOnly = false;
+            
+            // Mostrar/ocultar botones
+            document.querySelector(`#centinela-${centinelaId} .btn-primary`).style.display = 'none';
+            document.getElementById(`btn-guardar-${centinelaId}`).style.display = 'inline-block';
+            document.getElementById(`btn-cancelar-${centinelaId}`).style.display = 'inline-block';
+        };
+        
+        // Guardar centinela
+        window.guardarCentinela = async function(centinelaId) {
+            try {
+                const telefono = document.getElementById(`edit-telefono-${centinelaId}`).value.trim();
+                const nombre = document.getElementById(`edit-nombre-${centinelaId}`).value.trim();
+                const direccion = document.getElementById(`edit-direccion-${centinelaId}`).value.trim();
+                const tipoTrampa = document.getElementById(`edit-tipoTrampa-${centinelaId}`).value;
+                
+                if (!telefono || !/^[0-9]{8}$/.test(telefono)) {
+                    mostrarAlerta('El teléfono debe tener exactamente 8 dígitos numéricos.', 'danger');
+                    return;
+                }
+                
+                const centinelaRef = doc(db, 'centinelas', centinelaId);
+                await updateDoc(centinelaRef, {
+                    telefonoCliente: telefono,
+                    nombre: nombre || null,
+                    direccion: direccion || null,
+                    tipoTrampa: tipoTrampa
+                });
+                
+                mostrarAlerta('Centinela actualizado exitosamente!', 'success');
+                cancelarEdicionCentinela(centinelaId);
+                await cargarTodosCentinelas();
+                
+            } catch (error) {
+                console.error('Error guardando centinela:', error);
+                mostrarAlerta('Error al guardar el centinela: ' + error.message, 'danger');
+            }
+        };
+        
+        // Cancelar edición de centinela
+        window.cancelarEdicionCentinela = function(centinelaId) {
+            const item = document.getElementById(`centinela-${centinelaId}`);
+            item.classList.remove('editing');
+            
+            // Restaurar campos a readonly
+            document.getElementById(`edit-telefono-${centinelaId}`).readOnly = true;
+            document.getElementById(`edit-nombre-${centinelaId}`).readOnly = true;
+            document.getElementById(`edit-direccion-${centinelaId}`).readOnly = true;
+            const tipoSelect = document.getElementById(`edit-tipoTrampa-${centinelaId}`);
+            tipoSelect.style.pointerEvents = 'none';
+            tipoSelect.style.backgroundColor = '#e9ecef';
+            
+            // Mostrar/ocultar botones
+            document.querySelector(`#centinela-${centinelaId} .btn-primary`).style.display = 'inline-block';
+            document.getElementById(`btn-guardar-${centinelaId}`).style.display = 'none';
+            document.getElementById(`btn-cancelar-${centinelaId}`).style.display = 'none';
+            
+            // Recargar para restaurar valores originales
+            cargarTodosCentinelas();
+        };
+        
+        // Editar inspección
+        window.editarInspeccion = function(centinelaId, inspeccionId) {
+            const item = document.getElementById(`inspeccion-${centinelaId}-${inspeccionId}`);
+            item.classList.add('editing');
+            
+            // Hacer campos editables
+            document.getElementById(`edit-inspeccion-evidencias-${centinelaId}-${inspeccionId}`).readOnly = false;
+            document.getElementById(`edit-inspeccion-observaciones-${centinelaId}-${inspeccionId}`).readOnly = false;
+            
+            // Mostrar/ocultar botones
+            document.querySelector(`#inspeccion-${centinelaId}-${inspeccionId} .btn-primary`).style.display = 'none';
+            document.getElementById(`btn-guardar-inspeccion-${centinelaId}-${inspeccionId}`).style.display = 'inline-block';
+            document.getElementById(`btn-cancelar-inspeccion-${centinelaId}-${inspeccionId}`).style.display = 'inline-block';
+        };
+        
+        // Guardar inspección
+        window.guardarInspeccion = async function(centinelaId, inspeccionId) {
+            try {
+                const evidencias = parseInt(document.getElementById(`edit-inspeccion-evidencias-${centinelaId}-${inspeccionId}`).value);
+                const observaciones = document.getElementById(`edit-inspeccion-observaciones-${centinelaId}-${inspeccionId}`).value.trim();
+                
+                if (isNaN(evidencias) || evidencias < 0) {
+                    mostrarAlerta('Por favor ingresa un número válido de evidencias.', 'warning');
+                    return;
+                }
+                
+                const inspeccionRef = doc(db, 'centinelas', centinelaId, 'inspecciones', inspeccionId);
+                await updateDoc(inspeccionRef, {
+                    evidencias: evidencias,
+                    observaciones: observaciones || null
+                });
+                
+                mostrarAlerta('Inspección actualizada exitosamente!', 'success');
+                cancelarEdicionInspeccion(centinelaId, inspeccionId);
+                await cargarTodosCentinelas();
+                
+            } catch (error) {
+                console.error('Error guardando inspección:', error);
+                mostrarAlerta('Error al guardar la inspección: ' + error.message, 'danger');
+            }
+        };
+        
+        // Función para toggle del dropdown de inspecciones
+        window.toggleInspecciones = function(centinelaId) {
+            const inspeccionesList = document.getElementById(`inspecciones-${centinelaId}`);
+            const chevron = document.getElementById(`chevron-${centinelaId}`);
+            
+            if (inspeccionesList) {
+                if (inspeccionesList.style.display === 'none' || !inspeccionesList.style.display) {
+                    inspeccionesList.style.display = 'block';
+                    if (chevron) {
+                        chevron.style.transform = 'rotate(180deg)';
+                    }
+                } else {
+                    inspeccionesList.style.display = 'none';
+                    if (chevron) {
+                        chevron.style.transform = 'rotate(0deg)';
+                    }
+                }
+            }
+        };
+        
+        // Cancelar edición de inspección
+        window.cancelarEdicionInspeccion = function(centinelaId, inspeccionId) {
+            const item = document.getElementById(`inspeccion-${centinelaId}-${inspeccionId}`);
+            item.classList.remove('editing');
+            
+            // Restaurar campos a readonly
+            document.getElementById(`edit-inspeccion-evidencias-${centinelaId}-${inspeccionId}`).readOnly = true;
+            document.getElementById(`edit-inspeccion-observaciones-${centinelaId}-${inspeccionId}`).readOnly = true;
+            
+            // Mostrar/ocultar botones
+            document.querySelector(`#inspeccion-${centinelaId}-${inspeccionId} .btn-primary`).style.display = 'inline-block';
+            document.getElementById(`btn-guardar-inspeccion-${centinelaId}-${inspeccionId}`).style.display = 'none';
+            document.getElementById(`btn-cancelar-inspeccion-${centinelaId}-${inspeccionId}`).style.display = 'none';
+            
+            // Recargar para restaurar valores originales
+            cargarTodosCentinelas();
+        };
+        
+        // ========== ELIMINAR CENTINELA ==========
+        
+        // Función para confirmar eliminación con operación matemática
+        window.confirmarEliminarCentinela = function(centinelaId) {
+            // Generar operación matemática aleatoria
+            const num1 = Math.floor(Math.random() * 20) + 1; // 1-20
+            const num2 = Math.floor(Math.random() * 20) + 1; // 1-20
+            const operadores = ['+', '-', '*'];
+            const operador = operadores[Math.floor(Math.random() * operadores.length)];
+            
+            let resultado;
+            let operacionTexto;
+            
+            switch(operador) {
+                case '+':
+                    resultado = num1 + num2;
+                    operacionTexto = `${num1} + ${num2} = ?`;
+                    break;
+                case '-':
+                    // Asegurar que el resultado sea positivo
+                    const mayor = Math.max(num1, num2);
+                    const menor = Math.min(num1, num2);
+                    resultado = mayor - menor;
+                    operacionTexto = `${mayor} - ${menor} = ?`;
+                    break;
+                case '*':
+                    // Limitar multiplicación para que sea más fácil
+                    const n1 = Math.floor(Math.random() * 10) + 1; // 1-10
+                    const n2 = Math.floor(Math.random() * 10) + 1; // 1-10
+                    resultado = n1 * n2;
+                    operacionTexto = `${n1} × ${n2} = ?`;
+                    break;
+            }
+            
+            // Mostrar en el modal
+            document.getElementById('centinelaIdEliminar').textContent = centinelaId;
+            document.getElementById('operacionMatematica').textContent = operacionTexto;
+            document.getElementById('resultadoCorrecto').value = resultado;
+            document.getElementById('respuestaMatematica').value = '';
+            
+            // Guardar el ID del centinela a eliminar
+            window.centinelaIdAEliminar = centinelaId;
+            
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('modalEliminarCentinela'));
+            modal.show();
+            
+            // Event listener para el botón de confirmar
+            const btnConfirmar = document.getElementById('btnConfirmarEliminar');
+            btnConfirmar.onclick = function() {
+                const respuestaUsuario = parseInt(document.getElementById('respuestaMatematica').value);
+                const resultadoCorrecto = parseInt(document.getElementById('resultadoCorrecto').value);
+                
+                if (isNaN(respuestaUsuario)) {
+                    mostrarAlerta('Por favor ingresa un número válido.', 'warning');
+                    return;
+                }
+                
+                if (respuestaUsuario !== resultadoCorrecto) {
+                    mostrarAlerta('Respuesta incorrecta. Por favor intenta de nuevo.', 'danger');
+                    // Generar nueva operación
+                    confirmarEliminarCentinela(centinelaId);
+                    return;
+                }
+                
+                // Respuesta correcta, proceder a eliminar
+                eliminarCentinela(centinelaId);
+                modal.hide();
+            };
+        };
+        
+        // Función para eliminar centinela y todos sus datos
+        async function eliminarCentinela(centinelaId) {
+            try {
+                mostrarAlerta('Eliminando centinela y sus datos...', 'info');
+                
+                // 1. Obtener todas las inspecciones
+                const inspeccionesRef = collection(db, 'centinelas', centinelaId, 'inspecciones');
+                const inspeccionesSnapshot = await getDocs(inspeccionesRef);
+                
+                // 2. Eliminar fotos de Storage si existen
+                if (storage) {
+                    try {
+                        const fotosAEliminar = [];
+                        
+                        // Recopilar todas las URLs de fotos de las inspecciones
+                        inspeccionesSnapshot.forEach((docSnap) => {
+                            const inspeccionData = docSnap.data();
+                            if (inspeccionData.fotos && Array.isArray(inspeccionData.fotos)) {
+                                inspeccionData.fotos.forEach(foto => {
+                                    if (foto.url) {
+                                        fotosAEliminar.push(foto.url);
+                                    }
+                                });
+                            }
+                        });
+                        
+                        // Eliminar cada foto de Storage
+                        if (fotosAEliminar.length > 0) {
+                            const deletePromises = fotosAEliminar.map(fotoUrl => {
+                                try {
+                                    // Extraer la ruta del archivo de la URL
+                                    // Las URLs de Firebase Storage tienen el formato:
+                                    // https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{path}?alt=media&token={token}
+                                    const urlObj = new URL(fotoUrl);
+                                    const pathMatch = urlObj.pathname.match(/\/o\/(.+)\?/);
+                                    if (pathMatch) {
+                                        const filePath = decodeURIComponent(pathMatch[1]);
+                                        const fileRef = ref(storage, filePath);
+                                        return deleteObject(fileRef).catch(error => {
+                                            console.warn(`No se pudo eliminar ${filePath}:`, error);
+                                        });
+                                    }
+                                } catch (error) {
+                                    console.warn(`Error procesando URL ${fotoUrl}:`, error);
+                                    return Promise.resolve();
+                                }
+                            });
+                            
+                            await Promise.all(deletePromises);
+                            console.log(`✅ ${fotosAEliminar.length} foto(s) eliminada(s) de Storage`);
+                        }
+                    } catch (storageError) {
+                        console.warn('⚠️ Error eliminando fotos de Storage (puede que no existan):', storageError);
+                        // Continuar aunque falle la eliminación de fotos
+                    }
+                }
+                
+                // 3. Eliminar todas las inspecciones
+                const deleteInspeccionesPromises = [];
+                inspeccionesSnapshot.forEach((docSnap) => {
+                    const inspeccionRef = doc(db, 'centinelas', centinelaId, 'inspecciones', docSnap.id);
+                    deleteInspeccionesPromises.push(deleteDoc(inspeccionRef));
+                });
+                
+                await Promise.all(deleteInspeccionesPromises);
+                console.log(`✅ ${deleteInspeccionesPromises.length} inspección(es) eliminada(s)`);
+                
+                // 4. Eliminar el centinela
+                const centinelaRef = doc(db, 'centinelas', centinelaId);
+                await deleteDoc(centinelaRef);
+                console.log(`✅ Centinela ${centinelaId} eliminado`);
+                
+                mostrarAlerta(`Centinela ${centinelaId} y todos sus registros han sido eliminados exitosamente.`, 'success');
+                
+                // Recargar la lista
+                await cargarTodosCentinelas();
+                
+            } catch (error) {
+                console.error('Error eliminando centinela:', error);
+                mostrarAlerta('Error al eliminar el centinela: ' + error.message, 'danger');
+            }
+        }
+        
+        // ========== GENERAR STICKERS PDF ==========
+        
+        // Mostrar modal para generar stickers
+        window.mostrarModalGenerarStickers = function() {
+            // Esperar a que Bootstrap esté disponible
+            function mostrarModal() {
+                const modalElement = document.getElementById('modalGenerarStickers');
+                if (!modalElement) {
+                    console.error('Modal no encontrado');
+                    return;
+                }
+                
+                // Intentar usar Bootstrap si está disponible
+                if (typeof bootstrap !== 'undefined') {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                } else if (window.bootstrap) {
+                    const modal = new window.bootstrap.Modal(modalElement);
+                    modal.show();
+                } else {
+                    // Fallback: mostrar el modal manualmente
+                    modalElement.style.display = 'block';
+                    modalElement.classList.add('show');
+                    document.body.classList.add('modal-open');
+                    const backdrop = document.createElement('div');
+                    backdrop.className = 'modal-backdrop fade show';
+                    backdrop.id = 'modalBackdrop';
+                    backdrop.onclick = function() {
+                        modalElement.style.display = 'none';
+                        modalElement.classList.remove('show');
+                        document.body.classList.remove('modal-open');
+                        backdrop.remove();
+                    };
+                    document.body.appendChild(backdrop);
+                }
+                
+                // Configurar event listeners después de mostrar el modal
+                configurarEventListeners();
+            }
+            
+            // Función para configurar event listeners
+            function configurarEventListeners() {
+                const inicioInput = document.getElementById('centinelaInicio');
+                const finInput = document.getElementById('centinelaFin');
+                
+                if (!inicioInput || !finInput) {
+                    setTimeout(configurarEventListeners, 50);
+                    return;
+                }
+                
+                function actualizarPreview() {
+                    const inicio = inicioInput.value ? String(inicioInput.value).padStart(3, '0') : '001';
+                    const fin = finInput.value ? String(finInput.value).padStart(3, '0') : '099';
+                    const previewInicio = document.getElementById('previewInicio');
+                    const previewFin = document.getElementById('previewFin');
+                    if (previewInicio) previewInicio.textContent = 'CENT' + inicio;
+                    if (previewFin) previewFin.textContent = 'CENT' + fin;
+                }
+                
+                // Remover listeners anteriores si existen
+                inicioInput.removeEventListener('input', actualizarPreview);
+                finInput.removeEventListener('input', actualizarPreview);
+                
+                inicioInput.addEventListener('input', actualizarPreview);
+                finInput.addEventListener('input', actualizarPreview);
+                actualizarPreview();
+                
+                // Event listener para generar
+                const btnGenerar = document.getElementById('btnGenerarStickers');
+                if (btnGenerar) {
+                    // Remover listener anterior si existe
+                    const nuevoBtn = btnGenerar.cloneNode(true);
+                    btnGenerar.parentNode.replaceChild(nuevoBtn, btnGenerar);
+                    
+                    nuevoBtn.onclick = function() {
+                        const inicio = parseInt(inicioInput.value);
+                        const fin = parseInt(finInput.value);
+                        
+                        if (!inicio || !fin || isNaN(inicio) || isNaN(fin)) {
+                            alert('Por favor ingresa valores válidos para el rango.');
+                            return;
+                        }
+                        
+                        if (inicio > fin) {
+                            alert('El centinela inicial debe ser menor o igual al final.');
+                            return;
+                        }
+                        
+                        if (inicio < 1 || fin > 999) {
+                            alert('El rango debe estar entre 1 y 999.');
+                            return;
+                        }
+                        
+                        generarStickersPDF(inicio, fin);
+                        
+                        // Cerrar modal
+                        const modalElement = document.getElementById('modalGenerarStickers');
+                        if (modalElement) {
+                            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                                if (modalInstance) {
+                                    modalInstance.hide();
+                                } else {
+                                    const modal = new bootstrap.Modal(modalElement);
+                                    modal.hide();
+                                }
+                            } else {
+                                modalElement.style.display = 'none';
+                                modalElement.classList.remove('show');
+                                document.body.classList.remove('modal-open');
+                                const backdrop = document.getElementById('modalBackdrop');
+                                if (backdrop) backdrop.remove();
+                            }
+                        }
+                    };
+                }
+            }
+            
+            // Intentar mostrar inmediatamente, si no, esperar un poco
+            if (typeof bootstrap !== 'undefined' || window.bootstrap) {
+                mostrarModal();
+            } else {
+                // Esperar a que Bootstrap se cargue
+                setTimeout(() => {
+                    mostrarModal();
+                }, 100);
+            }
+        };
+        
+        // Generar PDF con stickers
+        async function generarStickersPDF(inicio, fin) {
+            try {
+                // Esperar a que jsPDF esté disponible
+                let jsPDFClass = null;
+                let intentos = 0;
+                const maxIntentos = 10;
+                
+                while (!jsPDFClass && intentos < maxIntentos) {
+                    if (window.jspdf && window.jspdf.jsPDF) {
+                        jsPDFClass = window.jspdf.jsPDF;
+                        break;
+                    }
+                    // Esperar 100ms antes de intentar de nuevo
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    intentos++;
+                }
+                
+                if (!jsPDFClass) {
+                    mostrarAlerta('Error: La librería jsPDF no está disponible. Por favor recargue la página o espere unos segundos e intente de nuevo.', 'danger');
+                    console.error('jsPDF no disponible después de', maxIntentos, 'intentos');
+                    return;
+                }
+                
+                mostrarAlerta('Generando PDF con stickers...', 'info');
+                
+                const { jsPDF } = window.jspdf;
+                
+                // Configuración de la hoja carta (en mm)
+                // Hoja carta: 8.5" x 11" = 215.9mm x 279.4mm
+                const pageWidth = 215.9; // mm
+                const pageHeight = 279.4; // mm
+                const stickerSize = 50; // 5cm = 50mm
+                const margin = 10; // 1cm de margen
+                
+                // Calcular cuántos stickers caben por página
+                const usableWidth = pageWidth - (margin * 2);
+                const usableHeight = pageHeight - (margin * 2);
+                const stickersPerRow = Math.floor(usableWidth / stickerSize);
+                const stickersPerCol = Math.floor(usableHeight / stickerSize);
+                const stickersPerPage = stickersPerRow * stickersPerCol;
+                
+                // Calcular espaciado
+                const spacingX = (usableWidth - (stickersPerRow * stickerSize)) / (stickersPerRow - 1);
+                const spacingY = (usableHeight - (stickersPerCol * stickerSize)) / (stickersPerCol - 1);
+                
+                let doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'letter'
+                });
+                
+                let currentPage = 0;
+                let stickerIndex = 0;
+                let x = margin;
+                let y = margin;
+                let row = 0;
+                let col = 0;
+                
+                // Generar stickers para cada centinela en el rango
+                for (let i = inicio; i <= fin; i++) {
+                    const centinelaId = 'CENT' + String(i).padStart(3, '0');
+                    
+                    // Si necesitamos una nueva página
+                    if (stickerIndex > 0 && stickerIndex % stickersPerPage === 0) {
+                        doc.addPage();
+                        currentPage++;
+                        row = 0;
+                        col = 0;
+                        x = margin;
+                        y = margin;
+                    }
+                    
+                    // Calcular posición
+                    if (col > 0 && col % stickersPerRow === 0) {
+                        row++;
+                        col = 0;
+                        x = margin;
+                        y = margin + (row * stickerSize) + (row * spacingY);
+                    } else if (col > 0) {
+                        x = margin + (col * stickerSize) + (col * spacingX);
+                    }
+                    
+                    // Generar URL del QR
+                    const qrUrl = window.location.origin + window.location.pathname + '?id=' + centinelaId;
+                    const qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(qrUrl);
+                    
+                    // Cargar imagen del QR
+                    try {
+                        const img = await loadImage(qrApiUrl);
+                        
+                        // Agregar QR code al PDF (ajustar tamaño para que quepa en el sticker)
+                        const qrSize = stickerSize - 10; // Dejar 5mm de margen en cada lado
+                        const qrX = x + 5;
+                        const qrY = y + 5;
+                        
+                        doc.addImage(img, 'PNG', qrX, qrY, qrSize, qrSize);
+                        
+                        // Agregar texto del ID debajo del QR
+                        doc.setFontSize(8);
+                        doc.text(centinelaId, x + (stickerSize / 2), y + qrSize + 8, { align: 'center' });
+                        
+                        // Dibujar borde del sticker (opcional, para guías de corte)
+                        doc.setDrawColor(200, 200, 200);
+                        doc.setLineWidth(0.1);
+                        doc.rect(x, y, stickerSize, stickerSize);
+                        
+                    } catch (error) {
+                        console.warn(`Error cargando QR para ${centinelaId}:`, error);
+                        // Continuar con el siguiente aunque falle uno
+                    }
+                    
+                    col++;
+                    stickerIndex++;
+                }
+                
+                // Guardar PDF
+                const fileName = `Stickers_CENT${String(inicio).padStart(3, '0')}_a_CENT${String(fin).padStart(3, '0')}.pdf`;
+                doc.save(fileName);
+                
+                mostrarAlerta(`PDF generado exitosamente: ${fileName}`, 'success');
+                
+            } catch (error) {
+                console.error('Error generando PDF:', error);
+                mostrarAlerta('Error al generar el PDF: ' + error.message, 'danger');
+            }
+        }
+        
+        // Función auxiliar para cargar imagen
+        function loadImage(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = function() {
+                    resolve(img);
+                };
+                img.onerror = function() {
+                    reject(new Error('Error cargando imagen: ' + url));
+                };
+                img.src = url;
+            });
+        }
+    </script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    
+    <!-- jsPDF para generar PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
+</body>
+</html>
