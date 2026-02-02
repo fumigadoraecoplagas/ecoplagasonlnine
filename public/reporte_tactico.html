@@ -279,7 +279,7 @@
                 return { año, mes, dia, fechaOriginal: fechaUTC, fechaAjustada };
             }
 
-            // Función para verificar si el usuario es paniagua
+            // Función para verificar si el usuario es socio (paniagua o isabella.sanchez)
             function esUsuarioPaniagua() {
                 // Intentar obtener auth de diferentes fuentes
                 let auth = window.firebaseAuth;
@@ -292,13 +292,16 @@
                     // Esperar un momento y volver a intentar
                     const emailUsuario = auth?.currentUser?.email || '';
                     if (emailUsuario) {
-                        return emailUsuario.toLowerCase().includes('paniagua');
+                        const emailLower = emailUsuario.toLowerCase();
+                        return emailLower.includes('paniagua') || emailLower.includes('isabella.sanchez') || (emailLower.includes('isabella') && emailLower.includes('sanchez'));
                     }
                 }
                 
                 const emailUsuario = auth?.currentUser?.email || '';
-                console.log('🔍 [VERIFICACION_PANIAGUA] Email usuario:', emailUsuario, 'Es paniagua:', emailUsuario.toLowerCase().includes('paniagua'));
-                return emailUsuario.toLowerCase().includes('paniagua');
+                const emailLower = emailUsuario.toLowerCase();
+                const esSocio = emailLower.includes('paniagua') || emailLower.includes('isabella.sanchez') || (emailLower.includes('isabella') && emailLower.includes('sanchez'));
+                console.log('🔍 [VERIFICACION_SOCIO] Email usuario:', emailUsuario, 'Es socio:', esSocio);
+                return esSocio;
             }
 
             // Función para cargar y mostrar ventas totales por año
@@ -905,7 +908,8 @@
                                     callbacks: {
                                         label: function(context) {
                                             const valor = context.parsed.y;
-                                            return `${context.dataset.label}: ₡${(valor / 1000000).toFixed(1)}M`;
+                                            // Mostrar monto exacto en colones sin decimales y sin formato de miles/millones
+                                            return `${context.dataset.label}: ₡${Math.round(valor).toString()}`;
                                         }
                                     }
                                 },
@@ -1393,7 +1397,9 @@
                                 },
                                 callbacks: {
                                     label: function(context) {
-                                        return 'Ventas: ' + formatearMoneda(context.parsed.y);
+                                        const valor = context.parsed.y;
+                                        // Mostrar monto exacto en colones sin decimales y sin formato de miles/millones
+                                        return 'Ventas: ₡' + Math.round(valor).toString();
                                     }
                                 }
                             },
