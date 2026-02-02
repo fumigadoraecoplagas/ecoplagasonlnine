@@ -1,0 +1,93 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función helper para verificar autenticación
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Colección de empleados - CRÍTICA para autenticación
+    // Permite a usuarios autenticados leer empleados (necesario para auth-secure.js)
+    match /empleados/{empleadoId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    // Reglas para la colección de centinelas
+    match /centinelas/{centinelaId} {
+      allow read, write: if isAuthenticated();
+      
+      // Subcolección de inspecciones
+      match /inspecciones/{inspeccionId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+    
+    // Permitir acceso a otras colecciones críticas del sistema
+    // Estas reglas permiten que el sistema funcione correctamente
+    match /citas/{citaId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /clientes/{clienteId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /sucursales/{sucursalId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /productos/{productoId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /servicios/{servicioId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /ruteadores/{ruteadorId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /encuestas/{encuestaId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /encuestas_id/{encuestaId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /justificaciones/{justificacionId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Colecciones de inventario
+    match /bodegas/{bodegaId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /stock_bodegas/{stockId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /movimientos_inventario/{movimientoId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /proveedores/{proveedorId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /tickets/{ticketId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Permitir acceso a cualquier otra colección para usuarios autenticados
+    // Esto asegura que el sistema funcione sin problemas
+    match /{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+    
+  }
+}
