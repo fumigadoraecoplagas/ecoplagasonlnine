@@ -292,9 +292,6 @@
         }
         
         .inspecciones-container {
-            margin-top: 15px;
-            border-top: 1px solid #dee2e6;
-            padding-top: 15px;
             margin-top: 20px;
             padding-top: 20px;
             border-top: 2px solid #dee2e6;
@@ -304,14 +301,24 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 15px;
             padding: 10px;
             background-color: #f8f9fa;
             border-radius: 5px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        
+        .inspecciones-header:hover {
+            background-color: #e9ecef;
+        }
+        
+        .inspecciones-header i.fa-chevron-down {
+            transition: transform 0.3s;
+        }
+        
+        .inspecciones-header[aria-expanded="true"] i.fa-chevron-down {
+            transform: rotate(180deg);
         }
         
         .inspecciones-list {
@@ -1642,13 +1649,11 @@
                         </div>
                     </div>
                     <div class="inspecciones-container">
-                        <div class="inspecciones-header" onclick="toggleInspecciones('${centinela.id}')" style="cursor: pointer; user-select: none;">
-                            <h6>
-                                <i class="fas fa-clipboard-list"></i> Inspecciones (${inspecciones.length})
-                                <i class="fas fa-chevron-down ms-2" id="chevron-${centinela.id}" style="transition: transform 0.3s;"></i>
-                            </h6>
+                        <div class="inspecciones-header" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#inspecciones-collapse-${centinela.id}" aria-expanded="false" aria-controls="inspecciones-collapse-${centinela.id}">
+                            <h6><i class="fas fa-clipboard-list"></i> Inspecciones (${inspecciones.length}) <i class="fas fa-chevron-down ms-2" id="chevron-inspecciones-${centinela.id}"></i></h6>
                         </div>
-                        <div class="inspecciones-list" id="inspecciones-${centinela.id}" style="display: none; max-height: 500px; overflow-y: auto;">
+                        <div class="collapse" id="inspecciones-collapse-${centinela.id}">
+                            <div class="inspecciones-list" id="inspecciones-${centinela.id}">
             `;
             
             if (inspecciones.length === 0) {
@@ -1660,6 +1665,7 @@
             }
             
             html += `
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1908,26 +1914,6 @@
             } catch (error) {
                 console.error('Error guardando inspección:', error);
                 mostrarAlerta('Error al guardar la inspección: ' + error.message, 'danger');
-            }
-        };
-        
-        // Función para toggle del dropdown de inspecciones
-        window.toggleInspecciones = function(centinelaId) {
-            const inspeccionesList = document.getElementById(`inspecciones-${centinelaId}`);
-            const chevron = document.getElementById(`chevron-${centinelaId}`);
-            
-            if (inspeccionesList) {
-                if (inspeccionesList.style.display === 'none' || !inspeccionesList.style.display) {
-                    inspeccionesList.style.display = 'block';
-                    if (chevron) {
-                        chevron.style.transform = 'rotate(180deg)';
-                    }
-                } else {
-                    inspeccionesList.style.display = 'none';
-                    if (chevron) {
-                        chevron.style.transform = 'rotate(0deg)';
-                    }
-                }
             }
         };
         
