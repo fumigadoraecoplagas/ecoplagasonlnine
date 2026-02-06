@@ -1,0 +1,587 @@
+/* ========================================
+   SISTEMA DE DISEÑO UNIFICADO - ECO PLAGAS
+   ======================================== */
+
+/* Variables CSS Globales */
+:root {
+    /* Espaciado Unificado */
+    --spacing-xs: 0.25rem;   /* 4px */
+    --spacing-sm: 0.5rem;    /* 8px */
+    --spacing-md: 1rem;      /* 16px */
+    --spacing-lg: 1.5rem;    /* 24px */
+    --spacing-xl: 2rem;      /* 32px */
+    
+    /* Tipografía Unificada */
+    --font-xs: 0.75rem;      /* 12px */
+    --font-sm: 0.875rem;     /* 14px */
+    --font-base: 1rem;       /* 16px */
+    --font-lg: 1.125rem;     /* 18px */
+    --font-xl: 1.25rem;      /* 20px */
+    --font-2xl: 1.5rem;      /* 24px */
+    --font-3xl: 2rem;        /* 32px */
+    
+    /* Colores Principales */
+    --primary-color: #2c3e50;
+    --secondary-color: #34495e;
+    --accent-color: #667eea;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    
+    /* Gradientes Unificados */
+    --primary-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    --secondary-gradient: linear-gradient(135deg, #495057 0%, #343a40 100%);
+    --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    --warning-gradient: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    --danger-gradient: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    --info-gradient: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    
+    /* Sombras Unificadas */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.15);
+    --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
+    --shadow-xl: 0 12px 24px rgba(0,0,0,0.25);
+    
+    /* Border Radius Unificado */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 50%;
+}
+
+/* ========================================
+   HEADER UNIFICADO
+   ======================================== */
+
+.page-header {
+    text-align: center;
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--primary-gradient);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+}
+
+.page-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,255,255,0.05) 100%);
+    animation: subtle-shimmer 4s ease-in-out infinite;
+}
+
+.page-header h1 {
+    color: white;
+    font-size: var(--font-2xl);
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    position: relative;
+    z-index: 2;
+}
+
+.page-header h1 i {
+    color: #ffd700;
+    font-size: var(--font-xl);
+    animation: pulse-icon 2s ease-in-out infinite;
+}
+
+/* ========================================
+   SISTEMA DE ICONOS UNIFICADO
+   ======================================== */
+
+.hours-icon { color: #667eea; }
+.inventory-icon { color: #28a745; }
+.reports-icon { color: #dc3545; }
+.personnel-icon { color: #6f42c1; }
+.tickets-icon { color: #fd7e14; }
+.export-icon { color: #6c757d; }
+.calendar-icon { color: #17a2b8; }
+
+/* ========================================
+   SISTEMA DE BOTONES UNIFICADO
+   ======================================== */
+
+.btn-unified {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    text-decoration: none;
+}
+
+.btn-unified:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary-unified {
+    background: var(--accent-gradient);
+    color: white;
+}
+
+.btn-success-unified {
+    background: var(--success-gradient);
+    color: white;
+}
+
+.btn-warning-unified {
+    background: var(--warning-gradient);
+    color: white;
+}
+
+.btn-danger-unified {
+    background: var(--danger-gradient);
+    color: white;
+}
+
+.btn-info-unified {
+    background: var(--info-gradient);
+    color: white;
+}
+
+.btn-secondary-unified {
+    background: var(--secondary-gradient);
+    color: white;
+}
+
+/* ========================================
+   SISTEMA DE TABLAS UNIFICADO
+   ======================================== */
+
+.table-unified {
+    font-size: var(--font-sm);
+    border-collapse: collapse;
+    width: 100%;
+    background: white;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.table-unified th {
+    background: var(--secondary-gradient);
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-weight: 600;
+    font-size: var(--font-sm);
+    text-align: left;
+}
+
+.table-unified td {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid #e9ecef;
+    font-size: var(--font-sm);
+}
+
+.table-unified tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table-unified tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ========================================
+   SISTEMA DE SECCIONES UNIFICADO
+   ======================================== */
+
+.section-unified {
+    background: var(--light-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    border: 1px solid #e9ecef;
+    box-shadow: var(--shadow-sm);
+}
+
+.section-header-unified {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid #e9ecef;
+}
+
+.section-title-unified {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.section-content-unified {
+    padding: var(--spacing-md) 0;
+}
+
+/* ========================================
+   SISTEMA DE MODALES UNIFICADO
+   ======================================== */
+
+.modal-unified .modal-dialog {
+    max-width: 600px;
+    margin: var(--spacing-lg) auto;
+}
+
+.modal-unified .modal-header {
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: none;
+}
+
+.modal-unified .modal-header .modal-title {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.modal-unified .modal-body {
+    padding: var(--spacing-lg);
+}
+
+.modal-unified .modal-footer {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-top: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+/* ========================================
+   SISTEMA DE CARDS UNIFICADO
+   ======================================== */
+
+.card-unified {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    border: 1px solid #e9ecef;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.card-unified:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.card-header-unified {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.card-title-unified {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN UNIFICADO
+   ======================================== */
+
+/* Footer móvil fijo */
+.mobile-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #ffffff;
+    border-top: 2px solid #e9ecef;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: none;
+}
+
+.mobile-footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.mobile-footer .footer-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #495057;
+    font-size: var(--font-xs);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    min-width: 70px;
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+.mobile-footer .footer-button:hover {
+    background: #f8f9fa;
+    color: #2c3e50;
+}
+
+.mobile-footer .footer-button.active {
+    background: #e3f2fd;
+    color: #1976d2;
+    font-weight: 600;
+}
+
+.mobile-footer .footer-button i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.mobile-footer .footer-button span {
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Tablas como tarjetas en móvil */
+.table-mobile-cards {
+    width: 100%;
+}
+
+.table-mobile-cards thead {
+    display: none;
+}
+
+.table-mobile-cards tbody,
+.table-mobile-cards tr,
+.table-mobile-cards td {
+    display: block;
+    width: 100%;
+}
+
+.table-mobile-cards tr {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.table-mobile-cards td {
+    border: none;
+    padding: var(--spacing-xs) 0;
+}
+
+.table-mobile-cards td::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+/* Panel de filtros colapsable en móvil */
+.filters-toggle-btn {
+    display: none;
+}
+
+.filters-collapsible.is-collapsed {
+    display: none !important;
+}
+
+/* Móvil */
+@media (max-width: 768px) {
+    .page-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .page-header h1 {
+        font-size: var(--font-xl);
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+    
+    .section-unified {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .table-unified {
+        font-size: var(--font-xs);
+    }
+    
+    .table-unified th,
+    .table-unified td {
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .btn-unified {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-xs);
+    }
+    
+    .modal-unified .modal-dialog {
+        margin: var(--spacing-sm);
+        max-width: calc(100% - 2rem);
+    }
+    
+    .modal-unified .modal-body {
+        padding: var(--spacing-md);
+    }
+
+    /* Mostrar footer en móvil */
+    .mobile-footer { display: block; }
+
+    /* Añadir espacio inferior para que el contenido no quede bajo el footer */
+    body { padding-bottom: 140px; }
+
+    /* Botón de filtros visible en móvil */
+    .filters-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        background: #fff;
+        color: #2c3e50;
+        box-shadow: var(--shadow-sm);
+        font-size: var(--font-sm);
+    }
+
+    /* Convertir tablas marcadas a tarjetas en móvil */
+    table[data-mobile-cards="true"] { 
+        /* clase lógica; el JS añadirá .table-mobile-cards con data-labels */
+        display: block;
+    }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .page-header h1 {
+        font-size: var(--font-2xl);
+    }
+    
+    .table-unified {
+        font-size: var(--font-sm);
+    }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+    .page-header h1 {
+        font-size: var(--font-3xl);
+    }
+    
+    .table-unified {
+        font-size: var(--font-base);
+    }
+}
+
+/* ========================================
+   ANIMACIONES UNIFICADAS
+   ======================================== */
+
+@keyframes subtle-shimmer {
+    0%, 100% { 
+        transform: translateX(-100%) translateY(-100%) rotate(45deg); 
+    }
+    50% { 
+        transform: translateX(100%) translateY(100%) rotate(45deg); 
+    }
+}
+
+@keyframes pulse-icon {
+    0%, 100% { 
+        transform: scale(1); 
+    }
+    50% { 
+        transform: scale(1.1); 
+    }
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* ========================================
+   UTILIDADES UNIFICADAS
+   ======================================== */
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.d-flex { display: flex; }
+.d-block { display: block; }
+.d-none { display: none; }
+
+.justify-content-center { justify-content: center; }
+.justify-content-between { justify-content: space-between; }
+.align-items-center { align-items: center; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-1 { margin-bottom: var(--spacing-xs); }
+.mb-2 { margin-bottom: var(--spacing-sm); }
+.mb-3 { margin-bottom: var(--spacing-md); }
+.mb-4 { margin-bottom: var(--spacing-lg); }
+.mb-5 { margin-bottom: var(--spacing-xl); }
+
+.p-0 { padding: 0; }
+.p-1 { padding: var(--spacing-xs); }
+.p-2 { padding: var(--spacing-sm); }
+.p-3 { padding: var(--spacing-md); }
+.p-4 { padding: var(--spacing-lg); }
+.p-5 { padding: var(--spacing-xl); }
+
+
+
+
+
