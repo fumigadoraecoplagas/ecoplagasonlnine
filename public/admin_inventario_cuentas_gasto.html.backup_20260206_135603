@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuentas de Gasto - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        window.firebaseAuth = auth;
+        
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            
+            if (document.body) document.body.style.display = 'none';
+
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken) {
+                if (document.body) {
+                    document.body.style.display = 'block';
+                    document.body.classList.add('authenticated');
+                }
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            let retries = 0;
+            const maxRetries = 40;
+            
+            while (retries < maxRetries) {
+                if (auth.currentUser) {
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', {
+                        detail: { page: 'admin_inventario_cuentas_gasto', timestamp: Date.now() }
+                    }));
+                    
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            if (!hasSessionToken) {
+                window.location.replace('iniciar_sesion.html');
+            }
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-2 px-3">
+        <!-- Header Principal -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-receipt inventory-icon"></i> Gestión de Cuentas de Gasto</h1>
+            <a href="administrador_bodega.html" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+            </a>
+        </div>
+
+        <!-- Contenido Principal: Cuentas de Gasto -->
+        <div class="section-content">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class="fas fa-file-invoice-dollar"></i> Configuración de Cuentas</h3>
+                    <div class="section-badge">
+                        <span class="badge bg-warning text-dark">Contabilidad</span>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <button class="btn btn-primary btn-lg w-100" data-bs-toggle="modal" data-bs-target="#modalCuentaGasto">
+                                <i class="fas fa-plus me-2"></i>Nueva Cuenta
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-modern">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-tag me-2"></i>Nombre</th>
+                                    <th><i class="fas fa-align-left me-2"></i>Descripción</th>
+                                    <th><i class="fas fa-toggle-on me-2"></i>Estado</th>
+                                    <th><i class="fas fa-calendar me-2"></i>Fecha Creación</th>
+                                    <th><i class="fas fa-cogs me-2"></i>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaCuentasGasto">
+                                <!-- Se llena dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="text-center py-3" id="loadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Cargando cuentas...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nueva/Editar Cuenta de Gasto -->
+    <div class="modal fade" id="modalCuentaGasto" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva Cuenta de Gasto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCuentaGasto">
+                        <input type="hidden" id="cuentaId">
+                        <div class="mb-3">
+                            <label for="nombreCuentaGasto" class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="nombreCuentaGasto" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descripcionCuentaGasto" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcionCuentaGasto" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" onclick="guardarCuentaGasto()">Guardar Cuenta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="admin_inventario_cuentas_gasto.js"></script>
+</body>
+</html>
