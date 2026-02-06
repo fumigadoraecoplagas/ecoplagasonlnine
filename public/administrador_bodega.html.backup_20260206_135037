@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrador de Bodega Seguro - Eco Plagas</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📦%3C/text%3E%3C/svg%3E">
+    <link rel="shortcut icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📦%3C/text%3E%3C/svg%3E">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        window.firebaseAuth = auth;
+        
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            if (document.body) document.body.style.display = 'none';
+
+            // Optimistic check
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken && document.body) {
+                document.body.style.display = 'block';
+                document.body.classList.add('authenticated');
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            let retries = 0;
+            while (retries < 40) {
+                if (auth.currentUser) {
+                    if (window.secureAuthManager) window.authManager = window.secureAuthManager;
+                    else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) window.authManager = window.secureAuthManager;
+                        }
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', { detail: { page: 'administrador_bodegasecure', timestamp: Date.now() } }));
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            if (!hasSessionToken) window.location.replace('iniciar_sesion.html');
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+        
+        .navigation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1rem;
+            padding: 1rem 0;
+        }
+
+        .section-card {
+            text-decoration: none;
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: row; /* Horizontal para ahorrar altura */
+            align-items: center;
+            justify-content: flex-start;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+            height: 100%;
+            color: #4a5568;
+            position: relative;
+        }
+
+        .section-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+            border-color: #cbd5e0;
+            color: #2d3748;
+        }
+
+        .icon-wrapper {
+            width: 42px;
+            height: 42px;
+            min-width: 42px; /* Evitar que se aplaste */
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0; /* Reset */
+            margin-right: 0.75rem; /* Espacio lateral */
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        /* Estilos unificados: Fondo suave + Icono color */
+        .style-blue .icon-wrapper { background-color: #ebf8ff; color: #3182ce; }
+        .style-green .icon-wrapper { background-color: #f0fff4; color: #38a169; }
+        .style-purple .icon-wrapper { background-color: #faf5ff; color: #805ad5; }
+        .style-orange .icon-wrapper { background-color: #fffaf0; color: #dd6b20; }
+        .style-red .icon-wrapper { background-color: #fff5f5; color: #e53e3e; }
+        .style-gray .icon-wrapper { background-color: #edf2f7; color: #4a5568; }
+        .style-warning .icon-wrapper { background-color: #fffbf0; color: #d69e2e; }
+
+        .section-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.2;
+            display: block;
+            margin-bottom: 0.15rem;
+        }
+        
+        .section-desc {
+            font-size: 0.7rem;
+            color: #718096;
+            line-height: 1.1;
+            display: block;
+            font-weight: 400;
+        }
+        
+        .group-label {
+            grid-column: 1 / -1;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #a0aec0;
+            font-weight: 700;
+            margin-top: 1rem;
+            margin-bottom: 0.25rem;
+            padding-left: 0.25rem;
+            border-left: none; 
+            line-height: 1;
+        }
+        
+        .group-label:first-child { margin-top: 0; }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container mt-3 mb-4">
+        <div class="text-center mb-3">
+            <h2 class="fw-bold text-dark mb-1">Panel de Inventario</h2>
+            <p class="text-muted small m-0">Selecciona un módulo para gestionar</p>
+        </div>
+
+        <div class="navigation-grid">
+            
+            <!-- GRUPO 1: MOVIMIENTOS Y OPERACIONES -->
+            <div class="group-label">Movimientos y Operaciones</div>
+
+            <!-- 1. Movimientos de Productos -->
+            <a href="admin_inventario_transferencias.html" class="section-card style-blue">
+                <div class="icon-wrapper"><i class="fas fa-box"></i></div>
+                <div>
+                    <span class="section-title">Movimientos Productos</span>
+                    <span class="section-desc">Compras, transferencias y gastos de productos.</span>
+                </div>
+            </a>
+
+            <!-- 2. Movimientos de Herramientas -->
+            <a href="admin_inventario_herramientas_movimientos.html" class="section-card style-blue">
+                <div class="icon-wrapper"><i class="fas fa-tools"></i></div>
+                <div>
+                    <span class="section-title">Movimientos Herramientas</span>
+                    <span class="section-desc">Compras, transferencias y gastos de herramientas.</span>
+                </div>
+            </a>
+
+            <!-- 3. Pedidos Especiales -->
+            <a href="admin_inventario_pedidos_especiales.html" class="section-card style-blue">
+                <div class="icon-wrapper"><i class="fas fa-cart-flatbed"></i></div>
+                <div>
+                    <span class="section-title">Pedidos Especiales</span>
+                    <span class="section-desc">Armar pedidos a bodegas especiales.</span>
+                </div>
+            </a>
+
+            <!-- 4. Liquidación de Especiales -->
+            <a href="admin_inventario_liquidar_especiales.html" class="section-card style-blue">
+                <div class="icon-wrapper"><i class="fas fa-file-invoice"></i></div>
+                <div>
+                    <span class="section-title">Liquidación de Especiales</span>
+                    <span class="section-desc">Complemento de Pedidos Especiales. Liquidar consumo vs alistos enviados.</span>
+                </div>
+            </a>
+
+
+            <!-- GRUPO 2: CATÁLOGOS Y CONFIGURACIÓN -->
+            <div class="group-label">Catálogos y Configuración</div>
+
+            <!-- 6. Catálogo de Inventario (Productos y Herramientas) -->
+            <a href="admin_inventario_productos.html" class="section-card style-green">
+                <div class="icon-wrapper"><i class="fas fa-box-open"></i></div>
+                <div>
+                    <span class="section-title"><i class="fas fa-plus-circle text-success me-1" style="font-size: 0.85em;"></i>Catálogo Inventario</span>
+                    <span class="section-desc">Crear y editar productos y herramientas.</span>
+                </div>
+            </a>
+
+            <!-- 7. Bodegas -->
+            <a href="admin_inventario_bodegas.html" class="section-card style-green">
+                <div class="icon-wrapper"><i class="fas fa-warehouse"></i></div>
+                <div>
+                    <span class="section-title"><i class="fas fa-plus-circle text-success me-1" style="font-size: 0.85em;"></i>Bodegas</span>
+                    <span class="section-desc">Crear y administrar ubicaciones.</span>
+                </div>
+            </a>
+
+            <!-- 8. Proveedores -->
+            <a href="admin_inventario_proveedores.html" class="section-card style-green">
+                <div class="icon-wrapper"><i class="fas fa-truck-field"></i></div>
+                <div>
+                    <span class="section-title"><i class="fas fa-plus-circle text-success me-1" style="font-size: 0.85em;"></i>Proveedores</span>
+                    <span class="section-desc">Crear y administrar proveedores.</span>
+                </div>
+            </a>
+
+            <!-- 9. Cuentas Gasto -->
+            <a href="admin_inventario_cuentas_gasto.html" class="section-card style-green">
+                <div class="icon-wrapper"><i class="fas fa-file-invoice-dollar"></i></div>
+                <div>
+                    <span class="section-title"><i class="fas fa-plus-circle text-success me-1" style="font-size: 0.85em;"></i>Cuentas de Gasto</span>
+                    <span class="section-desc">Crear y configurar cuentas contables.</span>
+                </div>
+            </a>
+
+
+            <!-- GRUPO 3: REPORTES Y ANÁLISIS -->
+            <div class="group-label">Reportes y Análisis</div>
+
+            <!-- 10. Dashboard -->
+            <a href="admin_inventario_dashboard.html" class="section-card style-purple">
+                <div class="icon-wrapper"><i class="fas fa-chart-pie"></i></div>
+                <div>
+                    <span class="section-title">Dashboard</span>
+                    <span class="section-desc">Resumen y métricas clave.</span>
+                </div>
+            </a>
+
+            <!-- 11. Historial -->
+            <a href="admin_inventario_transacciones.html" class="section-card style-purple">
+                <div class="icon-wrapper"><i class="fas fa-clock-rotate-left"></i></div>
+                <div>
+                    <span class="section-title">Historial</span>
+                    <span class="section-desc">Bitácora completa de movimientos.</span>
+                </div>
+            </a>
+
+            <!-- 12. Auditoría -->
+            <a href="auditoria_transacciones.html" class="section-card style-purple">
+                <div class="icon-wrapper"><i class="fas fa-magnifying-glass-chart"></i></div>
+                <div>
+                    <span class="section-title">Auditoría</span>
+                    <span class="section-desc">Validar y revisar movimientos.</span>
+                </div>
+            </a>
+
+            <!-- 14. Saldos Pivot -->
+            <a href="admin_inventario_saldos_pivot.html" class="section-card style-purple">
+                <div class="icon-wrapper"><i class="fas fa-table"></i></div>
+                <div>
+                    <span class="section-title">Comparación de Saldos</span>
+                    <span class="section-desc">Saldos por bodega y producto.</span>
+                </div>
+            </a>
+
+            <!-- 15. Gastos Semanales -->
+            <a href="admin_inventario_gastos_semanales.html" class="section-card style-purple">
+                <div class="icon-wrapper"><i class="fas fa-calendar-week"></i></div>
+                <div>
+                    <span class="section-title">Gastos Semanales</span>
+                    <span class="section-desc">Gasto por semana por técnico.</span>
+                </div>
+            </a>
+
+            <!-- 16. Recuperar Bodegas -->
+            <a href="administrador_bodega_recuperar.html" class="section-card style-purple">
+                <div class="icon-wrapper"><i class="fas fa-search"></i></div>
+                <div>
+                    <span class="section-title">Recuperar Bodegas</span>
+                    <span class="section-desc">Buscar y recrear bodegas eliminadas.</span>
+                </div>
+            </a>
+
+            <!-- 17. Anomalías -->
+            <a href="admin_inventario_anomalias.html" class="section-card style-red">
+                <div class="icon-wrapper"><i class="fas fa-exclamation-triangle"></i></div>
+                <div>
+                    <span class="section-title">Anomalías</span>
+                    <span class="section-desc">Bodegas y productos con saldo negativo.</span>
+                </div>
+            </a>
+
+            <!-- 13. Ayuda -->
+            <a href="admin_inventario_instructivo.html" class="section-card style-gray">
+                <div class="icon-wrapper"><i class="fas fa-circle-question"></i></div>
+                <div>
+                    <span class="section-title">Ayuda</span>
+                    <span class="section-desc">Guía de uso del sistema.</span>
+                        </div>
+            </a>
+
+            <!-- GRUPO 4: DOCUMENTACIÓN Y GUÍAS -->
+            <div class="group-label">Documentación y Guías</div>
+
+            <!-- 18. Guía de Entrenamiento Técnico -->
+            <a href="guia_entrenamiento.html" class="section-card style-gray" target="_blank">
+                <div class="icon-wrapper"><i class="fas fa-book"></i></div>
+                <div>
+                    <span class="section-title">Guía de Entrenamiento</span>
+                    <span class="section-desc">Documentación técnica para desarrolladores.</span>
+                </div>
+            </a>
+
+            <!-- 19. Guía de Línea Gráfica -->
+            <a href="guia_linea_grafica.html" class="section-card style-gray" target="_blank">
+                <div class="icon-wrapper"><i class="fas fa-palette"></i></div>
+                <div>
+                    <span class="section-title">Guía de Línea Gráfica</span>
+                    <span class="section-desc">Manual de diseño y estándares visuales.</span>
+                </div>
+            </a>
+                                    </div>
+                                    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+</body>
+</html>
