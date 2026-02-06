@@ -1,4 +1,4 @@
-en https://ecoplagas.online/calendario.html<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -1357,12 +1357,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         <div class="calendar-container">
             <div class="calendar-header">
                 <div class="d-flex gap-2 align-items-center flex-wrap">
-                    <!-- Filtro de fecha y botón Vista Total -->
-                    <div class="date-filter-container" style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;">
+                    <!-- ========== SECCIÓN: FILTROS ========== -->
+                    <!-- data-section="filtros" -->
+                    <div class="date-filter-container" data-section="filtros" style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;">
                         <button id="btnPrevMonthCronograma" class="btn-date-nav" style="background: #f5f5f5; border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #4CAF50;" onmouseover="this.style.background='#4CAF50'; this.style.color='white';" onmouseout="this.style.background='#f5f5f5'; this.style.color='#4CAF50';">
                             <i class="fas fa-chevron-left" style="font-size: 0.9rem;"></i>
                         </button>
-                        <div id="datePickerContainer" style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 600px; overflow-x: auto; padding: 4px;">
+                        <div id="datePickerContainer" style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; flex: 1; min-width: 0;">
                             <!-- Los botones de días se generarán dinámicamente -->
                         </div>
                         <button id="btnNextMonthCronograma" class="btn-date-nav" style="background: #f5f5f5; border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #4CAF50;" onmouseover="this.style.background='#4CAF50'; this.style.color='white';" onmouseout="this.style.background='#f5f5f5'; this.style.color='#4CAF50';">
@@ -1478,8 +1479,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 <!-- Los días del calendario se generarán dinámicamente -->
             </div>
 
-            <!-- Vista de Día -->
-            <div id="vistaDia" class="vista-dia" style="display: none;">
+            <!-- ========== SECCIÓN: AGENDA / CITAS DEL DÍA ========== -->
+            <!-- data-section="agenda" -->
+            <div id="vistaDia" class="vista-dia" data-section="agenda" style="display: none;">
                 <div class="vista-dia-header">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h3 id="vistaDiaTitulo" class="mb-0">
@@ -1507,10 +1509,12 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- Vista de Cronograma -->
-            <div id="vistaCronograma" class="vista-dia" style="display: none;">
-                <!-- Buscador de Citas -->
-                <div class="buscador-citas-container mb-3" style="padding: 8px; background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <!-- ========== SECCIÓN: CRONOGRAMA ========== -->
+            <!-- data-section="cronograma" -->
+            <div id="vistaCronograma" class="vista-dia" data-section="cronograma" style="display: none;">
+                <!-- ========== SUBSECCIÓN: BUSCADOR DE CITAS ========== -->
+                <!-- data-section="buscador-citas" -->
+                <div class="buscador-citas-container mb-3" data-section="buscador-citas" style="padding: 8px; background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <div class="position-relative">
                         <label class="form-label mb-2" style="font-size: 0.9rem; font-weight: 600; color: #000000;">
                             <i class="fas fa-search me-2"></i>Buscar Citas por Cliente o Teléfono
@@ -1523,27 +1527,40 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     </div>
                 </div>
                 
-                <!-- Cajas de recursos sin asignar -->
-                <div class="recursos-sin-asignar-container mb-1" style="padding: 8px; margin-top: 0;">
-                    <div class="recurso-caja">
-                        <div class="recurso-caja-header">
-                            <i class="fas fa-users me-2"></i>Técnicos Sin Asignar
+                <!-- ========== SUBSECCIÓN: RECURSOS SIN ASIGNAR ========== -->
+                <!-- data-section="recursos-sin-asignar" -->
+                <div class="recursos-sin-asignar-container mb-1" data-section="recursos-sin-asignar" style="padding: 8px; margin-top: 0;">
+                    <!-- ========== TÉCNICOS SIN ASIGNAR ========== -->
+                    <!-- data-section="tecnicos-sin-asignar" -->
+                    <div class="recurso-caja" data-section="tecnicos-sin-asignar">
+                        <div class="recurso-caja-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span><i class="fas fa-users me-2"></i>Técnicos Sin Asignar</span>
+                            <button id="btnActualizarTecnicos" class="btn btn-sm btn-primary" style="padding: 4px 8px; font-size: 0.75rem;" title="Mover todos los técnicos asignados de vuelta a sin asignar">
+                                <i class="fas fa-sync-alt me-1"></i>Actualizar
+                            </button>
                         </div>
                         <div class="recurso-caja-body" id="tecnicosSinAsignarContainer">
                             <!-- Los técnicos se generarán dinámicamente -->
                         </div>
                     </div>
-                    <div class="recurso-caja">
-                        <div class="recurso-caja-header">
-                            <i class="fas fa-truck me-2"></i>Vehículos Sin Asignar
+                    <!-- ========== VEHÍCULOS SIN ASIGNAR ========== -->
+                    <!-- data-section="vehiculos-sin-asignar" -->
+                    <div class="recurso-caja" data-section="vehiculos-sin-asignar">
+                        <div class="recurso-caja-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span><i class="fas fa-truck me-2"></i>Vehículos Sin Asignar</span>
+                            <button id="btnActualizarVehiculos" class="btn btn-sm btn-primary" style="padding: 4px 8px; font-size: 0.75rem;" title="Mover todos los vehículos asignados de vuelta a sin asignar">
+                                <i class="fas fa-sync-alt me-1"></i>Actualizar
+                            </button>
                         </div>
                         <div class="recurso-caja-body" id="vehiculosSinAsignarContainer">
                             <!-- Los vehículos se generarán dinámicamente -->
                         </div>
                     </div>
                 </div>
+                <!-- ========== SECCIÓN: RUTAS DIURNAS ========== -->
+                <!-- data-section="rutas-diurnas" -->
                 <!-- Sección Rutas Diurnas - BLOQUE COMPLETAMENTE INDEPENDIENTE -->
-                <div id="seccionRutasDiurnas" style="width: 100%; margin-bottom: 2px; padding: 4px; background: #f8f9fa; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <div id="seccionRutasDiurnas" data-section="rutas-diurnas" style="width: 100%; margin-bottom: 2px; padding: 4px; background: #f8f9fa; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                     <div class="seccion-titulo" style="background: #0D47A1; color: white; padding: 6px 15px; margin-bottom: 0; border-radius: 6px 6px 0 0; font-weight: bold; text-align: center; font-size: 0.9rem;">
                         <i class="fas fa-sun me-2"></i>Rutas Diurnas (Ruta 1-10)
                     </div>
@@ -1578,8 +1595,12 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     </div>
                 </div>
 
+                <!-- ========== SECCIÓN: RUTAS NOCTURNAS ========== -->
+                <!-- data-section="rutas-nocturnas" -->
+                <!-- ========== SECCIÓN: RUTAS NOCTURNAS ========== -->
+                <!-- data-section="rutas-nocturnas" -->
                 <!-- Sección Rutas Nocturnas / Especiales - BLOQUE COMPLETAMENTE INDEPENDIENTE -->
-                <div id="seccionRutasNocturnas" style="width: 100%; margin-top: 2px; padding: 4px; background: #f5f3ff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <div id="seccionRutasNocturnas" data-section="rutas-nocturnas" style="width: 100%; margin-top: 2px; padding: 4px; background: #f5f3ff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                     <div class="seccion-titulo" style="background: #000000; color: white; padding: 6px 15px; margin-bottom: 0; border-radius: 6px 6px 0 0; font-weight: bold; text-align: center; font-size: 0.9rem;">
                         <i class="fas fa-moon me-2"></i>Rutas Nocturnas / Especiales (Ruta 11-Cancelaciones)
                     </div>
@@ -1599,8 +1620,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 </div>
                 </div>
 
-    <!-- Modal para Editar Cita -->
-    <div class="modal fade" id="editCitaModal" tabindex="-1">
+    <!-- ========== MODAL: EDITAR CITA ========== -->
+    <!-- data-section="modal-editar-cita" -->
+    <div class="modal fade" id="editCitaModal" data-section="modal-editar-cita" tabindex="-1">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center" style="flex-wrap: wrap; gap: 0.5rem;">
@@ -2108,8 +2130,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- Modal para Nueva Cita (idéntico al de editar) -->
-    <div class="modal fade" id="nuevaCitaModal" tabindex="-1">
+    <!-- ========== MODAL: NUEVA CITA ========== -->
+    <!-- data-section="modal-nueva-cita" -->
+    <div class="modal fade" id="nuevaCitaModal" data-section="modal-nueva-cita" tabindex="-1">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center" style="flex-wrap: wrap; gap: 0.5rem;">
@@ -2600,6 +2623,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- ========== MODAL: ASIGNAR TÉCNICOS Y VEHÍCULOS ========== -->
+    <!-- data-section="modal-ruteador" -->
     <!-- Modal para Editar Ruteador (Técnicos y Vehículos) -->
     <div class="modal fade" id="modalRuteador" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -2656,6 +2681,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- ========== MODAL: MIGRAR CITAS ========== -->
+    <!-- data-section="modal-migrar-citas" -->
     <!-- Modal para Migrar Citas entre Rutas -->
     <div class="modal fade" id="modalMigrarRutas" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -2736,7 +2763,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         </div>
     </div>
 
-    <div class="modal fade" id="modalGestionarServicios" tabindex="-1">
+    <!-- ========== MODAL: GESTIONAR SERVICIOS ========== -->
+    <!-- data-section="modal-gestionar-servicios" -->
+    <div class="modal fade" id="modalGestionarServicios" data-section="modal-gestionar-servicios" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
@@ -2807,6 +2836,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- ========== MODAL: GESTIONAR EQUIPO ========== -->
+    <!-- data-section="modal-gestionar-equipo" -->
     <!-- Modal para Gestionar Equipo y Herramientas -->
     <div class="modal fade" id="modalGestionarEquipo" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -2880,7 +2911,15 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         console.log('🔍 [CALENDARIO] Variables globales inicializándose...');
         let currentDate = new Date();
         let diaSeleccionado = new Date();
-        let semanaActual = new Date(); // Fecha del lunes de la semana actual en vista compacta
+        // Inicializar semanaActual como el lunes de la semana actual
+        function obtenerLunesSemanaInit(fecha) {
+            const d = new Date(fecha);
+            d.setHours(0, 0, 0, 0);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Ajustar para que lunes sea 0
+            return new Date(d.setDate(diff));
+        }
+        let semanaActual = obtenerLunesSemanaInit(new Date()); // Fecha del lunes de la semana actual en vista compacta
         console.log('🔍 [CALENDARIO] Variables globales inicializadas');
         // Mapas de encuestas:
         // - mapaLinksEncuestas: links generados (encuestas_id) - clave = "telefono_fechaServicio"
@@ -4259,10 +4298,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         // Función para generar botones de días del mes
         function generarBotonesDiasMes(fecha) {
             const container = document.getElementById('datePickerContainer');
-            if (!container) {
-                console.warn('⚠️ [BOTONES] datePickerContainer no encontrado');
-                return;
-            }
+            if (!container) return;
             
             // Asegurar que el botón esté en el estado correcto
             const btnToggle = document.getElementById('btnToggleVistaCompacta');
@@ -4275,13 +4311,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 }
             }
             
-            // Verificar si estamos en vista compacta (basado en el estado del botón)
+            // Verificar si estamos en vista compacta
             const estaEnVistaCompacta = btnToggle && !btnToggle.classList.contains('active');
-            console.log('📅 [BOTONES] Generando botones de días', {
-                fecha: fecha,
-                estaEnVistaCompacta: estaEnVistaCompacta,
-                botonActivo: btnToggle ? btnToggle.classList.contains('active') : 'N/A'
-            });
             
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
@@ -4292,11 +4323,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             let diasAMostrar = [];
             
             if (estaEnVistaCompacta) {
-                // Vista compacta: solo mostrar días de la semana actual
-                if (!semanaActual) {
-                    semanaActual = obtenerLunesSemana(new Date());
+                // Vista compacta: solo mostrar el día seleccionado
+                if (diaSeleccionado) {
+                    diasAMostrar = [diaSeleccionado];
+                } else {
+                    // Si no hay día seleccionado, usar el día actual
+                    diasAMostrar = [new Date()];
                 }
-                diasAMostrar = obtenerDiasSemana(semanaActual);
             } else {
                 // Vista total: mostrar todos los días del mes
                 const year = fecha.getFullYear();
@@ -4324,10 +4357,16 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const ventasDia = calcularVentasDia(year, month, day);
                 const ventasFormateadas = formatearMontoGrande(ventasDia);
                 
+                // Ajustar tamaño del botón según la vista
+                const estiloBoton = estaEnVistaCompacta 
+                    ? 'min-width: 120px; flex: 0 0 auto;' 
+                    : 'min-width: 60px; flex: 0 0 auto; max-width: 80px;';
+                
                 html += `
                     <button class="btn-dia-mes ${esHoy ? 'today' : ''} ${esSeleccionado ? 'active' : ''} ${esDomingo ? 'domingo' : ''}" 
                             data-fecha="${fechaString}"
-                            onclick="seleccionarDia('${fechaString}')">
+                            style="${estiloBoton}"
+                            onclick="if(window.seleccionarDia) { window.seleccionarDia('${fechaString}'); } else { console.error('seleccionarDia no disponible'); }">
                         <div style="text-align: center;">
                             <div style="font-size: 0.7rem; font-weight: 600;">${diaSemana} ${day} ${mesAbrev}</div>
                             <div style="font-size: 0.65rem; margin-top: 2px; font-weight: 500;">${ventasFormateadas}</div>
@@ -4337,155 +4376,75 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             });
             
             container.innerHTML = html;
+            
+            // Agregar event listeners a los botones después de renderizar
+            // Usar setTimeout para asegurar que el DOM esté completamente actualizado
+            setTimeout(() => {
+                const allButtons = container.querySelectorAll('.btn-dia-mes');
+                console.log('🔍 [CALENDARIO] Encontrados', allButtons.length, 'botones de días');
+                
+                allButtons.forEach(button => {
+                    const fechaString = button.getAttribute('data-fecha');
+                    if (!fechaString) {
+                        console.warn('⚠️ [CALENDARIO] Botón sin data-fecha:', button);
+                        return;
+                    }
+                    
+                    // Remover listeners anteriores clonando el botón
+                    const newButton = button.cloneNode(true);
+                    button.parentNode.replaceChild(newButton, button);
+                    
+                    // Agregar nuevo listener
+                    newButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🖱️ [CALENDARIO] Click en botón de día:', fechaString);
+                        if (window.seleccionarDia) {
+                            window.seleccionarDia(fechaString);
+                        } else {
+                            console.error('❌ [CALENDARIO] window.seleccionarDia no está disponible');
+                        }
+                    });
+                });
+                console.log('✅ [CALENDARIO] Event listeners agregados a', allButtons.length, 'botones de días');
+            }, 100);
         }
         
         // Función para seleccionar un día
         window.seleccionarDia = async function(fechaString) {
-            const [year, month, day] = fechaString.split('-').map(Number);
-            const nuevaFecha = new Date(year, month - 1, day, 12, 0, 0);
-            currentDate = nuevaFecha;
-            diaSeleccionado = nuevaFecha;
-            
-            // Actualizar input oculto
-            const datePicker = document.getElementById('datePicker');
-            if (datePicker) {
-                datePicker.value = fechaString;
-            }
-            
-            // Actualizar botones activos
-            document.querySelectorAll('.btn-dia-mes').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.fecha === fechaString) {
-                    btn.classList.add('active');
+            try {
+                console.log('📅 [CALENDARIO] Seleccionando día:', fechaString);
+                const [year, month, day] = fechaString.split('-').map(Number);
+                const nuevaFecha = new Date(year, month - 1, day, 12, 0, 0);
+                currentDate = nuevaFecha;
+                diaSeleccionado = nuevaFecha;
+                
+                console.log('📅 [CALENDARIO] diaSeleccionado actualizado a:', diaSeleccionado);
+                
+                // Actualizar input oculto
+                const datePicker = document.getElementById('datePicker');
+                if (datePicker) {
+                    datePicker.value = fechaString;
                 }
-            });
-            
-            if (vistaActual === 'cronograma') {
+                
+                // Actualizar botones activos
+                document.querySelectorAll('.btn-dia-mes').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.fecha === fechaString) {
+                        btn.classList.add('active');
+                        console.log('✅ [CALENDARIO] Botón activado:', fechaString);
+                    }
+                });
+                
+                // Siempre generar cronograma cuando se selecciona un día (no solo si vistaActual === 'cronograma')
+                console.log('🔄 [CALENDARIO] Generando cronograma para fecha:', fechaString);
                 await generarCronograma();
-            } else {
-                // Si estamos en vista compacta, actualizar recursos disponibles para el día seleccionado
-                await actualizarRecursosDisponibles(fechaString);
+                console.log('✅ [CALENDARIO] Cronograma generado');
+            } catch (error) {
+                console.error('❌ [CALENDARIO] Error seleccionando día:', error);
+                console.error('Stack trace:', error.stack);
             }
         };
-        
-        // Función para actualizar recursos disponibles cuando se cambia de día
-        async function actualizarRecursosDisponibles(fechaString) {
-            try {
-                const [year, month, day] = fechaString.split('-').map(Number);
-                const fechaFormateada = fechaString;
-                
-                // Obtener todas las rutas disponibles
-                const rutasDisponibles = ['Sin asignar', 'Ruta 1', 'Ruta 2', 'Ruta 3', 'Ruta 4', 'Ruta 5', 
-                                         'Ruta 6', 'Ruta 7', 'Ruta 8', 'Ruta 9', 'Ruta 10', 'Ruta 11', 
-                                         'Ruta 12', 'Ruta 13', 'Ruta 14', 'Ruta 15', 'Ruta 16', 'Ruta 17', 
-                                         'Ruta 18', 'Ruta 19', 'Ruta 20'];
-                
-                // Separar rutas en diurnas (1-10) y nocturnas/especiales (11-20)
-                const rutasDiurnas = ['Sin asignar', ...rutasDisponibles.filter(r => {
-                    if (r === 'Sin asignar') return false;
-                    const num = parseInt(r.replace('Ruta ', '')) || 0;
-                    return num >= 1 && num <= 10;
-                })];
-                
-                const rutasNocturnas = ['Sin asignar', ...rutasDisponibles.filter(r => {
-                    if (r === 'Sin asignar') return false;
-                    const num = parseInt(r.replace('Ruta ', '')) || 0;
-                    return num >= 11 && num <= 20;
-                })];
-                
-                // Cargar datos de ruteador para el día seleccionado
-                const datosRuteadorMap = {};
-                const promesasRuteador = [];
-                
-                [...rutasDiurnas, ...rutasNocturnas].forEach(ruta => {
-                    if (ruta !== 'Sin asignar') {
-                        promesasRuteador.push(
-                            cargarRuteador(fechaFormateada, ruta).then(datos => ({
-                                ruta: ruta,
-                                datos: datos
-                            }))
-                        );
-                    }
-                });
-                
-                const resultadosRuteador = await Promise.all(promesasRuteador);
-                resultadosRuteador.forEach(({ ruta, datos }) => {
-                    datosRuteadorMap[ruta] = datos;
-                });
-                
-                // Obtener vehículos y técnicos asignados en todas las rutas (excepto "Sin asignar")
-                const vehiculosAsignados = new Set();
-                const tecnicosAsignados = new Set();
-                
-                [...rutasDiurnas, ...rutasNocturnas].forEach(r => {
-                    if (r !== 'Sin asignar') {
-                        const datos = datosRuteadorMap[r] || { tecnicos: [], vehiculos: [] };
-                        // Normalizar vehículos antes de agregarlos al Set
-                        datos.vehiculos.forEach(v => {
-                            const vNormalizado = v ? String(v).trim() : '';
-                            if (vNormalizado) {
-                                vehiculosAsignados.add(vNormalizado);
-                            }
-                        });
-                        datos.tecnicos.forEach(t => tecnicosAsignados.add(t));
-                    }
-                });
-                
-                // Calcular vehículos y técnicos sin asignar
-                const todosLosVehiculos = ['APV 01', 'APV 02', 'APV 03', 'APV 04', 'APV 05', 
-                                           'APV 06', 'APV 07', 'APV 08', 'Kangoo', 'Yaris', 'Prado', 'Rojo'];
-                
-                const vehiculosSinAsignar = todosLosVehiculos.filter(v => {
-                    const vNormalizado = String(v).trim();
-                    return !vehiculosAsignados.has(vNormalizado);
-                });
-                
-                const tecnicosSinAsignar = (window.empleados || [])
-                    .filter(e => {
-                        const username = e.username || e.id;
-                        if (!username || String(username).trim() === '') {
-                            return false;
-                        }
-                        return !tecnicosAsignados.has(username);
-                    })
-                    .map(e => {
-                        const username = e.username || e.id;
-                        if (!username || String(username).trim() === '') {
-                            return null;
-                        }
-                        
-                        const primerNombre = (e.primerNombre || '').trim();
-                        const primerApellido = (e.primerApellido || '').trim();
-                        const inicialApellido = primerApellido ? primerApellido.charAt(0).toUpperCase() + '.' : '';
-                        const nombreFormateado = `${primerNombre} ${inicialApellido}`.trim() || username;
-                        
-                        return {
-                            username: username,
-                            id: e.id,
-                            nombre: nombreFormateado,
-                            departamento: e.departamento || ''
-                        };
-                    })
-                    .filter(t => t !== null && t.username && String(t.username).trim() !== '')
-                    .sort((a, b) => {
-                        const depA = (a.departamento || '').trim().toLowerCase();
-                        const depB = (b.departamento || '').trim().toLowerCase();
-                        const esFumigacionA = depA === 'fumigación' || depA === 'fumigacion';
-                        const esFumigacionB = depB === 'fumigación' || depB === 'fumigacion';
-                        
-                        if (esFumigacionA && !esFumigacionB) return -1;
-                        if (!esFumigacionA && esFumigacionB) return 1;
-                        return 0;
-                    });
-                
-                // Actualizar la visualización de recursos sin asignar
-                renderizarRecursosSinAsignar(tecnicosSinAsignar, vehiculosSinAsignar, fechaFormateada);
-                renderizarRecursosNocturnas(tecnicosSinAsignar, vehiculosSinAsignar);
-                
-            } catch (error) {
-                console.error('Error actualizando recursos disponibles:', error);
-            }
-        }
         
         // Sincronizar datePicker con diaSeleccionado cuando cambien los botones
         const btnPrevMonthCronograma = document.getElementById('btnPrevMonthCronograma');
@@ -9258,6 +9217,136 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             }).join('');
         }
         
+        // Función para actualizar técnicos (mover todos los asignados a sin asignar)
+        window.actualizarTecnicosSinAsignar = async function() {
+            try {
+                if (!confirm('¿Está seguro de que desea mover todos los técnicos asignados de vuelta a "Sin asignar"? Esta acción afectará todas las rutas del día seleccionado.')) {
+                    return;
+                }
+                
+                // Obtener fecha del día seleccionado
+                if (!diaSeleccionado) {
+                    alert('No hay día seleccionado');
+                    return;
+                }
+                
+                const year = diaSeleccionado.getFullYear();
+                const month = diaSeleccionado.getMonth();
+                const day = diaSeleccionado.getDate();
+                const fechaFormateada = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                console.log('🔄 [CALENDARIO] Actualizando técnicos sin asignar para fecha:', fechaFormateada);
+                
+                // Obtener todas las rutas (diurnas y nocturnas)
+                const rutasDiurnas = ['Ruta 1', 'Ruta 2', 'Ruta 3', 'Ruta 4', 'Ruta 5', 'Ruta 6', 'Ruta 7', 'Ruta 8', 'Ruta 9', 'Ruta 10'];
+                const rutasNocturnas = ['Ruta 11', 'Ruta 12', 'Ruta 13', 'Ruta 14', 'Ruta 15', 'Ruta 16', 'Ruta 17', 'Ruta 18', 'Ruta 19', 'Ruta 20'];
+                const todasLasRutas = [...rutasDiurnas, ...rutasNocturnas];
+                
+                // Para cada ruta, remover todos los técnicos pero mantener los vehículos
+                const promesas = todasLasRutas.map(async (ruta) => {
+                    try {
+                        // Cargar datos actuales del ruteador
+                        const datosActuales = await cargarRuteador(fechaFormateada, ruta);
+                        const vehiculosActuales = datosActuales.vehiculos || [];
+                        
+                        // Guardar ruteador con técnicos vacíos pero manteniendo vehículos
+                        const ruteadorId = generarIdRuteador(fechaFormateada, ruta);
+                        const ruteadorRef = doc(window.db, 'ruteador', ruteadorId);
+                        
+                        await setDoc(ruteadorRef, {
+                            fecha: fechaFormateada,
+                            ruta: ruta,
+                            tecnicos: [], // Remover todos los técnicos
+                            vehiculos: vehiculosActuales, // Mantener vehículos
+                            fechaActualizacion: serverTimestamp()
+                        });
+                        
+                        console.log(`✅ [CALENDARIO] Técnicos removidos de ${ruta}`);
+                    } catch (error) {
+                        console.error(`❌ [CALENDARIO] Error actualizando ${ruta}:`, error);
+                    }
+                });
+                
+                await Promise.all(promesas);
+                
+                console.log('✅ [CALENDARIO] Todos los técnicos han sido movidos a sin asignar');
+                alert('Todos los técnicos han sido movidos a "Sin asignar"');
+                
+                // Recargar cronograma para reflejar los cambios
+                if (vistaActual === 'cronograma') {
+                    await generarCronograma();
+                }
+            } catch (error) {
+                console.error('❌ [CALENDARIO] Error actualizando técnicos:', error);
+                alert('Error al actualizar técnicos: ' + error.message);
+            }
+        };
+        
+        // Función para actualizar vehículos (mover todos los asignados a sin asignar)
+        window.actualizarVehiculosSinAsignar = async function() {
+            try {
+                if (!confirm('¿Está seguro de que desea mover todos los vehículos asignados de vuelta a "Sin asignar"? Esta acción afectará todas las rutas del día seleccionado.')) {
+                    return;
+                }
+                
+                // Obtener fecha del día seleccionado
+                if (!diaSeleccionado) {
+                    alert('No hay día seleccionado');
+                    return;
+                }
+                
+                const year = diaSeleccionado.getFullYear();
+                const month = diaSeleccionado.getMonth();
+                const day = diaSeleccionado.getDate();
+                const fechaFormateada = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                console.log('🔄 [CALENDARIO] Actualizando vehículos sin asignar para fecha:', fechaFormateada);
+                
+                // Obtener todas las rutas (diurnas y nocturnas)
+                const rutasDiurnas = ['Ruta 1', 'Ruta 2', 'Ruta 3', 'Ruta 4', 'Ruta 5', 'Ruta 6', 'Ruta 7', 'Ruta 8', 'Ruta 9', 'Ruta 10'];
+                const rutasNocturnas = ['Ruta 11', 'Ruta 12', 'Ruta 13', 'Ruta 14', 'Ruta 15', 'Ruta 16', 'Ruta 17', 'Ruta 18', 'Ruta 19', 'Ruta 20'];
+                const todasLasRutas = [...rutasDiurnas, ...rutasNocturnas];
+                
+                // Para cada ruta, remover todos los vehículos pero mantener los técnicos
+                const promesas = todasLasRutas.map(async (ruta) => {
+                    try {
+                        // Cargar datos actuales del ruteador
+                        const datosActuales = await cargarRuteador(fechaFormateada, ruta);
+                        const tecnicosActuales = datosActuales.tecnicos || [];
+                        
+                        // Guardar ruteador con vehículos vacíos pero manteniendo técnicos
+                        const ruteadorId = generarIdRuteador(fechaFormateada, ruta);
+                        const ruteadorRef = doc(window.db, 'ruteador', ruteadorId);
+                        
+                        await setDoc(ruteadorRef, {
+                            fecha: fechaFormateada,
+                            ruta: ruta,
+                            tecnicos: tecnicosActuales, // Mantener técnicos
+                            vehiculos: [], // Remover todos los vehículos
+                            fechaActualizacion: serverTimestamp()
+                        });
+                        
+                        console.log(`✅ [CALENDARIO] Vehículos removidos de ${ruta}`);
+                    } catch (error) {
+                        console.error(`❌ [CALENDARIO] Error actualizando ${ruta}:`, error);
+                    }
+                });
+                
+                await Promise.all(promesas);
+                
+                console.log('✅ [CALENDARIO] Todos los vehículos han sido movidos a sin asignar');
+                alert('Todos los vehículos han sido movidos a "Sin asignar"');
+                
+                // Recargar cronograma para reflejar los cambios
+                if (vistaActual === 'cronograma') {
+                    await generarCronograma();
+                }
+            } catch (error) {
+                console.error('❌ [CALENDARIO] Error actualizando vehículos:', error);
+                alert('Error al actualizar vehículos: ' + error.message);
+            }
+        };
+        
         // Función para guardar ruteador
         window.guardarRuteador = async function() {
             try {
@@ -13073,15 +13162,30 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 });
             } else {
                 // Vista total: cargar datos solo para el día seleccionado
-                const fechaFormateada = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                // Usar diaSeleccionado en lugar de year/month/day para asegurar que sea el día correcto
+                if (!diaSeleccionado) {
+                    console.warn('⚠️ [CALENDARIO] diaSeleccionado no está definido al cargar ruteador, usando fecha actual');
+                    diaSeleccionado = new Date();
+                }
+                const yearDia = diaSeleccionado.getFullYear();
+                const monthDia = diaSeleccionado.getMonth();
+                const dayDia = diaSeleccionado.getDate();
+                const fechaFormateada = `${yearDia}-${String(monthDia + 1).padStart(2, '0')}-${String(dayDia).padStart(2, '0')}`;
+                console.log('📅 [CALENDARIO] Vista total - Cargando datos de ruteador para fecha:', fechaFormateada);
+                
                 const datosRuteadorPromesas = rutasOrdenadas.map(async ruta => {
                     const datos = await cargarRuteador(fechaFormateada, ruta);
-                    return { ruta, datos };
+                    return { fecha: fechaFormateada, ruta, datos };
                 });
                 
                 const datosRuteadorArray = await Promise.all(datosRuteadorPromesas);
-                datosRuteadorArray.forEach(({ ruta, datos }) => {
-                    datosRuteadorMap[ruta] = datos;
+                datosRuteadorArray.forEach(({ fecha, ruta, datos }) => {
+                    // Usar formato ${fecha}_${ruta} para consistencia con vista compacta
+                    const key = `${fecha}_${ruta}`;
+                    datosRuteadorMap[key] = datos;
+                    if (datos.tecnicos && datos.tecnicos.length > 0) {
+                        console.log(`📋 [CALENDARIO] Datos de ruteador cargados para ${key}:`, datos);
+                    }
                 });
             }
             
@@ -13127,6 +13231,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             
             if (estaEnVistaCompacta) {
                 // Vista compacta: buscar en datosRuteadorMap con formato ${fecha}_${ruta}
+                console.log('📅 [CALENDARIO] Vista compacta: calculando técnicos asignados para múltiples días');
                 diasAMostrar.forEach(fechaDia => {
                     const yearDia = fechaDia.getFullYear();
                     const monthDia = fechaDia.getMonth();
@@ -13137,6 +13242,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         if (r !== 'Sin asignar') {
                             const key = `${fechaFormateadaDia}_${r}`;
                             const datos = datosRuteadorMap[key] || { tecnicos: [], vehiculos: [] };
+                            if (datos.tecnicos && datos.tecnicos.length > 0) {
+                                console.log(`📋 [CALENDARIO] Vista compacta - Técnicos asignados en ${r} (${fechaFormateadaDia}):`, datos.tecnicos);
+                            }
                             // Normalizar vehículos antes de agregarlos al Set (trim y convertir a string)
                             datos.vehiculos.forEach(v => {
                                 const vNormalizado = v ? String(v).trim() : '';
@@ -13148,11 +13256,29 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         }
                     });
                 });
+                console.log('✅ [CALENDARIO] Vista compacta - Total técnicos asignados:', Array.from(tecnicosAsignados));
             } else {
-                // Vista total: buscar en datosRuteadorMap con formato ${ruta}
+                // Vista total: buscar en datosRuteadorMap con formato ${fecha}_${ruta} (solo del día seleccionado)
+                // Usar la fecha del día seleccionado para calcular técnicos asignados
+                if (!diaSeleccionado) {
+                    console.warn('⚠️ [CALENDARIO] diaSeleccionado no está definido, usando fecha actual');
+                    diaSeleccionado = new Date();
+                }
+                const yearDia = diaSeleccionado.getFullYear();
+                const monthDia = diaSeleccionado.getMonth();
+                const dayDia = diaSeleccionado.getDate();
+                const fechaFormateadaDia = `${yearDia}-${String(monthDia + 1).padStart(2, '0')}-${String(dayDia).padStart(2, '0')}`;
+                
+                console.log('🔍 [CALENDARIO] Calculando técnicos asignados para fecha:', fechaFormateadaDia);
+                
                 [...rutasDiurnas, ...rutasNocturnas].forEach(r => {
                     if (r !== 'Sin asignar') {
-                        const datos = datosRuteadorMap[r] || { tecnicos: [], vehiculos: [] };
+                        // Buscar con formato ${fecha}_${ruta} para el día seleccionado
+                        const key = `${fechaFormateadaDia}_${r}`;
+                        const datos = datosRuteadorMap[key] || { tecnicos: [], vehiculos: [] };
+                        if (datos.tecnicos && datos.tecnicos.length > 0) {
+                            console.log(`📋 [CALENDARIO] Técnicos asignados en ${r} (${fechaFormateadaDia}):`, datos.tecnicos);
+                        }
                         // Normalizar vehículos antes de agregarlos al Set (trim y convertir a string)
                         datos.vehiculos.forEach(v => {
                             const vNormalizado = v ? String(v).trim() : '';
@@ -13163,6 +13289,8 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                         datos.tecnicos.forEach(t => tecnicosAsignados.add(t));
                     }
                 });
+                
+                console.log('✅ [CALENDARIO] Total técnicos asignados:', Array.from(tecnicosAsignados));
             }
             
             // Calcular vehículos y técnicos sin asignar
@@ -13171,6 +13299,7 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 const vNormalizado = String(v).trim();
                 return !vehiculosAsignados.has(vNormalizado);
             });
+            console.log('🔍 [CALENDARIO] Calculando técnicos sin asignar. Técnicos asignados:', Array.from(tecnicosAsignados), 'Total:', tecnicosAsignados.size);
             const tecnicosSinAsignar = (window.empleados || [])
                 .filter(e => {
                     // IMPORTANTE: Usar username como identificador principal, id como fallback
@@ -13178,7 +13307,11 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                     if (!username || String(username).trim() === '') {
                         return false;
                     }
-                    return !tecnicosAsignados.has(username);
+                    const estaAsignado = tecnicosAsignados.has(username);
+                    if (estaAsignado) {
+                        console.log(`🔒 [CALENDARIO] Técnico ${username} está asignado, no aparece en sin asignar`);
+                    }
+                    return !estaAsignado;
                 })
                 .map(e => {
                     // IMPORTANTE: Usar username como identificador principal, id como fallback
@@ -13215,6 +13348,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 });
 
             // Renderizar cajas de recursos sin asignar
+            console.log('🎨 [CALENDARIO] Renderizando recursos sin asignar:', {
+                fecha: fechaFormateada,
+                tecnicosSinAsignar: tecnicosSinAsignar.length,
+                vehiculosSinAsignar: vehiculosSinAsignar.length,
+                tecnicosAsignados: Array.from(tecnicosAsignados),
+                diaSeleccionado: diaSeleccionado ? `${diaSeleccionado.getFullYear()}-${diaSeleccionado.getMonth() + 1}-${diaSeleccionado.getDate()}` : 'NO DEFINIDO'
+            });
             renderizarRecursosSinAsignar(tecnicosSinAsignar, vehiculosSinAsignar, fechaFormateada);
             
             // Renderizar técnicos y vehículos para rutas nocturnas (arriba de rutas nocturnas)
@@ -16132,7 +16272,262 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         //     });
         // }
         
-        // Event listeners para navegación de semana y toggle de vista - MOVIDOS A window.load
+        // Event listener para toggle de vista compacta
+        // Event listeners para navegación de semana
+        const btnSemanaAnterior = document.getElementById('btnSemanaAnterior');
+        const btnSemanaSiguiente = document.getElementById('btnSemanaSiguiente');
+        
+        if (btnSemanaAnterior) {
+            btnSemanaAnterior.addEventListener('click', async () => {
+                try {
+                    console.log('⬅️ [CALENDARIO] Navegando semana anterior...');
+                    if (!semanaActual) {
+                        semanaActual = obtenerLunesSemana(new Date());
+                    }
+                    semanaActual.setDate(semanaActual.getDate() - 7);
+                    console.log('📅 [CALENDARIO] Nueva semana actual:', semanaActual);
+                    
+                    // Actualizar botones de días para mostrar la nueva semana (siempre)
+                    if (diaSeleccionado) {
+                        console.log('🔄 [CALENDARIO] Regenerando botones de días...');
+                        generarBotonesDiasMes(diaSeleccionado);
+                        console.log('✅ [CALENDARIO] Botones de días regenerados');
+                    }
+                    
+                    // Actualizar cronograma si está en vista cronograma
+                    if (vistaActual === 'cronograma') {
+                        console.log('🔄 [CALENDARIO] Regenerando cronograma...');
+                        await generarCronograma();
+                        console.log('✅ [CALENDARIO] Cronograma regenerado');
+                    }
+                } catch (error) {
+                    console.error('❌ [CALENDARIO] Error navegando semana anterior:', error);
+                }
+            });
+        }
+        
+        if (btnSemanaSiguiente) {
+            btnSemanaSiguiente.addEventListener('click', async () => {
+                try {
+                    console.log('➡️ [CALENDARIO] Navegando semana siguiente...');
+                    if (!semanaActual) {
+                        semanaActual = obtenerLunesSemana(new Date());
+                    }
+                    semanaActual.setDate(semanaActual.getDate() + 7);
+                    console.log('📅 [CALENDARIO] Nueva semana actual:', semanaActual);
+                    
+                    // Actualizar botones de días para mostrar la nueva semana (siempre)
+                    if (diaSeleccionado) {
+                        console.log('🔄 [CALENDARIO] Regenerando botones de días...');
+                        generarBotonesDiasMes(diaSeleccionado);
+                        console.log('✅ [CALENDARIO] Botones de días regenerados');
+                    }
+                    
+                    // Actualizar cronograma si está en vista cronograma
+                    if (vistaActual === 'cronograma') {
+                        console.log('🔄 [CALENDARIO] Regenerando cronograma...');
+                        await generarCronograma();
+                        console.log('✅ [CALENDARIO] Cronograma regenerado');
+                    }
+                } catch (error) {
+                    console.error('❌ [CALENDARIO] Error navegando semana siguiente:', error);
+                }
+            });
+        }
+        
+        // Event listener para botón "Actualizar" en Técnicos Sin Asignar
+        const btnActualizarTecnicos = document.getElementById('btnActualizarTecnicos');
+        if (btnActualizarTecnicos) {
+            btnActualizarTecnicos.addEventListener('click', async () => {
+                try {
+                    btnActualizarTecnicos.disabled = true;
+                    btnActualizarTecnicos.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Actualizando...';
+                    await window.actualizarTecnicosSinAsignar();
+                } catch (error) {
+                    console.error('Error actualizando técnicos:', error);
+                } finally {
+                    btnActualizarTecnicos.disabled = false;
+                    btnActualizarTecnicos.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Actualizar';
+                }
+            });
+        }
+        
+        // Event listener para botón "Actualizar" en Vehículos Sin Asignar
+        const btnActualizarVehiculos = document.getElementById('btnActualizarVehiculos');
+        if (btnActualizarVehiculos) {
+            btnActualizarVehiculos.addEventListener('click', async () => {
+                try {
+                    btnActualizarVehiculos.disabled = true;
+                    btnActualizarVehiculos.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Actualizando...';
+                    await window.actualizarVehiculosSinAsignar();
+                } catch (error) {
+                    console.error('Error actualizando vehículos:', error);
+                } finally {
+                    btnActualizarVehiculos.disabled = false;
+                    btnActualizarVehiculos.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Actualizar';
+                }
+            });
+        }
+        
+        const btnToggleVistaCompacta = document.getElementById('btnToggleVistaCompacta');
+        if (btnToggleVistaCompacta) {
+            btnToggleVistaCompacta.addEventListener('click', async () => {
+                const estaActiva = btnToggleVistaCompacta.classList.contains('active');
+                
+                if (estaActiva) {
+                    // Cambiar de vista total a vista compacta
+                    btnToggleVistaCompacta.classList.remove('active');
+                    btnToggleVistaCompacta.style.background = '#6c757d';
+                    btnToggleVistaCompacta.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
+                    
+                    // Actualizar botones de días para mostrar solo el día seleccionado
+                    if (diaSeleccionado) {
+                        generarBotonesDiasMes(diaSeleccionado);
+                    } else {
+                        // Si no hay día seleccionado, usar el día actual
+                        const hoy = new Date();
+                        diaSeleccionado = hoy;
+                        generarBotonesDiasMes(hoy);
+                    }
+                    // Regenerar cronograma para mostrar vista compacta
+                    await generarCronograma();
+                } else {
+                    // Cambiar de vista compacta a vista total
+                    btnToggleVistaCompacta.classList.add('active');
+                    btnToggleVistaCompacta.style.background = '#4CAF50';
+                    btnToggleVistaCompacta.innerHTML = '<i class="fas fa-expand-alt me-2"></i>Vista Total';
+                    
+                    // Actualizar botones de días para mostrar todos los días del mes
+                    if (diaSeleccionado) {
+                        generarBotonesDiasMes(diaSeleccionado);
+                    }
+                    
+                    // Restaurar vista total: mostrar todas las horas y restaurar altura
+                    const restaurarVistaTotal = (contenedorId) => {
+                        const contenedor = document.getElementById(contenedorId);
+                        if (!contenedor) return;
+                        const columnas = contenedor.querySelectorAll('.vehiculo-columna-cronograma');
+                        columnas.forEach(columna => {
+                            const timeline = columna.querySelector('.citas-timeline');
+                            if (!timeline) return;
+                            
+                            // Restaurar altura original
+                            timeline.style.height = '792px';
+                            timeline.style.minHeight = '792px';
+                            timeline.style.overflow = 'visible';
+                            
+                            // Restaurar marcadores de hora
+                            const marcadores = timeline.querySelectorAll('.marcador-hora-timeline');
+                            marcadores.forEach(m => {
+                                m.style.display = 'block';
+                                // Restaurar posición original (se recalcula desde minutos)
+                                const minutosDesdeMedianoche = parseFloat(m.getAttribute('data-minutos-original')) || (parseFloat(m.style.top) || 0) / 40 * 60; // 40px por hora = 1cm
+                                m.style.top = `${(minutosDesdeMedianoche / 60) * 40}px`;
+                            });
+                            
+                            // Restaurar líneas divisorias
+                            const lineas = timeline.querySelectorAll('.linea-divisoria-hora');
+                            lineas.forEach(l => {
+                                l.style.display = 'block';
+                                // Restaurar posición original
+                                const minutosDesdeMedianoche = parseFloat(l.getAttribute('data-minutos-original')) || (parseFloat(l.style.top) || 0) / 40 * 60; // 40px por hora = 1cm
+                                l.style.top = `${(minutosDesdeMedianoche / 60) * 40}px`;
+                            });
+                            
+                            // Las citas se reposicionan automáticamente al regenerar el cronograma
+                        });
+                    };
+                    
+                    // Regenerar cronograma para restaurar posiciones originales
+                    await generarCronograma();
+                    // Actualizar botones de días para mostrar todo el mes
+                    if (diaSeleccionado) {
+                        generarBotonesDiasMes(diaSeleccionado);
+                    }
+                }
+                
+                // Colapsar filas de horas fuera del rango (solo si estamos en vista compacta)
+                const estaEnVistaCompactaDespues = !btnToggleVistaCompacta.classList.contains('active');
+                if (estaEnVistaCompactaDespues) {
+                    // Colapsar filas de horas fuera del rango
+                    if (window.rangosHoras) {
+                        const colapsarFilasHoras = (contenedorId, minutosInicio, minutosFin) => {
+                            if (minutosInicio === null || minutosFin === null) return;
+                            
+                            const contenedor = document.getElementById(contenedorId);
+                            if (!contenedor) return;
+                            
+                            // Calcular altura del timeline en vista compacta
+                            const minutosTotales = minutosFin - minutosInicio;
+                            const alturaTimeline = (minutosTotales / 60) * 40; // 40px por hora = 1cm
+                            const offsetTop = (minutosInicio / 60) * 40; // 40px por hora = 1cm
+                            
+                            const columnas = contenedor.querySelectorAll('.vehiculo-columna-cronograma');
+                            columnas.forEach(columna => {
+                                const timeline = columna.querySelector('.citas-timeline');
+                                if (!timeline) return;
+                                
+                                // Ajustar altura del timeline
+                                timeline.style.height = `${alturaTimeline}px`;
+                                timeline.style.minHeight = `${alturaTimeline}px`;
+                                timeline.style.overflow = 'hidden';
+                                
+                                // Reposicionar marcadores de hora
+                                const marcadores = timeline.querySelectorAll('.marcador-hora-timeline');
+                                marcadores.forEach(marcador => {
+                                    const topOriginal = parseFloat(marcador.style.top) || 0;
+                                    const minutosDesde5AM = (topOriginal / 33) * 60; // Ya está en minutos desde 5 AM
+                                    if (minutosDesde5AM < minutosInicio || minutosDesde5AM > minutosFin) {
+                                        marcador.style.display = 'none';
+                                    } else {
+                                        marcador.style.display = 'block';
+                                        const nuevoTop = topOriginal - offsetTop;
+                                        marcador.style.top = `${nuevoTop}px`;
+                                    }
+                                });
+                                
+                                // Reposicionar líneas divisorias
+                                const lineas = timeline.querySelectorAll('.linea-divisoria-hora');
+                                lineas.forEach(linea => {
+                                    const topOriginal = parseFloat(linea.style.top) || 0;
+                                    const minutosDesde5AM = (topOriginal / 33) * 60; // Ya está en minutos desde 5 AM
+                                    if (minutosDesde5AM < minutosInicio || minutosDesde5AM > minutosFin) {
+                                        linea.style.display = 'none';
+                                    } else {
+                                        linea.style.display = 'block';
+                                        const nuevoTop = topOriginal - offsetTop;
+                                        linea.style.top = `${nuevoTop}px`;
+                                    }
+                                });
+                                
+                                // Reposicionar u ocultar citas
+                                const citas = timeline.querySelectorAll('.cita-bloque');
+                                citas.forEach(cita => {
+                                    const topOriginal = parseFloat(cita.style.top) || 0;
+                                    const alturaCita = parseFloat(cita.style.height) || 0;
+                                    const minutosCitaInicio = (topOriginal / 33) * 60; // Ya está en minutos desde 5 AM
+                                    const minutosCitaFin = minutosCitaInicio + (alturaCita / 33) * 60;
+                                    
+                                    // Verificar si la cita está dentro del rango visible (o se superpone)
+                                    if (minutosCitaFin >= minutosInicio && minutosCitaInicio <= minutosFin) {
+                                        // La cita está dentro o se superpone con el rango visible
+                                        cita.style.display = 'block';
+                                        const nuevoTop = topOriginal - offsetTop;
+                                        cita.style.top = `${nuevoTop}px`;
+                                    } else {
+                                        // La cita está completamente fuera del rango visible
+                                        cita.style.display = 'none';
+                                    }
+                                });
+                            });
+                        };
+                        
+                        colapsarFilasHoras('vehiculosCronogramaDiurnas', window.rangosHoras.diurnas.inicio, window.rangosHoras.diurnas.fin);
+                        colapsarFilasHoras('vehiculosCronogramaNocturnas', window.rangosHoras.nocturnas.inicio, window.rangosHoras.nocturnas.fin);
+                    }
+                }
+            });
+        }
         
 
         // Event listeners del reporte táctico removidos - ahora está en reporte_tactico.html
@@ -19022,140 +19417,6 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 // Mostrar cronograma por defecto (ahora con botón ya configurado)
                 await cambiarVista('cronograma');
                 await cargarDatos();
-                
-                // Event listeners para navegación de semana (después de que el DOM esté listo)
-                console.log('🔧 [load] Registrando event listeners para navegación de semana');
-                const btnSemanaAnterior = document.getElementById('btnSemanaAnterior');
-                const btnSemanaSiguiente = document.getElementById('btnSemanaSiguiente');
-                
-                console.log('🔧 [load] Botones encontrados:', {
-                    anterior: !!btnSemanaAnterior,
-                    siguiente: !!btnSemanaSiguiente
-                });
-                
-                if (btnSemanaAnterior) {
-                    btnSemanaAnterior.addEventListener('click', async () => {
-                        console.log('🔙 [NAVEGACION] Botón semana anterior clickeado');
-                        if (!semanaActual) {
-                            semanaActual = obtenerLunesSemana(new Date());
-                        }
-                        semanaActual.setDate(semanaActual.getDate() - 7);
-                        console.log('🔙 [NAVEGACION] Nueva semana actual:', semanaActual);
-                        
-                        // Actualizar botones de días para mostrar la nueva semana
-                        const lunesSemana = obtenerLunesSemana(semanaActual);
-                        generarBotonesDiasMes(lunesSemana);
-                        
-                        // Actualizar día seleccionado al lunes de la nueva semana
-                        diaSeleccionado = new Date(lunesSemana);
-                        const datePicker = document.getElementById('datePicker');
-                        if (datePicker) {
-                            datePicker.value = formatearFechaParaInput(lunesSemana);
-                        }
-                        
-                        // Siempre regenerar cronograma cuando cambia la semana
-                        await generarCronograma();
-                    });
-                    console.log('✅ [load] Event listener registrado para btnSemanaAnterior');
-                } else {
-                    console.error('❌ [load] btnSemanaAnterior no encontrado');
-                }
-                
-                if (btnSemanaSiguiente) {
-                    btnSemanaSiguiente.addEventListener('click', async () => {
-                        console.log('➡️ [NAVEGACION] Botón semana siguiente clickeado');
-                        if (!semanaActual) {
-                            semanaActual = obtenerLunesSemana(new Date());
-                        }
-                        semanaActual.setDate(semanaActual.getDate() + 7);
-                        console.log('➡️ [NAVEGACION] Nueva semana actual:', semanaActual);
-                        
-                        // Actualizar botones de días para mostrar la nueva semana
-                        const lunesSemana = obtenerLunesSemana(semanaActual);
-                        generarBotonesDiasMes(lunesSemana);
-                        
-                        // Actualizar día seleccionado al lunes de la nueva semana
-                        diaSeleccionado = new Date(lunesSemana);
-                        const datePicker = document.getElementById('datePicker');
-                        if (datePicker) {
-                            datePicker.value = formatearFechaParaInput(lunesSemana);
-                        }
-                        
-                        // Siempre regenerar cronograma cuando cambia la semana
-                        await generarCronograma();
-                    });
-                    console.log('✅ [load] Event listener registrado para btnSemanaSiguiente');
-                } else {
-                    console.error('❌ [load] btnSemanaSiguiente no encontrado');
-                }
-                
-                // Event listener para toggle de vista compacta (re-registrar para asegurar que funcione)
-                // Reutilizar la variable ya declarada arriba
-                const btnToggleVistaCompacta2 = document.getElementById('btnToggleVistaCompacta');
-                if (btnToggleVistaCompacta2) {
-                    // Clonar el botón para remover listeners anteriores
-                    const nuevoBtnToggle = btnToggleVistaCompacta2.cloneNode(true);
-                    btnToggleVistaCompacta2.parentNode.replaceChild(nuevoBtnToggle, btnToggleVistaCompacta2);
-                    
-                    nuevoBtnToggle.addEventListener('click', async () => {
-                        console.log('🔄 [VISTA] Toggle de vista clickeado');
-                        const estaActiva = nuevoBtnToggle.classList.contains('active');
-                        console.log('🔄 [VISTA] Estado actual:', estaActiva ? 'Vista Total' : 'Vista Compacta');
-                        
-                        if (estaActiva) {
-                            // Cambiar de vista total a vista compacta
-                            console.log('🔄 [VISTA] Cambiando a Vista Compacta');
-                            nuevoBtnToggle.classList.remove('active');
-                            nuevoBtnToggle.style.background = '#6c757d';
-                            nuevoBtnToggle.innerHTML = '<i class="fas fa-compress-alt me-2"></i>Vista Compacta';
-                            vistaActual = 'cronograma';
-                            
-                            // Inicializar semana actual si no está definida
-                            if (!semanaActual) {
-                                semanaActual = obtenerLunesSemana(new Date());
-                            }
-                            
-                            // Asegurar que diaSeleccionado esté en la semana actual
-                            if (!diaSeleccionado) {
-                                diaSeleccionado = new Date(semanaActual);
-                            } else {
-                                const lunesSemana = obtenerLunesSemana(semanaActual);
-                                const lunesSeleccionado = obtenerLunesSemana(diaSeleccionado);
-                                // Si el día seleccionado no está en la semana actual, moverlo al lunes de la semana actual
-                                if (lunesSeleccionado.getTime() !== lunesSemana.getTime()) {
-                                    diaSeleccionado = new Date(lunesSemana);
-                                }
-                            }
-                            
-                            // Actualizar botones de días para mostrar solo la semana
-                            generarBotonesDiasMes(diaSeleccionado || semanaActual);
-                            
-                            // Regenerar cronograma para mostrar vista compacta
-                            await generarCronograma();
-                        } else {
-                            // Cambiar de vista compacta a vista total
-                            console.log('🔄 [VISTA] Cambiando a Vista Total');
-                            nuevoBtnToggle.classList.add('active');
-                            nuevoBtnToggle.style.background = '#4CAF50';
-                            nuevoBtnToggle.innerHTML = '<i class="fas fa-expand-alt me-2"></i>Vista Total';
-                            vistaActual = 'cronograma';
-                            
-                            // Asegurar que diaSeleccionado esté definido
-                            if (!diaSeleccionado) {
-                                diaSeleccionado = new Date();
-                            }
-                            
-                            // Actualizar botones de días para mostrar todo el mes ANTES de regenerar cronograma
-                            generarBotonesDiasMes(diaSeleccionado);
-                            
-                            // Regenerar cronograma para restaurar posiciones originales
-                            await generarCronograma();
-                        }
-                    });
-                    console.log('✅ [load] Event listener registrado para btnToggleVistaCompacta');
-                } else {
-                    console.error('❌ [load] btnToggleVistaCompacta no encontrado');
-                }
             });
             
         // Función para inicializar el buscador de citas
@@ -19319,6 +19580,13 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
             
         // Variables globales para gráficos
         // Código del reporte táctico movido a reporte_tactico.html
+            
+        // Código del reporte táctico movido a reporte_tactico.html
+            
+        } catch (error) {
+            console.error('❌ Error al cargar Firebase:', error);
+            alert('Error al cargar Firebase. Verifica la consola para más detalles.');
+        }
     </script>
 
     <script>
@@ -19410,8 +19678,26 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
                 }
             }
             
-            // Inicializar vista compacta como predeterminada (ya se hace en el otro bloque window.load)
-            // Este bloque solo verifica autenticación, no necesita duplicar la lógica de vista compacta
+            // Inicializar vista compacta como predeterminada
+            const btnToggleVistaCompacta = document.getElementById('btnToggleVistaCompacta');
+            if (btnToggleVistaCompacta && !btnToggleVistaCompacta.classList.contains('active')) {
+                // Estamos en vista compacta (predeterminada), inicializar semana actual si no está definida
+                if (!window.semanaActual) {
+                    // Función helper para obtener el lunes de la semana (mismo código que en generarBotonesDiasMes)
+                    function obtenerLunesSemanaLocal(fecha) {
+                        const d = new Date(fecha);
+                        const day = d.getDay();
+                        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Ajustar para que lunes sea 0
+                        return new Date(d.setDate(diff));
+                    }
+                    window.semanaActual = obtenerLunesSemanaLocal(new Date());
+                }
+                // Mostrar navegación de semana
+                const navegacionSemana = document.getElementById('navegacionSemana');
+                if (navegacionSemana) {
+                    navegacionSemana.style.display = 'flex';
+                }
+            }
         });
         
         // Función para vista previa de migración
@@ -19606,8 +19892,9 @@ en https://ecoplagas.online/calendario.html<!DOCTYPE html>
         };
     </script>
 
-    <!-- Modal para Eliminar Citas -->
-    <div class="modal fade" id="modalEliminarCitas" tabindex="-1">
+    <!-- ========== MODAL: ELIMINAR CITAS ========== -->
+    <!-- data-section="modal-eliminar-citas" -->
+    <div class="modal fade" id="modalEliminarCitas" data-section="modal-eliminar-citas" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
