@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría de Stock Seguro - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        // Guardar auth en window para uso global
+        window.firebaseAuth = auth;
+        
+        // VERIFICACIÓN INMEDIATA DE AUTENTICACIÓN - Redirigir antes de cargar contenido
+        (async function() {
+            // Prevenir múltiples ejecuciones
+            if (window.authCheckInProgress) {
+                return;
+            }
+            window.authCheckInProgress = true;
+            
+            // Ocultar body inmediatamente
+            if (document.body) {
+                document.body.style.display = 'none';
+            }
+            
+            // Esperar a que auth-secure.js se cargue completamente
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Verificar si ya estamos en iniciar_sesion.html (evitar loop)
+            if (window.location.pathname.includes('iniciar_sesion.html')) {
+                window.authCheckInProgress = false;
+                return;
+            }
+            
+            // Verificar autenticación de manera simple
+            let retries = 0;
+            const maxRetries = 20; // 2 segundos
+            
+            while (retries < maxRetries) {
+                // Verificar Firebase Auth directamente
+                if (auth.currentUser) {
+                    console.log('✅ [AUDITORIA_STOCK_SECURE] Usuario autenticado:', auth.currentUser.email);
+                    
+                    // Esperar a secureAuthManager
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        // Esperar un poco más
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    // Verificar permisos
+                    if (window.secureAuthManager) {
+                        const user = window.secureAuthManager.getCurrentUser();
+                        if (!user || (!user.permisos || (!user.permisos.administrador_bodega && !user.permisos.operario_bodega))) {
+                            console.warn('⚠️ [AUDITORIA_STOCK_SECURE] Usuario sin permisos para auditoría de stock');
+                            if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                                window.location.replace('iniciar_sesion.html');
+                            }
+                            window.authCheckInProgress = false;
+                            return;
+                        }
+                    }
+                    
+                    // Mostrar body
+                    if (document.body) {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+                    
+                    window.authCheckInProgress = false;
+                    return; // Usuario autenticado, continuar
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            // Si llegamos aquí, no hay autenticación
+            console.log('❌ [AUDITORIA_STOCK_SECURE] No autenticado después de esperar');
+            if (document.body) {
+                document.body.style.display = 'none';
+            }
+            
+            // Solo redirigir si no estamos ya en loginsecure
+            if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                window.location.replace('iniciar_sesion.html');
+            }
+            
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        /* Ocultar contenido hasta verificar autenticación */
+        body {
+            display: none !important;
+        }
+        body.authenticated {
+            display: block !important;
+        }
+        .audit-card {
+            border-left: 4px solid #007bff;
+            margin-bottom: 1rem;
+        }
+        .discrepancy-card {
+            border-left: 4px solid #dc3545;
+        }
+        .correct-card {
+            border-left: 4px solid #28a745;
+        }
+        .warning-card {
+            border-left: 4px solid #ffc107;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .product-row {
+            transition: all 0.3s ease;
+        }
+        .product-row:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .badge-discrepancy {
+            background-color: #dc3545;
+            animation: pulse 2s infinite;
+        }
+        .badge-correct {
+            background-color: #28a745;
+        }
+        .badge-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .loading {
+            display: none;
+        }
+        .loading.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-search me-2"></i>Auditoría de Stock</h1>
+                    <div>
+                        <button class="btn btn-primary" onclick="ejecutarAuditoria()">
+                            <i class="fas fa-sync me-2"></i>Ejecutar Auditoría
+                        </button>
+                        <button class="btn btn-success" onclick="exportarAuditoria()">
+                            <i class="fas fa-download me-2"></i>Exportar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <div id="loading" class="loading text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Ejecutando auditoría de stock...</p>
+                </div>
+
+                <!-- Estadísticas Generales -->
+                <div id="estadisticas" class="row mb-4" style="display: none;">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 id="totalProductos">0</h4>
+                                    <p class="mb-0">Total Productos</p>
+                                </div>
+                                <i class="fas fa-boxes fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 id="productosCorrectos">0</h4>
+                                    <p class="mb-0">Stock Correcto</p>
+                                </div>
+                                <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 id="productosDiscrepancia">0</h4>
+                                    <p class="mb-0">Con Discrepancias</p>
+                                </div>
+                                <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 id="porcentajePrecision">0%</h4>
+                                    <p class="mb-0">Precisión</p>
+                                </div>
+                                <i class="fas fa-percentage fa-2x opacity-75"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div id="filtros" class="card mb-4" style="display: none;">
+                    <div class="card-header">
+                        <h5><i class="fas fa-filter me-2"></i>Filtros</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Bodega</label>
+                                <select class="form-select" id="filtroBodega">
+                                    <option value="">Todas las bodegas</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Estado</label>
+                                <select class="form-select" id="filtroEstado">
+                                    <option value="">Todos</option>
+                                    <option value="correcto">Stock Correcto</option>
+                                    <option value="discrepancia">Con Discrepancias</option>
+                                    <option value="sin-movimientos">Sin Movimientos</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tipo de Discrepancia</label>
+                                <select class="form-select" id="filtroTipoDiscrepancia">
+                                    <option value="">Todos</option>
+                                    <option value="mayor">Stock Mayor al Calculado</option>
+                                    <option value="menor">Stock Menor al Calculado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Buscar Producto</label>
+                                <input type="text" class="form-control" id="buscarProducto" placeholder="Nombre o código...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resultados de Auditoría -->
+                <div id="resultados" style="display: none;">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5><i class="fas fa-clipboard-list me-2"></i>Resultados de la Auditoría</h5>
+                            <div>
+                                <span class="badge bg-primary me-2" id="totalResultados">0 productos</span>
+                                <span class="badge bg-success me-2" id="correctosResultados">0 correctos</span>
+                                <span class="badge bg-danger" id="discrepanciasResultados">0 con discrepancias</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th><i class="fas fa-box me-2"></i>Producto</th>
+                                            <th><i class="fas fa-warehouse me-2"></i>Bodega</th>
+                                            <th><i class="fas fa-calculator me-2"></i>Stock Calculado</th>
+                                            <th><i class="fas fa-database me-2"></i>Stock Registrado</th>
+                                            <th><i class="fas fa-balance-scale me-2"></i>Diferencia</th>
+                                            <th><i class="fas fa-chart-line me-2"></i>Estado</th>
+                                            <th><i class="fas fa-cogs me-2"></i>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaAuditoria">
+                                        <!-- Se llena dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalles de Movimientos -->
+                <div id="detallesMovimientos" class="modal fade" tabindex="-1">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-history me-2"></i>Detalles de Movimientos
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="infoProducto" class="alert alert-info mb-3">
+                                    <!-- Información del producto -->
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Tipo</th>
+                                                <th>Origen</th>
+                                                <th>Destino</th>
+                                                <th>Cantidad</th>
+                                                <th>Usuario</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablaMovimientos">
+                                            <!-- Se llena dinámicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="auditoria_stocksecure.js"></script>
+</body>
+</html>
+
