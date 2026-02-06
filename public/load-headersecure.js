@@ -500,7 +500,7 @@ if (typeof HeaderLoader === 'undefined') {
             fallbackHeader.className = 'header-section';
             fallbackHeader.innerHTML = `
                 <div class="header-content">
-                    <img src="Logo Eco Plagas.png" alt="Eco Plagas Logo" class="logo">
+                    <img src="/Logo%20Eco%20Plagas.png" alt="Eco Plagas Logo" class="logo">
                     <div class="header-text">
                         <h1 class="header-title">Sistema de Gestión</h1>
                         <p class="header-subtitle">Fumigadora EcoPlagas</p>
