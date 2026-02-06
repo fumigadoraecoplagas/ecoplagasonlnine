@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="0; url=registro_horas.html">
+    <title>Página no encontrada - Eco Plagas</title>
+    <script>
+        // Redirigir inmediatamente a registro_horas.html
+        window.location.replace('registro_horas.html');
+    </script>
+</head>
+<body>
+    <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h1>Página no encontrada</h1>
+        <p>Redirigiendo a Registro de Horas...</p>
+        <p>Si no eres redirigido automáticamente, <a href="registro_horas.html">haz clic aquí</a>.</p>
+    </div>
+</body>
+</html>
+
+
