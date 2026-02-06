@@ -1,0 +1,3021 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recursos Humanos Seguro - Eco Plagas</title>
+    <link rel="icon" type="image/png" href="Logo Eco Plagas.png">
+    <link rel="shortcut icon" type="image/png" href="Logo Eco Plagas.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=1.6.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="cache-buster.js"></script>
+    <script src="utils.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        // Guardar auth en window para uso global
+        window.firebaseAuth = auth;
+        
+        // VERIFICACIÓN INMEDIATA DE AUTENTICACIÓN - Redirigir antes de cargar contenido
+        (async function() {
+            // Prevenir múltiples ejecuciones
+            if (window.authCheckInProgress) {
+                return;
+            }
+            window.authCheckInProgress = true;
+            
+            // Ocultar body inmediatamente
+            if (document.body) {
+                document.body.style.display = 'none';
+            }
+            
+            // Esperar a que auth-secure.js se cargue completamente
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Verificar si ya estamos en iniciar_sesion.html (evitar loop)
+            if (window.location.pathname.includes('iniciar_sesion.html')) {
+                window.authCheckInProgress = false;
+                return;
+            }
+            
+            // Verificar autenticación de manera simple
+            let retries = 0;
+            const maxRetries = 100; // 10 segundos
+            
+            while (retries < maxRetries) {
+                // Verificar Firebase Auth directamente
+                if (auth.currentUser) {
+                    console.log('✅ [RECURSOS_HUMANOS_SECURE] Usuario autenticado:', auth.currentUser.email);
+                    
+                    // Esperar a secureAuthManager
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        // Esperar un poco más
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    // Mostrar body
+                    if (document.body) {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+                    
+                    // Disparar evento para que el header se actualice
+                    setTimeout(() => {
+                        document.dispatchEvent(new Event('secure-auth-ready'));
+                    }, 500);
+                    
+                    window.authCheckInProgress = false;
+                    return; // Usuario autenticado, continuar
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            // Si llegamos aquí, no hay autenticación
+            console.log('❌ [RECURSOS_HUMANOS_SECURE] No autenticado después de esperar');
+            if (document.body) {
+                document.body.style.display = 'none';
+            }
+            
+            // Solo redirigir si no estamos ya en loginsecure
+            if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                try {
+                    sessionStorage.setItem('postLoginRedirect', window.location.href);
+                } catch (e) { console.error('Error saving redirect:', e); }
+                window.location.replace('iniciar_sesion.html');
+            }
+            
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        /* Ocultar contenido hasta verificar autenticación */
+        body {
+            display: none !important;
+        }
+        body.authenticated {
+            display: block !important;
+        }
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+            padding-bottom: 100px;
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .page-header {
+            background: #BBDEFB !important; /* Azul Pastel */
+            background-color: #BBDEFB !important;
+            color: #000000 !important; /* Texto negro */
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .page-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #000000 !important; /* Texto negro */
+        }
+        
+        .page-header h1 i {
+            color: #ea0e2a !important; /* Rojo Primario */
+        }
+        
+        .page-header p {
+            margin: 10px 0 0 0;
+            color: #000000 !important; /* Texto negro */
+            opacity: 1;
+        }
+        
+        .indice-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .indice-section h2 {
+            color: #495057;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .indice-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .indice-list li {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .indice-list li:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .indice-list li a {
+            color: #495057;
+            text-decoration: none;
+            font-weight: 500;
+            display: block;
+        }
+        
+        .indice-list li a:hover {
+            color: #667eea;
+        }
+        
+        .procedimiento-section {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Marco azul pastel para Procedimientos de Inventario */
+        #tema-inventario.procedimiento-section {
+            border: 3px solid #BBDEFB !important; /* Azul Pastel */
+            border-radius: 10px;
+        }
+        
+        /* Marco azul pastel para Procedimientos de Registro de Horas */
+        #tema-registro-horas.procedimiento-section {
+            border: 3px solid #BBDEFB !important; /* Azul Pastel */
+            border-radius: 10px;
+        }
+        
+        /* Marco azul pastel para Procedimientos de Vacaciones */
+        #tema-vacaciones.procedimiento-section {
+            border: 3px solid #BBDEFB !important; /* Azul Pastel */
+            border-radius: 10px;
+        }
+        
+        /* Marco rojo pastel para Procedimientos de Seguridad */
+        #tema-seguridad.procedimiento-section {
+            border: 3px solid #ffcdd2 !important; /* Rojo Pastel */
+            border-radius: 10px;
+        }
+        
+        .procedimiento-header {
+            background: #2196F3 !important; /* Azul Primario */
+            background-color: #2196F3 !important;
+            color: white !important;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        /* Procedimientos de Seguridad - Rojo Primario */
+        #tema-seguridad .procedimiento-header {
+            background: #ea0e2a !important; /* Rojo Primario */
+            background-color: #ea0e2a !important;
+            color: white !important;
+        }
+        
+        .procedimiento-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .procedimiento-content {
+            line-height: 1.5;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+        
+        .procedimiento-content p {
+            margin-bottom: 8px;
+        }
+        
+        .procedimiento-content ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+        
+        .procedimiento-content li {
+            margin-bottom: 5px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 12px;
+            margin: 12px 0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .warning-box strong {
+            color: #856404;
+        }
+        
+        .warning-box p {
+            margin: 5px 0 0 0;
+        }
+        
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            padding: 10px 12px;
+            margin: 12px 0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .info-box strong {
+            color: #0c5460;
+        }
+        
+        .info-box ul {
+            margin: 8px 0 0 0;
+        }
+        
+        .back-button {
+            margin-bottom: 20px;
+        }
+        
+        /* Estilos para lista de procedimientos expandibles */
+        .procedimientos-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .procedimiento-item {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        
+        .procedimiento-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .procedimiento-item-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: background 0.2s;
+        }
+        
+        .procedimiento-item-header:hover {
+            background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+        }
+        
+        .procedimiento-item-header:not([onclick]) {
+            cursor: default;
+            opacity: 0.7;
+        }
+        
+        .procedimiento-item-header:not([onclick]):hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
+        
+        .procedimiento-item-title {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #495057;
+            min-width: 0;
+        }
+        
+        .procedimiento-item-title span {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .procedimiento-item-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .procedimiento-item-content {
+            display: none;
+            padding: 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .expand-icon {
+            transition: transform 0.3s ease;
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+        
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+        
+        @media (max-width: 768px) {
+            .procedimiento-item-header {
+                padding: 10px 12px;
+                flex-wrap: wrap;
+            }
+            
+            .procedimiento-item-title {
+                font-size: 0.8rem;
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            
+            .procedimiento-item-status {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .procedimiento-item-content {
+                padding: 12px;
+            }
+            
+            #estado-proc-001,
+            #estado-proc-002,
+            #estado-proc-003 {
+                font-size: 0.65rem !important;
+            }
+            
+            #estado-proc-001 .badge,
+            #estado-proc-002 .badge,
+            #estado-proc-003 .badge {
+                font-size: 0.6rem !important;
+                padding: 0.1rem 0.25rem !important;
+            }
+            
+            #estado-proc-001 .btn,
+            #estado-proc-002 .btn,
+            #estado-proc-003 .btn {
+                font-size: 0.55rem !important;
+                padding: 0.08rem 0.2rem !important;
+            }
+        }
+
+        /* Estilos para certificado tipo diploma académico horizontal */
+        .certificado-container {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px 40px;
+            min-height: 450px;
+            max-height: 500px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto;
+            position: relative;
+            border: 12px solid #d4af37;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @media (max-width: 768px) {
+            .certificado-container {
+                padding: 20px 15px;
+                min-height: 500px;
+                margin: 10px auto;
+            }
+        }
+
+        .certificado-border {
+            border: 4px solid #8b6914;
+            padding: 20px 40px;
+            background: white;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+        
+        @media (max-width: 768px) {
+            .certificado-border {
+                padding: 20px 30px;
+            }
+        }
+
+        .certificado-header {
+            text-align: center;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .certificado-logo {
+            font-size: 2rem;
+            color: #d4af37;
+            margin-bottom: 5px;
+        }
+
+        .certificado-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #8b6914;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+            font-family: 'Times New Roman', serif;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            line-height: 1.1;
+        }
+        
+        @media (max-width: 768px) {
+            .certificado-title {
+                font-size: 1.8rem;
+                letter-spacing: 2px;
+            }
+        }
+
+        .certificado-subtitle {
+            font-size: 0.95rem;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 0;
+            font-family: 'Times New Roman', serif;
+        }
+        
+        @media (max-width: 768px) {
+            .certificado-subtitle {
+                font-size: 1rem;
+            }
+        }
+
+        .certificado-body {
+            text-align: center;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            color: #333;
+            margin: 8px 0;
+            font-family: 'Times New Roman', serif;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
+            overflow: hidden;
+        }
+        
+        .certificado-body p {
+            margin: 2px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .certificado-body {
+                font-size: 1rem;
+                line-height: 1.6;
+                margin: 15px 0;
+            }
+        }
+
+        .certificado-nombre {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #8b6914;
+            margin: 5px 0;
+            text-decoration: underline;
+            text-decoration-color: #d4af37;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 4px;
+            letter-spacing: 0.3px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.1;
+        }
+        
+        @media (max-width: 768px) {
+            .certificado-nombre {
+                font-size: 1.4rem;
+                margin: 10px 0;
+            }
+        }
+
+        .certificado-curso {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 5px 0;
+            font-style: italic;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.1;
+        }
+        
+        @media (max-width: 768px) {
+            .certificado-curso {
+                font-size: 1.2rem;
+                margin: 10px 0;
+            }
+        }
+
+        .certificado-nota {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #28a745;
+            margin: 5px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .certificado-nota {
+                font-size: 1.2rem;
+                margin: 10px 0;
+            }
+        }
+
+        .certificado-footer {
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            padding-top: 8px;
+            border-top: 2px solid #d4af37;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .certificado-footer {
+                margin-top: 15px;
+                padding-top: 15px;
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+
+        .certificado-firma {
+            text-align: center;
+            flex: 1;
+        }
+
+        .certificado-firma-line {
+            border-top: 2px solid #333;
+            width: 180px;
+            margin: 12px auto 5px;
+        }
+
+        .certificado-firma-text {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .certificado-decoracion {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            opacity: 0.15;
+        }
+
+        .decoracion-tl {
+            top: 30px;
+            left: 30px;
+        }
+
+        .decoracion-tr {
+            top: 30px;
+            right: 30px;
+        }
+
+        .decoracion-bl {
+            bottom: 30px;
+            left: 30px;
+        }
+
+        .decoracion-br {
+            bottom: 30px;
+            right: 30px;
+        }
+
+        /* Estilos de impresión */
+        @media print {
+            @page {
+                size: landscape;
+                margin: 0;
+            }
+            
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            body {
+                margin: 0;
+                padding: 0;
+                background: white;
+            }
+            
+            /* Ocultar todo excepto el certificado */
+            body > *:not(.modal):not(.modal *) {
+                display: none !important;
+            }
+            
+            .modal {
+                display: block !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                z-index: 9999 !important;
+                background: transparent !important;
+                overflow: visible !important;
+            }
+            
+            .modal-dialog {
+                margin: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                height: 100% !important;
+            }
+            
+            .modal-content {
+                border: none !important;
+                background: transparent !important;
+                height: 100% !important;
+            }
+            
+            .modal-header,
+            .modal-footer,
+            .modal-backdrop {
+                display: none !important;
+            }
+            
+            .modal-body {
+                padding: 0 !important;
+                height: 100% !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            
+            #certificadoContent {
+                width: 100% !important;
+                height: 100% !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
+            }
+            
+            .certificado-container {
+                position: relative !important;
+                left: auto !important;
+                top: auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                margin: 0 !important;
+                padding: 20px 40px !important;
+                border: 12px solid #d4af37 !important;
+                box-shadow: none !important;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+                page-break-after: avoid !important;
+                page-break-inside: avoid !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            
+            .certificado-border {
+                border: 4px solid #8b6914 !important;
+                padding: 20px 40px !important;
+                background: white !important;
+                width: 100% !important;
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                overflow: hidden !important;
+            }
+            
+            .certificado-header {
+                margin-bottom: 8px !important;
+            }
+            
+            .certificado-logo {
+                font-size: 2rem !important;
+                margin-bottom: 5px !important;
+            }
+            
+            .certificado-title {
+                font-size: 1.5rem !important;
+                margin-bottom: 3px !important;
+            }
+            
+            .certificado-subtitle {
+                font-size: 0.95rem !important;
+            }
+            
+            .certificado-body {
+                font-size: 0.95rem !important;
+                line-height: 1.4 !important;
+                margin: 8px 0 !important;
+            }
+            
+            .certificado-body p {
+                margin: 2px 0 !important;
+            }
+            
+            .certificado-nombre {
+                font-size: 1.3rem !important;
+                margin: 5px 0 !important;
+            }
+            
+            .certificado-curso {
+                font-size: 1.1rem !important;
+                margin: 5px 0 !important;
+            }
+            
+            .certificado-nota {
+                font-size: 1.1rem !important;
+                margin: 5px 0 !important;
+            }
+            
+            .certificado-footer {
+                margin-top: 8px !important;
+                padding-top: 8px !important;
+            }
+            
+            .certificado-firma-line {
+                margin: 12px auto 5px !important;
+                width: 180px !important;
+            }
+            
+            .certificado-firma-text {
+                font-size: 0.85rem !important;
+            }
+            
+            .certificado-decoracion {
+                display: none !important;
+            }
+        }
+
+        /* Estilos compactos para tabla de resumen */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-sm th,
+        .table-sm td {
+            padding: 0.25rem 0.3rem !important;
+            font-size: 0.7rem !important;
+            line-height: 1.2 !important;
+        }
+
+        .table-sm .btn {
+            font-size: 0.65rem !important;
+            padding: 0.15rem 0.3rem !important;
+            white-space: nowrap;
+            min-width: auto;
+        }
+        
+        .table-sm .badge {
+            font-size: 0.65rem !important;
+            padding: 0.15rem 0.3rem !important;
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 10px;
+            }
+            
+            .page-header {
+                background: #BBDEFB !important;
+                background-color: #BBDEFB !important;
+                color: #000000 !important;
+                padding: 15px;
+            }
+            
+            .page-header h1 {
+                font-size: 1.8rem;
+                color: #000000 !important;
+            }
+            
+            .page-header h1 i {
+                color: #ea0e2a !important; /* Rojo Primario */
+            }
+            
+            .indice-section,
+            .procedimiento-section {
+                padding: 15px;
+            }
+            
+            h4 {
+                font-size: 1rem !important;
+            }
+            
+            #estado-proc-001,
+            #estado-proc-002,
+            #estado-proc-003 {
+                font-size: 0.65rem !important;
+            }
+            
+            #estado-proc-001 .badge,
+            #estado-proc-002 .badge,
+            #estado-proc-003 .badge {
+                font-size: 0.65rem !important;
+                padding: 0.15rem 0.3rem !important;
+            }
+            
+            #estado-proc-001 .btn,
+            #estado-proc-002 .btn,
+            #estado-proc-003 .btn {
+                font-size: 0.6rem !important;
+                padding: 0.1rem 0.25rem !important;
+            }
+
+            .table-sm th,
+            .table-sm td {
+                padding: 0.25rem 0.2rem !important;
+                font-size: 0.65rem !important;
+            }
+
+            .table-sm th {
+                font-size: 0.65rem !important;
+            }
+
+            .table-sm .btn {
+                font-size: 0.6rem !important;
+                padding: 0.1rem 0.25rem !important;
+            }
+
+            .table-sm .badge {
+                font-size: 0.6rem !important;
+                padding: 0.1rem 0.25rem !important;
+            }
+            
+            .table-responsive {
+                font-size: 0.65rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="main-container">
+        <a href="registro_horas.html" class="btn btn-outline-primary back-button">
+            <i class="fas fa-arrow-left me-2"></i>Volver a Registro de Horas
+        </a>
+        
+        <div class="page-header">
+            <h1><i class="fas fa-users-cog me-2"></i>Recursos Humanos</h1>
+        </div>
+        
+        <!-- Tema: Procedimientos de Inventario -->
+        <div id="tema-inventario" class="procedimiento-section">
+            <div class="procedimiento-header">
+                <h3><i class="fas fa-boxes me-2"></i>Procedimientos de Inventario</h3>
+            </div>
+            
+            <div class="procedimiento-content">
+                <!-- Lista de procedimientos expandibles -->
+                <div class="procedimientos-list">
+                    <!-- Procedimiento 1: Recibos de Dinero -->
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-001')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-file-invoice-dollar me-2"></i>
+                                <span>1. Procedimiento de Recibos de Dinero por Entregas</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <span id="estado-proc-001"></span>
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-001"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-001" style="display: none;">
+                            <p><strong>Toda entrega desde Bodega del Vehículo o Bodega Especial del Día debe realizarse con un recibo de dinero firmado por el cliente, sin excepción.</strong></p>
+                            
+                            <ul>
+                                <li>Cada recibo posee un número único, que debe registrarse al liquidar los gastos diarios de inventario de APV o bodegas especiales.</li>
+                                <li>La foto del recibo firmado debe enviarse de inmediato al grupo de WhatsApp "Recibos Liquidación de Ruta".</li>
+                                <li>El recibo físico debe entregarse el mismo día hábil al finalizar la jornada.</li>
+                            </ul>
+                            
+                            <div class="warning-box">
+                                <strong><i class="fas fa-exclamation-triangle me-1"></i>Importante:</strong>
+                                <p>Si algún producto se entrega o utiliza sin recibo firmado, el colaborador deberá reponerlo al costo la primera vez; una segunda vez implicará proceso disciplinario.</p>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="abrirQuiz('PROC-001')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    <i class="fas fa-question-circle me-1"></i>Tomar Quiz
+                                </button>
+                                <p class="text-muted mt-1 mb-0" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomarlo las veces que necesites hasta aprobar (80% requerido)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Procedimiento 2: Confirmación Inventario -->
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-002')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-clipboard-check me-2"></i>
+                                <span>2. Procedimiento de Confirmación de Inventario al Iniciar Jornada</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <span id="estado-proc-002"></span>
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-002"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-002" style="display: none;">
+                            <p><strong>Al iniciar la jornada, el colaborador debe ingresar a Ecoplagas.Online y confirmar recibido el inventario completo del vehículo asignado y de la Bodega Especial del Día (si aplica).</strong></p>
+                            
+                            <ul>
+                                <li>Si detecta faltantes, debe registrarlos de inmediato en la plataforma, indicando producto y cantidad, lo que generará un tiquete automático a Gerencia de Investigación Interna.</li>
+                                <li>Al confirmar, el colaborador certifica que la información es verídica y completa.</li>
+                            </ul>
+                            
+                            <div class="warning-box">
+                                <strong><i class="fas fa-exclamation-triangle me-1"></i>Importante:</strong>
+                                <p>Proveer información falsa, incompleta o inexacta será motivo de acción disciplinaria.</p>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="abrirQuiz('PROC-002')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    <i class="fas fa-question-circle me-1"></i>Tomar Quiz
+                                </button>
+                                <p class="text-muted mt-1 mb-0" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomarlo las veces que necesites hasta aprobar (80% requerido)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Procedimiento 3: Liquidación Diaria -->
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-003')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-boxes me-2"></i>
+                                <span>3. Procedimiento de Liquidación Diaria de Inventario</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <span id="estado-proc-003"></span>
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-003"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-003" style="display: none;">
+                            <p><strong>Antes de finalizar la jornada, el colaborador debe ingresar a Ecoplagas.Online, módulo "Mi Bodeguita", y realizar la liquidación diaria de inventario.</strong></p>
+                            
+                            <p>La liquidación debe incluir los consumos y devoluciones de las tres bodegas:</p>
+                            <ul>
+                                <li><strong>Bodega Personal</strong></li>
+                                <li><strong>Bodega del Vehículo Asignado</strong></li>
+                                <li><strong>Bodega Especial del Día</strong> (si aplica)</li>
+                            </ul>
+                            
+                            <div class="info-box">
+                                <strong><i class="fas fa-info-circle me-1"></i>Información sobre Cajas Personales:</strong>
+                                <ul>
+                                    <li>Todo producto no entregado de la Bodega Especial y los envases vacíos del inventario personal deben depositarse en la caja personal asignada dentro de la bodega.</li>
+                                    <li>Cada caja personal está rotulada y monitoreada 24/7 por cámaras de seguridad.</li>
+                                    <li>Está terminantemente prohibido manipular o abrir cajas de otros colaboradores.</li>
+                                </ul>
+                            </div>
+                            
+                            <p>El sistema genera un registro de cierre diario que debe completarse antes de finalizar el turno.</p>
+                            
+                            <div class="warning-box">
+                                <strong><i class="fas fa-exclamation-triangle me-1"></i>Importante:</strong>
+                                <p>La no liquidación diaria o inconsistencias sin justificar podrán generar proceso de revisión y medidas disciplinarias.</p>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="abrirQuiz('PROC-003')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    <i class="fas fa-question-circle me-1"></i>Tomar Quiz
+                                </button>
+                                <p class="text-muted mt-1 mb-0" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomarlo las veces que necesites hasta aprobar (80% requerido)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tema: Procedimientos de Seguridad -->
+        <div id="tema-seguridad" class="procedimiento-section">
+            <div class="procedimiento-header">
+                <h3><i class="fas fa-shield-alt me-2"></i>Procedimientos de Seguridad</h3>
+            </div>
+            
+            <div class="procedimiento-content">
+                <div class="procedimientos-list">
+                    <!-- Procedimiento: Conducción Segura -->
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-004')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-car me-2"></i>
+                                <span>Procedimiento de Conducción Segura</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <span id="estado-proc-004"></span>
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-004"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-004" style="display: none;">
+                            <p><strong>Normas y prohibiciones para la conducción segura de vehículos de la empresa.</strong></p>
+                            
+                            <h5 style="color: #dc3545; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-ban me-2"></i>Prohibiciones Estrictas:</h5>
+                            <ul>
+                                <li><strong>PROHIBIDO</strong> usar el teléfono celular mientras se conduce (llamadas, mensajes, aplicaciones).</li>
+                                <li><strong>PROHIBIDO</strong> conducir bajo los efectos del alcohol o drogas. Tolerancia cero.</li>
+                                <li><strong>PROHIBIDO</strong> exceder la velocidad máxima permitida (50 km/h en zonas urbanas, según señalización).</li>
+                                <li><strong>PROHIBIDO</strong> exceder la capacidad de carga del vehículo.</li>
+                                <li><strong>PROHIBIDO</strong> transportar productos químicos sin las medidas de seguridad adecuadas.</li>
+                                <li><strong>PROHIBIDO</strong> conducir si se siente cansado o somnoliento.</li>
+                            </ul>
+                            
+                            <h5 style="color: #28a745; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-check-circle me-2"></i>Obligaciones del Conductor:</h5>
+                            <ul>
+                                <li><strong>Revisar el vehículo</strong> antes de iniciar el recorrido: niveles de aceite, agua, estado de neumáticos, luces y frenos.</li>
+                                <li><strong>Usar siempre el cinturón de seguridad</strong> y asegurarse de que todos los pasajeros lo usen.</li>
+                                <li><strong>Respetar las señales de tránsito</strong> y los límites de velocidad.</li>
+                                <li><strong>Ceder el paso a peatones</strong> en pasos peatonales y zonas escolares.</li>
+                                <li><strong>Mantener distancia segura</strong> con el vehículo de adelante.</li>
+                                <li><strong>Detenerse completamente</strong> si se siente cansado o somnoliento en un lugar seguro.</li>
+                            </ul>
+                            
+                            <div class="warning-box">
+                                <strong><i class="fas fa-exclamation-triangle me-1"></i>Importante:</strong>
+                                <p>El incumplimiento de estas normas puede resultar en medidas disciplinarias, incluyendo la suspensión o terminación del empleo, especialmente en casos de conducción bajo efectos del alcohol o drogas.</p>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="abrirQuiz('PROC-004')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    <i class="fas fa-question-circle me-1"></i>Tomar Quiz
+                                </button>
+                                <p class="text-muted mt-1 mb-0" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomarlo las veces que necesites hasta aprobar (80% requerido)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Procedimiento: Accidente de Tránsito -->
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-005')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-car-crash me-2"></i>
+                                <span>Procedimiento en Caso de Accidente de Tránsito</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <span id="estado-proc-005"></span>
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-005"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-005" style="display: none;">
+                            <p><strong>Pasos a seguir en el momento de un accidente de tránsito en Costa Rica.</strong></p>
+                            
+                            <h5 style="color: #dc3545; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-exclamation-circle me-2"></i>Paso 1 - Momento del Siniestro:</h5>
+                            <ol>
+                                <li><strong>Ponerse a salvo:</strong> Verificar primero el bienestar de todas las personas involucradas. La prioridad es el bienestar de las personas.</li>
+                                <li><strong>Si hay personas lesionadas:</strong> Llamar inmediatamente a una ambulancia al <strong>911</strong>.</li>
+                                <li><strong>Llamar al INS:</strong> Comunicarse de manera inmediata al <strong>800-800-8000</strong> para reportar el suceso.</li>
+                                <li><strong>Llamar a la autoridad de tránsito:</strong> Comunicarse al <strong>911</strong> para reportar el accidente a la Policía de Tránsito.</li>
+                                <li><strong>Esperar en sitio:</strong> No abandonar el lugar. Esperar la llegada del Inspector del INS y de las Autoridades de Tránsito.</li>
+                                <li><strong>NO mover el vehículo:</strong> No mueva el vehículo salvo que la autoridad así lo indique.</li>
+                                <li><strong>Aportar elementos:</strong> Proporcionar en sitio los elementos que se soliciten, por ejemplo: realizar la Prueba de Alcoholemia o estupefacientes, aportar testigos, etc.</li>
+                                <li><strong>Custodiar el vehículo:</strong> Custodiar el vehículo asegurado a fin de evitar la agravación del daño.</li>
+                            </ol>
+                            
+                            <div class="info-box">
+                                <strong><i class="fas fa-info-circle me-1"></i>Información Importante:</strong>
+                                <ul>
+                                    <li>Todos los vehículos de la empresa tienen pólizas del INS.</li>
+                                    <li>Si las personas no sufrieron lesiones, igualmente debe llamar a la Policía de Tránsito (911) y al INS (800-800-8000).</li>
+                                    <li>La prioridad siempre es el bienestar de las personas involucradas.</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="warning-box">
+                                <strong><i class="fas fa-exclamation-triangle me-1"></i>Importante:</strong>
+                                <p>Nunca abandone el lugar del accidente. No intente mover el vehículo sin autorización. Siga todas las instrucciones de las autoridades presentes.</p>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="abrirQuiz('PROC-005')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    <i class="fas fa-question-circle me-1"></i>Tomar Quiz
+                                </button>
+                                <p class="text-muted mt-1 mb-0" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomarlo las veces que necesites hasta aprobar (80% requerido)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Procedimiento: Prohibición de Alcohol y Drogas -->
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-010')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-ban me-2"></i>
+                                <span>Prohibición de Consumo de Alcohol y Drogas</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <span id="estado-proc-010"></span>
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-010"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-010" style="display: none;">
+                            <div class="alert alert-danger" style="background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); border-left: 4px solid #dc3545;">
+                                <h5 style="color: #721c24; margin-bottom: 10px;"><i class="fas fa-exclamation-triangle me-2"></i>Prohibición Estricta</h5>
+                                <p style="color: #721c24; margin-bottom: 0; font-weight: 600;">El consumo de alcohol o drogas durante la jornada laboral, o laborar bajo la influencia de dichas sustancias, constituye falta grave conforme al artículo 81 del Código de Trabajo y dará lugar al despido sin responsabilidad patronal cuando afecte la seguridad, desempeño o disciplina laboral.</p>
+                            </div>
+                            
+                            <h5 style="color: #dc3545; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-ban me-2"></i>Prohibiciones:</h5>
+                            <ul>
+                                <li><strong>PROHIBIDO</strong> consumir bebidas alcohólicas durante la jornada laboral.</li>
+                                <li><strong>PROHIBIDO</strong> consumir drogas (marihuana, cocaína, éxtasis, u otras sustancias prohibidas) durante la jornada laboral.</li>
+                                <li><strong>PROHIBIDO</strong> laborar bajo la influencia del alcohol o drogas que afecten el desempeño, seguridad o disciplina laboral.</li>
+                                <li><strong>PROHIBIDO</strong> presentarse al trabajo bajo los efectos de alcohol o drogas que comprometan la capacidad de realizar el trabajo de forma segura.</li>
+                            </ul>
+                            
+                            <h5 style="color: #dc3545; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-car-crash me-2"></i>¿Por Qué Es Tan Importante Esta Prohibición?</h5>
+                            <p>Como <strong>técnico controlador de plagas</strong>, tu trabajo implica riesgos críticos que hacen esta política absolutamente esencial:</p>
+                            
+                            <div class="alert alert-danger" style="background: #f8d7da; border-left: 4px solid #dc3545; margin-top: 15px;">
+                                <h6 style="color: #721c24; margin-bottom: 10px;"><i class="fas fa-car me-2"></i>1. Conducción de Vehículos:</h6>
+                                <ul style="margin-bottom: 0;">
+                                    <li>Conduces vehículos de la empresa en vías públicas, transportando productos químicos peligrosos.</li>
+                                    <li>El alcohol y las drogas reducen significativamente los tiempos de reacción, la coordinación y la capacidad de tomar decisiones rápidas.</li>
+                                    <li>Un error al volante puede resultar en accidentes graves que pongan en riesgo tu vida, la de otros conductores, peatones y clientes.</li>
+                                    <li>La Ley de Tránsito de Costa Rica establece sanciones penales por conducir bajo los efectos del alcohol o drogas.</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="alert alert-danger" style="background: #f8d7da; border-left: 4px solid #dc3545; margin-top: 15px;">
+                                <h6 style="color: #721c24; margin-bottom: 10px;"><i class="fas fa-flask me-2"></i>2. Manipulación de Productos Químicos y Plaguicidas:</h6>
+                                <ul style="margin-bottom: 0;">
+                                    <li>Trabajas con productos químicos altamente tóxicos que requieren precisión y atención constante.</li>
+                                    <li>El alcohol y las drogas afectan la coordinación motora, aumentando el riesgo de derrames, salpicaduras o mezclas incorrectas.</li>
+                                    <li>Una manipulación incorrecta puede causar intoxicaciones graves, quemaduras químicas o exposición peligrosa para ti, tus compañeros y los clientes.</li>
+                                    <li>Los errores en la preparación de plaguicidas pueden resultar en aplicaciones ineficaces o peligrosas para la salud pública.</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="alert alert-danger" style="background: #f8d7da; border-left: 4px solid #dc3545; margin-top: 15px;">
+                                <h6 style="color: #721c24; margin-bottom: 10px;"><i class="fas fa-home me-2"></i>3. Trabajo en Propiedades de Clientes:</h6>
+                                <ul style="margin-bottom: 0;">
+                                    <li>Ingresas a hogares, negocios e instalaciones de clientes donde hay personas, mascotas y bienes.</li>
+                                    <li>Bajo los efectos del alcohol o drogas, puedes cometer errores que afecten la salud de las personas, dañen propiedades o generen responsabilidades legales.</li>
+                                    <li>La falta de lucidez puede llevar a aplicar productos en áreas incorrectas, olvidar medidas de seguridad o dejar equipos sin supervisión adecuada.</li>
+                                    <li>Un error puede resultar en intoxicaciones, daños a la propiedad o exposición de clientes a productos químicos de forma incorrecta.</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="alert alert-danger" style="background: #f8d7da; border-left: 4px solid #dc3545; margin-top: 15px;">
+                                <h6 style="color: #721c24; margin-bottom: 10px;"><i class="fas fa-users me-2"></i>4. Responsabilidad con Compañeros y Terceros:</h6>
+                                <ul style="margin-bottom: 0;">
+                                    <li>Trabajas en equipo y compartes espacios con otros colaboradores.</li>
+                                    <li>Un error bajo los efectos del alcohol o drogas puede poner en riesgo la vida y salud de tus compañeros.</li>
+                                    <li>En caso de emergencia, necesitas estar completamente lúcido para poder ayudar o seguir protocolos de seguridad.</li>
+                                    <li>La empresa tiene responsabilidad legal por la seguridad de todos los colaboradores y terceros afectados por tus acciones.</li>
+                                </ul>
+                            </div>
+                            
+                            <h5 style="color: #dc3545; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-gavel me-2"></i>Consecuencias:</h5>
+                            <div class="alert alert-danger" style="background: #f8d7da; border-left: 4px solid #dc3545;">
+                                <strong><i class="fas fa-exclamation-triangle me-2"></i>Falta Grave - Causal de Despido:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px; font-weight: 600;">Dada la naturaleza de alto riesgo de tu trabajo (conducción de vehículos, manipulación de productos químicos tóxicos, trabajo en propiedades de clientes), el consumo de alcohol o drogas durante la jornada laboral, o laborar bajo la influencia de estas sustancias, constituye falta grave que dará lugar al despido sin responsabilidad patronal, de acuerdo con el Código de Trabajo de Costa Rica, Artículo 81 (incumplimiento grave de obligaciones y conductas que pongan en riesgo la seguridad).</p>
+                            </div>
+                            
+                            <h5 style="color: #17a2b8; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-gavel me-2"></i>Fundamento Legal:</h5>
+                            <p>Esta política se fundamenta en:</p>
+                            <ul>
+                                <li><strong>Código de Trabajo de Costa Rica, Artículo 81:</strong> Abandono, imprudencia grave, incumplimiento grave de obligaciones y conductas que pongan en riesgo la seguridad.</li>
+                                <li><strong>Ley de Tránsito de Costa Rica:</strong> Prohíbe conducir bajo los efectos del alcohol o drogas, con sanciones penales que incluyen multas, suspensión de licencia y responsabilidad penal.</li>
+                                <li><strong>Seguridad Laboral y Responsabilidad Civil:</strong> La empresa tiene la obligación legal de proteger la seguridad de colaboradores, clientes y terceros. Un error bajo los efectos del alcohol o drogas puede generar responsabilidades legales y civiles graves.</li>
+                            </ul>
+                            
+                            <div class="alert alert-info" style="background: #d1ecf1; border-left: 4px solid #17a2b8; margin-top: 15px;">
+                                <strong><i class="fas fa-file-signature me-2"></i>Aceptación de la Política:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px;">Esta política forma parte del reglamento interno de trabajo y debe ser conocida y aceptada por el colaborador. El conocimiento de esta política es requisito para el empleo, especialmente en puestos de alto riesgo como el de técnico controlador de plagas.</p>
+                            </div>
+                            
+                            <div class="info-box" style="background: #d1ecf1; border-left: 4px solid #17a2b8; margin-top: 15px;">
+                                <strong><i class="fas fa-shield-alt me-1"></i>Compromiso con la Seguridad:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px;">Esta política protege tu vida, la de tus compañeros, clientes y la comunidad. Como técnico controlador de plagas, trabajas con herramientas y productos que requieren máxima atención y lucidez. Trabajar bajo la influencia de alcohol o drogas no solo pone en riesgo tu empleo, sino que puede tener consecuencias irreversibles para la salud y seguridad de todos.</p>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="abrirQuiz('PROC-010')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    <i class="fas fa-question-circle me-1"></i>Tomar Quiz
+                                </button>
+                                <p class="text-muted mt-1 mb-0" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomarlo las veces que necesites hasta aprobar (80% requerido)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-011')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-flask me-2"></i>
+                                <span>Manejo de Productos Químicos</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <span id="estado-proc-011"></span>
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-011"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-011" style="display: none;">
+                            <div class="alert alert-warning" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-left: 4px solid #ffc107;">
+                                <h5 style="color: #856404; margin-bottom: 10px;"><i class="fas fa-shield-alt me-2"></i>Tu Seguridad es Primero</h5>
+                                <p style="color: #856404; margin-bottom: 0;">El manejo seguro de productos químicos es fundamental para proteger tu salud. Sigue siempre estos protocolos de seguridad.</p>
+                    </div>
+                            
+                            <h5 style="color: #28a745; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-check-circle me-2"></i>Equipo de Protección Personal Obligatorio:</h5>
+                            <p>Durante la <strong>preparación, aplicación o manipulación de plaguicidas</strong> (ya sean puros o preparados), debes usar:</p>
+                            <ul>
+                                <li><strong>Uniforme completo limpio:</strong> Debe estar en buen estado y completamente limpio.</li>
+                                <li><strong>Mascarilla:</strong> Para proteger las vías respiratorias de vapores y partículas.</li>
+                                <li><strong>Guantes:</strong> Para proteger las manos del contacto directo con los productos químicos.</li>
+                                <li><strong>Lentes de protección:</strong> Para proteger los ojos de salpicaduras y vapores.</li>
+                            </ul>
+                            
+                            <div class="alert alert-danger" style="background: #f8d7da; border-left: 4px solid #dc3545; margin-top: 15px;">
+                                <strong><i class="fas fa-exclamation-triangle me-2"></i>Importante:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px; font-weight: 600;">El uso del equipo de protección personal es OBLIGATORIO. No manipules, prepares o apliques plaguicidas sin usar uniforme completo limpio, mascarilla, guantes y lentes. Tu salud y seguridad dependen de esto.</p>
+                </div>
+                            
+                            <h5 style="color: #17a2b8; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-info-circle me-2"></i>Cuándo Usar el Equipo de Protección:</h5>
+                            <ul>
+                                <li><strong>Preparación de plaguicidas:</strong> Al mezclar o diluir productos químicos.</li>
+                                <li><strong>Aplicación de plaguicidas:</strong> Durante la aplicación en campo o instalaciones.</li>
+                                <li><strong>Manipulación de productos:</strong> Al mover, transportar o almacenar plaguicidas puros o preparados.</li>
+                            </ul>
+                            
+                            <div class="info-box" style="background: #d1ecf1; border-left: 4px solid #17a2b8; margin-top: 15px;">
+                                <strong><i class="fas fa-lightbulb me-1"></i>Consejo:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px;">Mantén tu uniforme siempre limpio y en buen estado. Revisa que tu mascarilla, guantes y lentes estén en condiciones adecuadas antes de comenzar a trabajar con productos químicos. Si algún equipo está dañado, repórtalo inmediatamente.</p>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="abrirQuiz('PROC-011')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    <i class="fas fa-question-circle me-1"></i>Tomar Quiz
+                                </button>
+                                <p class="text-muted mt-1 mb-0" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomarlo las veces que necesites hasta aprobar (80% requerido)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tema: Procedimientos de Registro de Horas -->
+        <div id="tema-registro-horas" class="procedimiento-section">
+            <div class="procedimiento-header">
+                <h3><i class="fas fa-clock me-2"></i>Procedimientos de Registro de Horas</h3>
+            </div>
+            
+            <div class="procedimiento-content">
+                <div class="procedimientos-list">
+                    <!-- Procedimiento: Inicio de Turno y Captura de GPS -->
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-006')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-play-circle me-2"></i>
+                                <span>Inicio de Turno y Captura de GPS</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <span id="estado-proc-006"></span>
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-006"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-006" style="display: none;">
+                            <div class="alert alert-info" style="background: #e7f3ff; border-left: 4px solid #17a2b8;">
+                                <h5 style="color: #0c5460; margin-bottom: 10px;"><i class="fas fa-lightbulb me-2"></i>¡Empecemos el día bien!</h5>
+                                <p style="color: #0c5460; margin-bottom: 0;">Seguir estos pasos te ayudará a tener un día organizado y productivo. Es muy sencillo y solo toma unos minutos.</p>
+                            </div>
+                            
+                            <h5 style="color: #28a745; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-check-circle me-2"></i>Pasos para Iniciar tu Turno:</h5>
+                            <ol>
+                                <li>Selecciona tu bodega APV en el sistema.</li>
+                                <li>Confirma que el inventario esté completo (si hay faltantes, repórtalos).</li>
+                                <li>El sistema capturará tu ubicación GPS automáticamente.</li>
+                                <li>Inicia tu turno y apaga la app después de 15 minutos.</li>
+                            </ol>
+                            
+                            <div class="info-box" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-top: 15px;">
+                                <strong><i class="fas fa-comments me-1"></i>Recordatorio Amigable:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px;">Recuerda enviar confirmación de ingreso por WhatsApp al comenzar cada cita, y el reporte de servicio al finalizarla. Esto nos ayuda a saber que todo va bien.</p>
+                            </div>
+                            
+                            <div class="info-box" style="background: #d1ecf1; border-left: 4px solid #17a2b8; margin-top: 15px;">
+                                <strong><i class="fas fa-edit me-1"></i>Si necesitas corregir tus horas:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px;">Solo busca a jefatura, llena la boleta de corrección y entrégala a Mayren. Es muy fácil.</p>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="abrirQuiz('PROC-006')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    <i class="fas fa-question-circle me-1"></i>Tomar Quiz
+                                </button>
+                                <p class="text-muted mt-1 mb-0" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomarlo las veces que necesites hasta aprobar (80% requerido)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-008')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-stop-circle me-2"></i>
+                                <span>Cierre de Turno y Liquidación</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <span id="estado-proc-008"></span>
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-008"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-008" style="display: none;">
+                            <div class="alert alert-warning" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-left: 4px solid #ffc107;">
+                                <h5 style="color: #856404; margin-bottom: 10px;"><i class="fas fa-exclamation-circle me-2"></i>¡Muy Importante!</h5>
+                                <p style="color: #856404; margin-bottom: 0; font-weight: 600;">Antes de finalizar tu turno, debes reportar TODOS los inventarios gastados en TODAS tus bodegas. Esto es obligatorio y debe hacerse diariamente.</p>
+                            </div>
+                            
+                            <h5 style="color: #28a745; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-check-circle me-2"></i>Proceso de Cierre de Turno:</h5>
+                            <ol>
+                                <li><strong>Ingresa al módulo "Mi Bodeguita"</strong> en Ecoplagas.Online.</li>
+                                <li><strong>Reporta todos los gastos del día</strong> en cada una de tus bodegas:
+                                    <ul style="margin-top: 8px; margin-bottom: 8px;">
+                                        <li>Bodega Personal</li>
+                                        <li>Bodega del Vehículo Asignado</li>
+                                        <li>Bodega Especial del Día (si aplica)</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Verifica que todos los productos gastados estén registrados</strong> antes de cerrar el turno.</li>
+                                <li><strong>Completa la liquidación diaria</strong> en el sistema.</li>
+                                <li><strong>Finaliza tu turno</strong> una vez que todo esté registrado correctamente.</li>
+                            </ol>
+                            
+                            <div class="alert alert-danger" style="background: #f8d7da; border-left: 4px solid #dc3545; margin-top: 15px;">
+                                <strong><i class="fas fa-exclamation-triangle me-2"></i>Recordatorio Crítico:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px; font-weight: 600;">NO puedes finalizar tu turno sin haber reportado todos los inventarios gastados en todas tus bodegas. Este registro diario es fundamental para mantener el control del inventario.</p>
+                            </div>
+                            
+                            <h5 style="color: #17a2b8; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-info-circle me-2"></i>¿Qué debo reportar?</h5>
+                            <ul>
+                                <li><strong>Productos utilizados:</strong> Todo lo que gastaste durante el día en cada bodega.</li>
+                                <li><strong>Productos entregados:</strong> Todo lo que entregaste a clientes.</li>
+                                <li><strong>Devoluciones:</strong> Productos que regresaron a bodega.</li>
+                                <li><strong>Faltantes detectados:</strong> Si encontraste algo que falta, repórtalo también.</li>
+                            </ul>
+                            
+                            <div class="info-box" style="background: #d4edda; border-left: 4px solid #28a745; margin-top: 15px;">
+                                <strong><i class="fas fa-lightbulb me-1"></i>Consejo:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px;">Haz el reporte de inventario al finalizar cada día. Esto te tomará solo unos minutos y te ayudará a mantener todo organizado. El sistema es muy fácil de usar.</p>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="abrirQuiz('PROC-008')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    <i class="fas fa-question-circle me-1"></i>Tomar Quiz
+                                </button>
+                                <p class="text-muted mt-1 mb-0" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomarlo las veces que necesites hasta aprobar (80% requerido)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-009')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-edit me-2"></i>
+                                <span>Edición y Corrección de Horas</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <span id="estado-proc-009"></span>
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-009"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-009" style="display: none;">
+                            <div class="alert alert-info" style="background: #e7f3ff; border-left: 4px solid #17a2b8;">
+                                <h5 style="color: #0c5460; margin-bottom: 10px;"><i class="fas fa-info-circle me-2"></i>¿Necesitas corregir tus horas?</h5>
+                                <p style="color: #0c5460; margin-bottom: 0;">Si olvidaste iniciar o finalizar tu turno, o necesitas corregir algún registro, aquí te explicamos cómo hacerlo de forma sencilla.</p>
+                            </div>
+                            
+                            <h5 style="color: #28a745; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-check-circle me-2"></i>Proceso de Corrección:</h5>
+                            <ol>
+                                <li><strong>Comparte en WhatsApp:</strong> Envía un mensaje en la comunidad de WhatsApp donde estás tú y las jefaturas.</li>
+                                <li><strong>Indica el día a modificar:</strong> Especifica claramente qué día necesita ser corregido (fecha completa).</li>
+                                <li><strong>Explica el motivo:</strong> Menciona brevemente por qué necesitas la corrección (ej: "olvidé iniciar turno", "cerré mal el turno").</li>
+                                <li><strong>Espera la corrección:</strong> Una persona de jefatura revisará tu solicitud y hará la modificación correspondiente.</li>
+                            </ol>
+                            
+                            <div class="alert alert-warning" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-top: 15px;">
+                                <strong><i class="fas fa-exclamation-triangle me-2"></i>Importante:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px;">Debes compartir la solicitud en la comunidad de WhatsApp donde estás tú y las jefaturas. No puedes modificar los registros directamente en el sistema. Una persona de jefatura se encargará de hacer la corrección una vez que vea tu mensaje.</p>
+                            </div>
+                            
+                            <h5 style="color: #17a2b8; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-comments me-2"></i>Ejemplo de Mensaje:</h5>
+                            <div class="info-box" style="background: #f8f9fa; border-left: 4px solid #6c757d; padding: 12px; font-family: monospace; font-size: 0.9rem;">
+                                <p style="margin-bottom: 0;">"Buenos días, necesito corregir mis horas del día [fecha]. Hora de inicio: [ej: 8:00 AM], Hora de fin: [ej: 5:00 PM]. Olvidé [explicar qué pasó]. Por favor, jefatura, ¿pueden hacer la corrección?"</p>
+                            </div>
+                            
+                            <div class="info-box" style="background: #d4edda; border-left: 4px solid #28a745; margin-top: 15px;">
+                                <strong><i class="fas fa-lightbulb me-1"></i>Consejo:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px;">Sé claro y específico en tu mensaje. Menciona la fecha exacta y el motivo de la corrección. Esto ayudará a que el asistente de gerencia pueda resolver tu solicitud más rápido.</p>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="abrirQuiz('PROC-009')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    <i class="fas fa-question-circle me-1"></i>Tomar Quiz
+                                </button>
+                                <p class="text-muted mt-1 mb-0" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomarlo las veces que necesites hasta aprobar (80% requerido)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Procedimiento: Política de Horas Laboradas -->
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-politica-horas')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-gavel me-2"></i>
+                                <span>Política de Horas Laboradas</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-politica-horas"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-politica-horas" style="display: none;">
+                            <p><strong>Política completa sobre el registro y control de horas laboradas en la empresa.</strong></p>
+                            
+                            <h5 style="color: #17a2b8; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-balance-scale me-2"></i>Fundamento Legal:</h5>
+                            <p>De conformidad con el Código de Trabajo de Costa Rica, artículos 69, 71 y 81.</p>
+                            
+                            <h5 style="color: #ffc107; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-clock me-2"></i>Horas Extra:</h5>
+                            <p>Solo se reconocen con autorización previa y expresa del patrono. Sin autorización no tienen validez.</p>
+                            
+                            <h5 style="color: #28a745; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-user-check me-2"></i>Responsabilidad:</h5>
+                            <p>El empleado es responsable del encendido/apagado del sistema y debe acatar las instrucciones del patrono.</p>
+                            
+                            <h5 style="color: #6c757d; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-edit me-2"></i>Corrección de Horas:</h5>
+                            <p>Para corregir errores, llenar boleta de corrección y entregarla a Mayren para validación.</p>
+                            
+                            <h5 style="color: #17a2b8; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-map-marker-alt me-2"></i>GPS Obligatorio:</h5>
+                            <p>Se registra ubicación GPS para verificar inicio/fin en lugares autorizados. <strong>Prohibido desde casa o en tránsito.</strong></p>
+                            
+                            <div class="info-box" style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 5px;">
+                                <h5 style="color: #856404; margin-top: 0; margin-bottom: 10px;"><i class="fas fa-comments me-2"></i>Control de Citas vía WhatsApp:</h5>
+                                <p><strong>OBLIGATORIO:</strong> Enviar confirmación de ingreso en el canal de WhatsApp inmediatamente al comenzar una cita.</p>
+                                <p><strong>OBLIGATORIO:</strong> Enviar reporte de servicio inmediatamente al finalizar la cita.</p>
+                                <p style="color: #dc3545; font-weight: 600; margin-top: 10px; margin-bottom: 0;"><i class="fas fa-exclamation-triangle"></i> <strong>QUEDA ESTRICTAMENTE PROHIBIDO:</strong> No enviar estas confirmaciones. Es una forma de control para verificar que el colaborador va avanzando correctamente en sus citas.</p>
+                            </div>
+                            
+                            <h5 style="color: #dc3545; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-ban me-2"></i>Conductas Prohibidas:</h5>
+                            <ul>
+                                <li>Alargar citas sin autorización</li>
+                                <li>Perder tiempo entre citas</li>
+                                <li>Desviarse de rutas</li>
+                                <li>Actividades no autorizadas</li>
+                                <li>Registrar horas sin trabajar</li>
+                                <li>Iniciar turno desde casa o en tránsito</li>
+                                <li>Finalizar turno en lugar no autorizado</li>
+                                <li>No registrar ubicación GPS correctamente</li>
+                                <li>Hacer paradas no autorizadas durante el trabajo</li>
+                                <li>No adelantar citas cuando es posible</li>
+                                <li>Exceder tiempo establecido sin autorización</li>
+                                <li>Manipular el sistema de registro</li>
+                                <li>No cumplir con horarios establecidos</li>
+                                <li>Realizar actividades personales durante horas laborales</li>
+                                <li><strong style="color: #dc3545;">No enviar confirmación de ingreso vía WhatsApp al comenzar una cita</strong></li>
+                                <li><strong style="color: #dc3545;">No enviar reporte de servicio vía WhatsApp al finalizar una cita</strong></li>
+                            </ul>
+                            
+                            <h5 style="color: #17a2b8; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-clock me-2"></i>Tiempos de Citas:</h5>
+                            <ul>
+                                <li><strong>Citas de ₡39,900:</strong> 1 hora máximo</li>
+                                <li><strong>Garantías, cortesías, cotizaciones o cualquier cita sin costo:</strong> 30 minutos máximo</li>
+                                <li><strong>Citas de mayor facturación:</strong> Tiempo según agenda</li>
+                                <li><strong>Excepciones:</strong> Requieren aprobación previa de Jefatura</li>
+                            </ul>
+                            
+                            <div class="warning-box">
+                                <h5 style="color: #dc3545; margin-top: 0; margin-bottom: 15px;"><i class="fas fa-exclamation-triangle me-2"></i>Sanciones:</h5>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <h6 style="color: #ffc107; margin-bottom: 8px;"><i class="fas fa-exclamation-circle"></i> Leves</h6>
+                                    <p style="margin-bottom: 0;">Ajuste de horas en el sistema y amonestación verbal</p>
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <h6 style="color: #fd7e14; margin-bottom: 8px;"><i class="fas fa-exclamation-triangle"></i> Graves, o leves reiteradas</h6>
+                                    <p style="margin-bottom: 0;">Amonestación escrita</p>
+                                </div>
+                                
+                                <div>
+                                    <h6 style="color: #dc3545; margin-bottom: 8px;"><i class="fas fa-times-circle"></i> Muy Graves, o amonestaciones por escrito reiteradas</h6>
+                                    <p style="margin-bottom: 0;">Despido sin responsabilidad patronal (Art. 81 C.T.)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tema: Procedimientos de Vacaciones -->
+        <div id="tema-vacaciones" class="procedimiento-section">
+            <div class="procedimiento-header">
+                <h3><i class="fas fa-calendar-check me-2"></i>Procedimientos de Vacaciones</h3>
+            </div>
+            
+            <div class="procedimiento-content">
+                <div class="procedimientos-list">
+                    <!-- Procedimiento: Solicitud y Aprobación de Vacaciones -->
+                    <div class="procedimiento-item">
+                        <div class="procedimiento-item-header" onclick="toggleProcedimiento('proc-007')">
+                            <div class="procedimiento-item-title">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                <span>Solicitud y Aprobación de Vacaciones</span>
+                            </div>
+                            <div class="procedimiento-item-status">
+                                <span id="estado-proc-007"></span>
+                                <i class="fas fa-chevron-down expand-icon" id="icon-proc-007"></i>
+                            </div>
+                        </div>
+                        <div class="procedimiento-item-content" id="content-proc-007" style="display: none;">
+                            <div class="alert alert-success" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-left: 4px solid #28a745;">
+                                <h5 style="color: #155724; margin-bottom: 10px;"><i class="fas fa-umbrella-beach me-2"></i>¡Tus Vacaciones Te Esperan!</h5>
+                                <p style="color: #155724; margin-bottom: 0;">Las vacaciones son un derecho importante y necesario para tu bienestar. Te animamos a disfrutar de tus días de descanso cuando tengas saldo disponible. Planificar tus vacaciones con anticipación te ayudará a recargar energías y mantener un equilibrio saludable entre trabajo y vida personal.</p>
+                            </div>
+                            
+                            <h5 style="color: #28a745; margin-top: 20px; margin-bottom: 10px;"><i class="fas fa-check-circle me-2"></i>Proceso de Solicitud (Simple y Rápido):</h5>
+                            <ol>
+                                <li>Ingresa a "Registro de Horas" y haz clic en "Solicitar Vacaciones".</li>
+                                <li>Selecciona tu fecha de inicio y fecha de fin.</li>
+                                <li>El sistema te mostrará automáticamente los días laborables (excluyendo domingos).</li>
+                                <li>Confirma y envía tu solicitud. ¡Listo!</li>
+                            </ol>
+                            
+                            <h5 style="color: #17a2b8; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-info-circle me-2"></i>Requisitos:</h5>
+                            <ul>
+                                <li><strong>Antelación mínima:</strong> Solo necesitas solicitar con <strong>3 días de anticipación</strong>. Es muy sencillo planificar con tan poco tiempo.</li>
+                                <li><strong>Fechas válidas:</strong> La fecha de fin debe ser mayor o igual a la fecha de inicio.</li>
+                            </ul>
+                            
+                            <div class="alert alert-info" style="background: #e7f3ff; border-left: 4px solid #17a2b8; margin-top: 15px;">
+                                <strong><i class="fas fa-info-circle me-2"></i>Casos Especiales:</strong>
+                                <p style="margin-bottom: 0; margin-top: 8px;">En situaciones específicas como días acumulados o períodos de baja venta, el empleador puede indicar cuándo tomar las vacaciones para una mejor planificación operativa. En estos casos, se coordinará directamente contigo para encontrar las fechas más convenientes para ambas partes.</p>
+                            </div>
+                            
+                            <h5 style="color: #17a2b8; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-info-circle me-2"></i>Criterios de Prioridad:</h5>
+                            <p>Cuando hay conflicto de fechas de vacaciones entre varios empleados, se aplican los siguientes criterios de prioridad (en orden):</p>
+                            <ol>
+                                <li><strong>Fecha de solicitud:</strong> El primero en llegar tiene prioridad (orden cronológico).</li>
+                                <li><strong>Saldo de vacaciones:</strong> Entre solicitudes del mismo día, quien tenga mayor saldo de vacaciones tiene prioridad.</li>
+                            </ol>
+                            
+                            <h5 style="color: #ffc107; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-user-shield me-2"></i>Administración de Vacaciones:</h5>
+                            <p>La aprobación o rechazo de solicitudes de vacaciones está restringida a los siguientes usuarios autorizados:</p>
+                            <ul>
+                                <li>Pablo Paniagua</li>
+                                <li>Mario Paniagua</li>
+                                <li>Cristhian Paniagua</li>
+                            </ul>
+                            <p>Estos usuarios tienen acceso a una sección especial de administración donde pueden:</p>
+                            <ul>
+                                <li>Ver todas las solicitudes pendientes</li>
+                                <li>Aprobar solicitudes</li>
+                                <li>Rechazar solicitudes (debe ingresar un motivo del rechazo)</li>
+                            </ul>
+                            
+                            <h5 style="color: #6c757d; margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-calendar-times me-2"></i>Información Registrada:</h5>
+                            <p>Al enviar una solicitud, el sistema guarda automáticamente:</p>
+                            <ul>
+                                <li>Fecha y hora de solicitud</li>
+                                <li>Estado (pendiente, aprobada, rechazada)</li>
+                                <li>Días exactos seleccionados</li>
+                                <li>Total de días solicitados</li>
+                                <li>Datos del empleado (ID y nombre)</li>
+                                <li>En caso de rechazo: motivo del rechazo y quién lo rechazó</li>
+                                <li>En caso de aprobación: quién aprobó y fecha de aprobación</li>
+                            </ul>
+                            
+                            <div class="info-box">
+                                <strong><i class="fas fa-info-circle me-1"></i>Nota Importante:</strong>
+                                <ul>
+                                    <li>Los domingos se excluyen automáticamente del cálculo de días de vacaciones.</li>
+                                    <li>Una vez enviada la solicitud, el empleado no puede modificarla directamente. Debe contactar a jefatura para cualquier cambio.</li>
+                                    <li>El empleado puede ver el estado de todas sus solicitudes en la sección "Mis Solicitudes".</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="info-box" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+                                <strong><i class="fas fa-lightbulb me-1"></i>Consejo:</strong>
+                                <p style="margin-bottom: 0;">Planifica tus vacaciones con al menos 3 días de anticipación para asegurar una mejor coordinación. Recuerda que las vacaciones son importantes para tu descanso y bienestar.</p>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="abrirQuiz('PROC-007')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                    <i class="fas fa-question-circle me-1"></i>Tomar Quiz
+                                </button>
+                                <p class="text-muted mt-1 mb-0" style="font-size: 0.8rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Puedes tomarlo las veces que necesites hasta aprobar (80% requerido)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Quiz -->
+    <div class="modal fade" id="modalQuiz" tabindex="-1" aria-labelledby="modalQuizLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalQuizLabel">
+                        <i class="fas fa-question-circle me-2"></i>Quiz de Capacitación
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="quizContent">
+                        <!-- El contenido del quiz se carga dinámicamente -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnEnviarQuiz" onclick="enviarQuiz()">
+                        <i class="fas fa-paper-plane me-2"></i>Enviar Respuestas
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen de Capacitaciones - Oculto, los estados se muestran en los títulos -->
+    <div class="procedimiento-section" id="resumenCapacitaciones" style="display: none;">
+        <div class="procedimiento-header">
+            <h3><i class="fas fa-chart-line me-2"></i>Resumen de Capacitaciones</h3>
+        </div>
+        <div class="procedimiento-content">
+            <div class="mb-3">
+                <button class="btn btn-primary" onclick="cargarResumenCapacitaciones()">
+                    <i class="fas fa-sync-alt me-2"></i>Actualizar Resumen
+                </button>
+                <span id="resumenLoading" class="ms-3" style="display: none;">
+                    <i class="fas fa-spinner fa-spin me-2"></i>Cargando...
+                </span>
+            </div>
+            <div id="resumenContent">
+                <p class="text-muted">
+                    <i class="fas fa-info-circle me-2"></i>Cargando resumen de capacitaciones...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Certificado -->
+    <div class="modal fade" id="modalCertificado" tabindex="-1" aria-labelledby="modalCertificadoLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen">
+            <div class="modal-content" style="border: none; background: #f8f9fa;">
+                <div class="modal-header bg-white border-bottom">
+                    <h5 class="modal-title" id="modalCertificadoLabel">
+                        <i class="fas fa-certificate me-2"></i>Certificado de Capacitación
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4" style="overflow-y: auto; background: #f8f9fa;">
+                    <div id="certificadoContent" style="display: flex; justify-content: center; align-items: flex-start; min-height: 70vh; padding: 20px 0;">
+                        <!-- El certificado se carga dinámicamente -->
+                    </div>
+                </div>
+                <div class="modal-footer bg-white border-top">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cerrar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>Imprimir Certificado
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Definir funciones globales antes del módulo para evitar errores de timing -->
+    <script>
+        // Función placeholder que será reemplazada por la función real del módulo
+        window.abrirQuiz = function(procedimientoId) {
+            console.warn('abrirQuiz aún no está completamente cargado. Por favor espera un momento y vuelve a intentar.');
+        };
+        
+        window.enviarQuiz = function() {
+            console.warn('enviarQuiz aún no está completamente cargado. Por favor espera un momento y vuelve a intentar.');
+        };
+        
+        window.cargarResumenCapacitaciones = function() {
+            console.warn('cargarResumenCapacitaciones aún no está completamente cargado. Por favor espera un momento y vuelve a intentar.');
+        };
+        
+        window.verCertificado = function() {
+            console.warn('verCertificado aún no está completamente cargado. Por favor espera un momento y vuelve a intentar.');
+        };
+    </script>
+    
+    <script type="module">
+        import { initializeApp, getApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, collection, addDoc, query, getDocs, where, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            projectId: "cursorwebapp-f376d",
+            appId: "1:719990096116:web:07c1ff697e7655b2cd9ea1",
+            databaseURL: "https://cursorwebapp-f376d-default-rtdb.firebaseio.com",
+            storageBucket: "cursorwebapp-f376d.firebasestorage.app",
+            apiKey: "AIzaSyC-IQj0yHR8cELr-mw-v2xlnw6LlJYFUyk",
+            authDomain: "cursorwebapp-f376d.firebaseapp.com",
+            messagingSenderId: "719990096116",
+            measurementId: "G-DJXLKFR7CD"
+        };
+
+        // Usar la app de Firebase existente
+        let app, db;
+        try {
+            app = getApp();
+            db = getFirestore(app);
+        } catch (error) {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+        }
+
+        // Definición de procedimientos con IDs únicos
+        const PROCEDIMIENTOS = {
+            'PROC-001': {
+                id: 'PROC-001',
+                nombre: 'Procedimiento de Recibos de Dinero por Entregas',
+                version: '1.0',
+                preguntas: [
+                    {
+                        id: 'Q1',
+                        pregunta: '¿Es obligatorio tener un recibo firmado por el cliente para toda entrega desde Bodega del Vehículo o Bodega Especial?',
+                        opciones: [
+                            'Solo algunas veces',
+                            'Sí, siempre, sin excepción',
+                            'Solo para productos costosos',
+                            'No es necesario'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q2',
+                        pregunta: '¿Dónde debe enviarse la foto del recibo firmado?',
+                        opciones: [
+                            'Por correo electrónico',
+                            'Al grupo de WhatsApp "Recibos Liquidación de Ruta"',
+                            'Solo guardarla en el teléfono',
+                            'No es necesario enviarla'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q3',
+                        pregunta: '¿Cuándo debe entregarse el recibo físico?',
+                        opciones: [
+                            'Al día siguiente',
+                            'El mismo día hábil al finalizar la jornada',
+                            'Al final de la semana',
+                            'No es necesario entregarlo'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q4',
+                        pregunta: '¿Qué sucede si se entrega un producto sin recibo firmado por segunda vez?',
+                        opciones: [
+                            'Solo una advertencia',
+                            'Proceso disciplinario',
+                            'No pasa nada',
+                            'Solo se repone al costo'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q5',
+                        pregunta: '¿Dónde debe registrarse el número único del recibo?',
+                        opciones: [
+                            'En un cuaderno personal',
+                            'Al liquidar los gastos diarios de inventario de APV o bodegas especiales',
+                            'No es necesario registrarlo',
+                            'Solo en WhatsApp'
+                        ],
+                        respuestaCorrecta: 1
+                    }
+                ]
+            },
+            'PROC-002': {
+                id: 'PROC-002',
+                nombre: 'Procedimiento de Confirmación de Inventario al Iniciar Jornada',
+                version: '1.0',
+                preguntas: [
+                    {
+                        id: 'Q1',
+                        pregunta: '¿Qué debe confirmar el colaborador al iniciar la jornada?',
+                        opciones: [
+                            'Solo el inventario del vehículo',
+                            'El inventario completo del vehículo asignado y de la Bodega Especial del Día (si aplica)',
+                            'Solo productos importantes',
+                            'No es necesario confirmar nada'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q2',
+                        pregunta: '¿Qué debe hacer si detecta faltantes al iniciar la jornada?',
+                        opciones: [
+                            'Ignorarlos',
+                            'Registrarlos de inmediato en la plataforma, indicando producto y cantidad',
+                            'Reportarlos al final del día',
+                            'No hacer nada'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q3',
+                        pregunta: '¿Qué genera el registro de faltantes en la plataforma?',
+                        opciones: [
+                            'Un correo electrónico',
+                            'Un tiquete automático a Gerencia de Investigación Interna',
+                            'Solo una nota',
+                            'Nada'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q4',
+                        pregunta: '¿Qué certifica el colaborador al confirmar el inventario?',
+                        opciones: [
+                            'Que vio algunos productos',
+                            'Que la información es verídica y completa',
+                            'Que está de acuerdo',
+                            'Nada en particular'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q5',
+                        pregunta: '¿Qué consecuencias tiene proveer información falsa, incompleta o inexacta?',
+                        opciones: [
+                            'Recibir un premio por creatividad',
+                            'Será motivo de acción disciplinaria',
+                            'Se le otorga un día libre adicional',
+                            'Se le da un aumento de sueldo'
+                        ],
+                        respuestaCorrecta: 1
+                    }
+                ]
+            },
+            'PROC-003': {
+                id: 'PROC-003',
+                nombre: 'Procedimiento de Liquidación Diaria de Inventario',
+                version: '1.0',
+                preguntas: [
+                    {
+                        id: 'Q1',
+                        pregunta: '¿Cuándo debe realizarse la liquidación diaria de inventario?',
+                        opciones: [
+                            'Al día siguiente',
+                            'Antes de finalizar la jornada',
+                            'Al inicio del día',
+                            'Cuando sea conveniente'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q2',
+                        pregunta: '¿Qué bodegas debe incluir la liquidación?',
+                        opciones: [
+                            'Solo la bodega personal',
+                            'Bodega Personal, Bodega del Vehículo Asignado y Bodega Especial del Día (si aplica)',
+                            'Solo la bodega del vehículo',
+                            'Solo las que tengan productos'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q3',
+                        pregunta: '¿Dónde deben depositarse los productos no entregados de la Bodega Especial y los envases vacíos?',
+                        opciones: [
+                            'En cualquier caja',
+                            'En la caja personal asignada dentro de la bodega',
+                            'En la bodega principal',
+                            'No es necesario depositarlos'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q4',
+                        pregunta: '¿Está permitido manipular o abrir cajas de otros colaboradores?',
+                        opciones: [
+                            'Sí, si es necesario',
+                            'No, está terminantemente prohibido',
+                            'Solo con permiso',
+                            'Solo en emergencias'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q5',
+                        pregunta: '¿Qué puede generar la no liquidación diaria o inconsistencias sin justificar?',
+                        opciones: [
+                            'Nada',
+                            'Proceso de revisión y medidas disciplinarias',
+                            'Solo una advertencia',
+                            'Un llamado de atención'
+                        ],
+                        respuestaCorrecta: 1
+                    }
+                ]
+            },
+            'PROC-004': {
+                id: 'PROC-004',
+                nombre: 'Procedimiento de Conducción Segura',
+                version: '1.0',
+                preguntas: [
+                    {
+                        id: 'Q1',
+                        pregunta: '¿Está permitido usar el teléfono celular mientras se conduce?',
+                        opciones: [
+                            'Sí, solo para llamadas',
+                            'No, está terminantemente prohibido usar el celular mientras se conduce',
+                            'Sí, solo para mensajes de texto',
+                            'Solo en semáforos'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q2',
+                        pregunta: '¿Cuál es la velocidad máxima permitida en zonas urbanas según la ley de tránsito de Costa Rica?',
+                        opciones: [
+                            '60 km/h',
+                            '50 km/h',
+                            '80 km/h',
+                            'No hay límite'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q3',
+                        pregunta: '¿Está permitido conducir bajo los efectos del alcohol?',
+                        opciones: [
+                            'Sí, con moderación',
+                            'No, está terminantemente prohibido. Tolerancia cero de alcohol',
+                            'Solo una cerveza',
+                            'Solo en zonas rurales'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q4',
+                        pregunta: '¿Qué debe hacer el conductor antes de iniciar el recorrido?',
+                        opciones: [
+                            'Revisar que el vehículo esté en buen estado, verificar niveles de aceite, agua, neumáticos y luces',
+                            'Solo encender el vehículo',
+                            'Revisar solo los neumáticos',
+                            'No es necesario revisar nada'
+                        ],
+                        respuestaCorrecta: 0
+                    },
+                    {
+                        id: 'Q5',
+                        pregunta: '¿Está permitido transportar productos químicos sin las medidas de seguridad adecuadas?',
+                        opciones: [
+                            'Sí, si es urgente',
+                            'No, está terminantemente prohibido. Deben seguirse todos los protocolos de seguridad',
+                            'Solo en distancias cortas',
+                            'Solo de día'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q6',
+                        pregunta: '¿Qué debe hacer el conductor si se siente cansado o somnoliento?',
+                        opciones: [
+                            'Seguir conduciendo',
+                            'Detenerse en un lugar seguro, descansar y no continuar hasta estar completamente alerta',
+                            'Abrir las ventanas',
+                            'Tomar café y seguir'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q7',
+                        pregunta: '¿Está permitido exceder la capacidad de carga del vehículo?',
+                        opciones: [
+                            'Sí, si es necesario',
+                            'No, está terminantemente prohibido exceder la capacidad de carga del vehículo',
+                            'Solo un poco más',
+                            'Solo en emergencias'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q8',
+                        pregunta: '¿Qué debe hacer el conductor al aproximarse a un paso peatonal?',
+                        opciones: [
+                            'Acelerar para pasar rápido',
+                            'Reducir la velocidad y ceder el paso a los peatones',
+                            'Tocar la bocina',
+                            'Seguir a la misma velocidad'
+                        ],
+                        respuestaCorrecta: 1
+                    }
+                ]
+            },
+            'PROC-005': {
+                id: 'PROC-005',
+                nombre: 'Procedimiento en Caso de Accidente de Tránsito',
+                version: '1.0',
+                preguntas: [
+                    {
+                        id: 'Q1',
+                        pregunta: '¿Cuál es la PRIMERA acción que debe realizar en caso de un accidente de tránsito?',
+                        opciones: [
+                            'Llamar al INS',
+                            'Ponerse a salvo y verificar el bienestar de las personas involucradas',
+                            'Mover el vehículo',
+                            'Tomar fotos'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q2',
+                        pregunta: 'Si hay personas lesionadas, ¿qué debe hacer?',
+                        opciones: [
+                            'Esperar a que llegue el INS',
+                            'Llamar inmediatamente a una ambulancia al 911',
+                            'Trasladarlas en su vehículo',
+                            'Solo esperar'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q3',
+                        pregunta: '¿A qué número debe llamar para reportar el accidente al INS?',
+                        opciones: [
+                            '911',
+                            '800-800-8000',
+                            '117',
+                            '112'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q4',
+                        pregunta: '¿A qué número debe llamar para reportar a la autoridad de tránsito?',
+                        opciones: [
+                            '800-800-8000',
+                            '911',
+                            '117',
+                            '112'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q5',
+                        pregunta: '¿Está permitido mover el vehículo después del accidente?',
+                        opciones: [
+                            'Sí, siempre',
+                            'No, no debe mover el vehículo salvo que la autoridad así lo indique',
+                            'Solo si está en medio de la calle',
+                            'Solo si no hay daños'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q6',
+                        pregunta: '¿Qué debe hacer mientras espera la llegada del Inspector del INS y las Autoridades de Tránsito?',
+                        opciones: [
+                            'Irse del lugar',
+                            'Esperar en sitio, custodiar el vehículo y aportar elementos que se soliciten (prueba de alcoholemia, testigos, etc.)',
+                            'Solo tomar fotos',
+                            'Llamar a un mecánico'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q7',
+                        pregunta: '¿Cuál es la prioridad principal en caso de accidente?',
+                        opciones: [
+                            'Proteger el vehículo',
+                            'El bienestar de las personas involucradas',
+                            'Llamar al INS primero',
+                            'Tomar evidencia'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q8',
+                        pregunta: 'Si no hay personas lesionadas, ¿qué debe hacer además de llamar al INS?',
+                        opciones: [
+                            'Solo esperar al INS',
+                            'Llamar a la Policía de Tránsito al 911 y al INS al 800-800-8000',
+                            'Solo llamar a un mecánico',
+                            'Arreglar el vehículo y seguir'
+                        ],
+                        respuestaCorrecta: 1
+                    }
+                ]
+            },
+            'PROC-006': {
+                id: 'PROC-006',
+                nombre: 'Procedimiento de Inicio de Turno y Captura de GPS',
+                version: '1.0',
+                preguntas: [
+                    {
+                        id: 'Q1',
+                        pregunta: '¿Dónde debo iniciar mi turno?',
+                        opciones: [
+                            'En el lugar de trabajo autorizado (bodega)',
+                            'Desde mi casa',
+                            'En tránsito',
+                            'Cualquier lugar'
+                        ],
+                        respuestaCorrecta: 0
+                    },
+                    {
+                        id: 'Q2',
+                        pregunta: '¿Qué debo hacer antes de iniciar el turno?',
+                        opciones: [
+                            'Solo seleccionar la bodega',
+                            'Seleccionar la bodega y confirmar que el inventario está completo',
+                            'Solo confirmar inventario',
+                            'No hacer nada'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q3',
+                        pregunta: '¿Cuándo debo apagar la app después de llegar a la bodega?',
+                        opciones: [
+                            'Después de 15 minutos',
+                            'Al final del día',
+                            'Nunca',
+                            'Después de 1 hora'
+                        ],
+                        respuestaCorrecta: 0
+                    }
+                ]
+            },
+            'PROC-007': {
+                id: 'PROC-007',
+                nombre: 'Procedimiento de Solicitud y Aprobación de Vacaciones',
+                version: '1.0',
+                preguntas: [
+                    {
+                        id: 'Q1',
+                        pregunta: '¿Dónde debo ir para solicitar mis vacaciones?',
+                        opciones: [
+                            'En el módulo "Registro de Horas"',
+                            'En el módulo "Empleados"',
+                            'En el módulo "Tickets"',
+                            'Debo llamar por teléfono'
+                        ],
+                        respuestaCorrecta: 0
+                    },
+                    {
+                        id: 'Q2',
+                        pregunta: '¿Con cuántos días de anticipación debo solicitar mis vacaciones?',
+                        opciones: [
+                            '3 días',
+                            '7 días',
+                            '15 días',
+                            '1 día'
+                        ],
+                        respuestaCorrecta: 0
+                    }
+                ]
+            },
+            'PROC-008': {
+                id: 'PROC-008',
+                nombre: 'Procedimiento de Cierre de Turno y Liquidación',
+                version: '1.0',
+                preguntas: [
+                    {
+                        id: 'Q1',
+                        pregunta: '¿Dónde debo reportar los inventarios gastados antes de cerrar mi turno?',
+                        opciones: [
+                            'En el módulo "Mi Bodeguita"',
+                            'En el módulo "Empleados"',
+                            'Por teléfono',
+                            'No es necesario reportarlos'
+                        ],
+                        respuestaCorrecta: 0
+                    },
+                    {
+                        id: 'Q2',
+                        pregunta: '¿En cuántas bodegas debo reportar los inventarios gastados?',
+                        opciones: [
+                            'Solo en una bodega',
+                            'En todas mis bodegas (Personal, Vehículo y Especial del día)',
+                            'Solo en la bodega del vehículo',
+                            'No es necesario reportar'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q3',
+                        pregunta: '¿Con qué frecuencia debo reportar los inventarios gastados?',
+                        opciones: [
+                            'Solo una vez por semana',
+                            'Diariamente, antes de cerrar el turno',
+                            'Solo cuando me lo pidan',
+                            'Cada dos días'
+                        ],
+                        respuestaCorrecta: 1
+                    }
+                ]
+            },
+            'PROC-009': {
+                id: 'PROC-009',
+                nombre: 'Procedimiento de Edición y Corrección de Horas',
+                version: '1.0',
+                preguntas: [
+                    {
+                        id: 'Q1',
+                        pregunta: '¿Dónde debo solicitar la corrección de mis horas?',
+                        opciones: [
+                            'Directamente en el sistema',
+                            'En la comunidad de WhatsApp donde estoy yo y las jefaturas',
+                            'Por teléfono',
+                            'No se pueden corregir'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q2',
+                        pregunta: '¿Quién hace la corrección de las horas?',
+                        opciones: [
+                            'Yo mismo en el sistema',
+                            'Una persona de jefatura después de ver mi mensaje en WhatsApp',
+                            'Cualquier empleado',
+                            'No se pueden corregir'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q3',
+                        pregunta: '¿Qué información debo incluir en mi mensaje de WhatsApp?',
+                        opciones: [
+                            'Solo mi nombre',
+                            'El día que debe ser modificado y el motivo de la corrección',
+                            'Solo la fecha',
+                            'No es necesario dar información'
+                        ],
+                        respuestaCorrecta: 1
+                    }
+                ]
+                    },
+            'PROC-010': {
+                id: 'PROC-010',
+                nombre: 'Procedimiento de Prohibición de Consumo de Alcohol y Drogas',
+                version: '1.0',
+                preguntas: [
+                    {
+                        id: 'Q1',
+                        pregunta: '¿Está permitido consumir alcohol o drogas durante la jornada laboral?',
+                        opciones: [
+                            'Sí, si es fuera del horario de trabajo',
+                            'No, está estrictamente prohibido',
+                            'Solo alcohol está prohibido',
+                            'Solo si es marihuana medicinal'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q2',
+                        pregunta: '¿Qué sucede si un empleado trabaja bajo la influencia de alcohol o drogas?',
+                        opciones: [
+                            'Solo recibe una advertencia',
+                            'Constituye falta grave que dará lugar al despido sin responsabilidad patronal',
+                            'Solo se suspende temporalmente',
+                            'No tiene consecuencias'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q3',
+                        pregunta: '¿Qué sustancias están prohibidas durante la jornada laboral?',
+                        opciones: [
+                            'Solo alcohol',
+                            'Alcohol, marihuana y todas las drogas prohibidas',
+                            'Solo drogas ilegales',
+                            'Ninguna está prohibida'
+                        ],
+                        respuestaCorrecta: 1
+                    }
+                ]
+                    },
+            'PROC-011': {
+                id: 'PROC-011',
+                nombre: 'Procedimiento de Manejo de Productos Químicos',
+                version: '1.0',
+                preguntas: [
+                    {
+                        id: 'Q1',
+                        pregunta: '¿Qué equipo de protección debo usar al manipular plaguicidas?',
+                        opciones: [
+                            'Solo uniforme',
+                            'Uniforme completo limpio, mascarilla, guantes y lentes',
+                            'Solo guantes y mascarilla',
+                            'No es necesario usar equipo de protección'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q2',
+                        pregunta: '¿Cuándo debo usar el equipo de protección personal?',
+                        opciones: [
+                            'Solo durante la aplicación',
+                            'Durante la preparación, aplicación o manipulación de plaguicidas (puros o preparados)',
+                            'Solo cuando manipulo productos puros',
+                            'Solo si me lo piden'
+                        ],
+                        respuestaCorrecta: 1
+                    },
+                    {
+                        id: 'Q3',
+                        pregunta: '¿El uso del equipo de protección es obligatorio?',
+                        opciones: [
+                            'No, es opcional',
+                            'Sí, es obligatorio para proteger mi salud y seguridad',
+                            'Solo para algunos productos',
+                            'Solo si es mi primera vez'
+                        ],
+                        respuestaCorrecta: 1
+                    }
+                ]
+            }
+        };
+
+        let procedimientoActual = null;
+        let respuestasUsuario = {};
+
+        // Función helper para esperar a que authManager esté disponible
+        async function waitForAuthManager() {
+            return new Promise((resolve) => {
+                // Primero esperar a secureAuthManager
+                if (window.secureAuthManager) {
+                    window.authManager = window.secureAuthManager;
+                }
+                
+                if (typeof window.authManager !== 'undefined') {
+                    resolve();
+                    return;
+                }
+                const checkAuth = setInterval(() => {
+                    // Verificar secureAuthManager en cada iteración
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    }
+                    if (typeof window.authManager !== 'undefined') {
+                        clearInterval(checkAuth);
+                        resolve();
+                    }
+                }, 100);
+                // Timeout después de 5 segundos
+                setTimeout(() => {
+                    clearInterval(checkAuth);
+                    // Último intento de asignar secureAuthManager
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    }
+                    resolve();
+                }, 5000);
+            });
+        }
+
+        // Función para abrir quiz
+        window.abrirQuiz = function(procedimientoId) {
+            procedimientoActual = PROCEDIMIENTOS[procedimientoId];
+            if (!procedimientoActual) {
+                alert('Procedimiento no encontrado');
+                return;
+            }
+
+            respuestasUsuario = {};
+            const quizContent = document.getElementById('quizContent');
+            const totalPreguntas = procedimientoActual.preguntas.length;
+            const preguntasNecesarias = Math.ceil(totalPreguntas * 0.8);
+            quizContent.innerHTML = `
+                <div class="mb-3">
+                    <h5>${procedimientoActual.nombre}</h5>
+                    <p class="text-muted">Responde las siguientes ${totalPreguntas} pregunta${totalPreguntas > 1 ? 's' : ''}. Necesitas 80% (${preguntasNecesarias} de ${totalPreguntas}) para aprobar.</p>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i><strong>¡No te preocupes!</strong> Si no apruebas, puedes tomarlo nuevamente las veces que necesites hasta aprobar.
+                    </div>
+                </div>
+                ${procedimientoActual.preguntas.map((pregunta, index) => `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Pregunta ${index + 1}: ${pregunta.pregunta}</h6>
+                            <div class="form-check">
+                                ${pregunta.opciones.map((opcion, opcionIndex) => `
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="pregunta_${pregunta.id}" id="opcion_${pregunta.id}_${opcionIndex}" value="${opcionIndex}">
+                                        <label class="form-check-label" for="opcion_${pregunta.id}_${opcionIndex}">
+                                            ${opcion}
+                                        </label>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('modalQuiz'));
+            modal.show();
+        };
+
+        // Función para enviar quiz
+        window.enviarQuiz = async function() {
+            if (!procedimientoActual) return;
+
+            // Recopilar respuestas
+            const respuestas = {};
+            let todasRespondidas = true;
+
+            procedimientoActual.preguntas.forEach(pregunta => {
+                const selected = document.querySelector(`input[name="pregunta_${pregunta.id}"]:checked`);
+                if (!selected) {
+                    todasRespondidas = false;
+                } else {
+                    respuestas[pregunta.id] = parseInt(selected.value);
+                }
+            });
+
+            if (!todasRespondidas) {
+                alert('Por favor responde todas las preguntas antes de enviar.');
+                return;
+            }
+
+            // Calcular nota
+            let correctas = 0;
+            const detalleRespuestas = [];
+
+            procedimientoActual.preguntas.forEach(pregunta => {
+                const respuestaUsuario = respuestas[pregunta.id];
+                const esCorrecta = respuestaUsuario === pregunta.respuestaCorrecta;
+                if (esCorrecta) correctas++;
+
+                detalleRespuestas.push({
+                    preguntaId: pregunta.id,
+                    pregunta: pregunta.pregunta,
+                    opciones: pregunta.opciones,
+                    respuestaCorrecta: pregunta.respuestaCorrecta,
+                    respuestaUsuario: respuestaUsuario,
+                    esCorrecta: esCorrecta
+                });
+            });
+
+            const nota = (correctas / procedimientoActual.preguntas.length) * 100;
+            const aprobado = nota >= 80;
+
+            // Obtener usuario actual - esperar a que authManager esté disponible
+            await waitForAuthManager();
+            
+            // Asegurar que secureAuthManager esté asignado
+            if (window.secureAuthManager) {
+                window.authManager = window.secureAuthManager;
+            }
+            
+            if (typeof window.authManager === 'undefined') {
+                alert('Error: Sistema de autenticación no disponible. Por favor recarga la página.');
+                return;
+            }
+
+            const user = window.authManager.getCurrentUser();
+            if (!user) {
+                alert('Usuario no autenticado. Por favor inicia sesión nuevamente.');
+                if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                    window.location.replace('iniciar_sesion.html');
+                }
+                return;
+            }
+
+            // Guardar en Firestore
+            try {
+                const capacitacionData = {
+                    empleadoId: user.id,
+                    empleadoUsername: user.username || user.id,
+                    empleadoNombre: user.nombre || 'Usuario',
+                    procedimientoId: procedimientoActual.id,
+                    procedimientoNombre: procedimientoActual.nombre,
+                    procedimientoVersion: procedimientoActual.version,
+                    nota: nota,
+                    aprobado: aprobado,
+                    fecha: serverTimestamp(),
+                    fechaLocal: new Date().toISOString(),
+                    metadata: {
+                        preguntas: procedimientoActual.preguntas.map(p => ({
+                            id: p.id,
+                            pregunta: p.pregunta,
+                            opciones: p.opciones,
+                            respuestaCorrecta: p.respuestaCorrecta
+                        })),
+                        respuestasUsuario: respuestas,
+                        detalleRespuestas: detalleRespuestas,
+                        correctas: correctas,
+                        total: procedimientoActual.preguntas.length
+                    }
+                };
+
+                await addDoc(collection(db, 'capacitaciones'), capacitacionData);
+
+                // Mostrar resultado
+                const mensaje = aprobado 
+                    ? `✅ ¡Felicitaciones! Aprobaste con ${nota.toFixed(1)}% (${correctas} de ${procedimientoActual.preguntas.length} correctas)`
+                    : `❌ No aprobaste. Obtuviste ${nota.toFixed(1)}% (${correctas} de ${procedimientoActual.preguntas.length} correctas). Necesitas 80% para aprobar.`;
+
+                alert(mensaje);
+
+                // Cerrar modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalQuiz'));
+                modal.hide();
+
+                // Recargar resumen
+                await cargarResumenCapacitaciones();
+
+            } catch (error) {
+                console.error('Error guardando capacitación:', error);
+                alert('Error al guardar los resultados. Por favor intenta nuevamente.');
+            }
+        };
+
+        // Función para cargar resumen de capacitaciones
+        window.cargarResumenCapacitaciones = async function() {
+            const resumenContent = document.getElementById('resumenContent');
+            const resumenLoading = document.getElementById('resumenLoading');
+            
+            // Mostrar indicador de carga
+            if (resumenLoading) {
+                resumenLoading.style.display = 'inline';
+            }
+            resumenContent.innerHTML = '<p class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Cargando...</p>';
+            
+            // Esperar a que authManager esté disponible
+            await waitForAuthManager();
+            
+            if (typeof window.authManager === 'undefined') {
+                console.warn('authManager no disponible aún');
+                resumenContent.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Error: Sistema de autenticación no disponible. Por favor recarga la página.</div>';
+                if (resumenLoading) resumenLoading.style.display = 'none';
+                return;
+            }
+
+            const user = window.authManager.getCurrentUser();
+            if (!user) {
+                console.warn('Usuario no autenticado');
+                resumenContent.innerHTML = '<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Usuario no autenticado. Por favor inicia sesión.</div>';
+                if (resumenLoading) resumenLoading.style.display = 'none';
+                return;
+            }
+
+            try {
+                // Buscar capacitaciones para usuario
+                
+                // Intentar buscar por empleadoId primero
+                let snapshot;
+                let capacitaciones = [];
+                
+                try {
+                    const capacitacionesQuery = query(
+                        collection(db, 'capacitaciones'),
+                        where('empleadoId', '==', user.id),
+                        orderBy('fecha', 'desc')
+                    );
+                    snapshot = await getDocs(capacitacionesQuery);
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        // Capacitación encontrada por empleadoId
+                        capacitaciones.push({ id: doc.id, ...data });
+                    });
+                } catch (error) {
+                    // Si falla por falta de índice, cargar sin orderBy y ordenar en el cliente
+                    if (error.code === 'failed-precondition' && error.message?.includes('index')) {
+                        // Error de índice faltante - cargar sin ordenar y ordenar en cliente
+                        try {
+                            const capacitacionesQuery = query(
+                                collection(db, 'capacitaciones'),
+                                where('empleadoId', '==', user.id)
+                            );
+                            snapshot = await getDocs(capacitacionesQuery);
+                            snapshot.forEach(doc => {
+                                capacitaciones.push({ id: doc.id, ...doc.data() });
+                            });
+                            // Ordenar por fecha en el cliente (descendente)
+                            capacitaciones.sort((a, b) => {
+                                const fechaA = a.fecha?.toDate ? a.fecha.toDate() : (a.fecha ? new Date(a.fecha) : new Date(0));
+                                const fechaB = b.fecha?.toDate ? b.fecha.toDate() : (b.fecha ? new Date(b.fecha) : new Date(0));
+                                return fechaB - fechaA; // Orden descendente
+                            });
+                        } catch (error2) {
+                            console.warn('Error buscando por empleadoId:', error2);
+                        }
+                    } else {
+                        // Otro tipo de error
+                        console.warn('Error cargando capacitaciones:', error);
+                    }
+                }
+                
+                // Si no se encontraron resultados por empleadoId, intentar por username
+                if (capacitaciones.length === 0 && user.username) {
+                    // No se encontraron resultados por empleadoId, buscando por username
+                    try {
+                        const capacitacionesQueryUsername = query(
+                            collection(db, 'capacitaciones'),
+                            where('empleadoUsername', '==', user.username)
+                        );
+                        const snapshotUsername = await getDocs(capacitacionesQueryUsername);
+                        snapshotUsername.forEach(doc => {
+                            const data = doc.data();
+                            // Capacitación encontrada por username
+                            capacitaciones.push({ id: doc.id, ...data });
+                        });
+                    } catch (error3) {
+                        console.warn('Error buscando por username:', error3);
+                    }
+                }
+                
+
+                // Ordenar por fecha si no se ordenó en la query
+                capacitaciones.sort((a, b) => {
+                    const fechaA = a.fecha?.toDate ? a.fecha.toDate() : (a.fechaLocal ? new Date(a.fechaLocal) : new Date(0));
+                    const fechaB = b.fecha?.toDate ? b.fecha.toDate() : (b.fechaLocal ? new Date(b.fechaLocal) : new Date(0));
+                    return fechaB - fechaA; // Más reciente primero
+                });
+
+                // Agrupar por procedimiento y obtener la última nota
+                const resumenPorProcedimiento = {};
+                capacitaciones.forEach(cap => {
+                    if (!resumenPorProcedimiento[cap.procedimientoId]) {
+                        resumenPorProcedimiento[cap.procedimientoId] = {
+                            procedimientoId: cap.procedimientoId,
+                            procedimientoNombre: cap.procedimientoNombre,
+                            ultimaNota: cap.nota,
+                            ultimaFecha: cap.fechaLocal || cap.fecha,
+                            aprobado: cap.aprobado,
+                            totalIntentos: 0,
+                            mejorNota: cap.nota
+                        };
+                    }
+                    resumenPorProcedimiento[cap.procedimientoId].totalIntentos++;
+                    if (cap.nota > resumenPorProcedimiento[cap.procedimientoId].mejorNota) {
+                        resumenPorProcedimiento[cap.procedimientoId].mejorNota = cap.nota;
+                    }
+                    // La última fecha ya está ordenada por fecha desc
+                });
+
+                // Ocultar indicador de carga
+                if (resumenLoading) {
+                    resumenLoading.style.display = 'none';
+                }
+                
+                
+                // Actualizar estados en los items expandibles de los procedimientos
+                const mapeoProcedimientos = {
+                    'PROC-001': 'estado-proc-001',
+                    'PROC-002': 'estado-proc-002',
+                    'PROC-003': 'estado-proc-003',
+                    'PROC-004': 'estado-proc-004',
+                    'PROC-005': 'estado-proc-005',
+                    'PROC-006': 'estado-proc-006',
+                    'PROC-007': 'estado-proc-007',
+                    'PROC-008': 'estado-proc-008',
+                    'PROC-009': 'estado-proc-009',
+                    'PROC-010': 'estado-proc-010',
+                    'PROC-011': 'estado-proc-011'
+                };
+                
+                // Limpiar todos los estados primero
+                Object.values(mapeoProcedimientos).forEach(estadoId => {
+                    const estadoElement = document.getElementById(estadoId);
+                    if (estadoElement) {
+                        estadoElement.innerHTML = '';
+                    }
+                });
+                
+                // Actualizar estados con datos en los tabs
+                Object.values(resumenPorProcedimiento).forEach(resumen => {
+                    const estadoId = mapeoProcedimientos[resumen.procedimientoId];
+                    if (estadoId) {
+                        const estadoElement = document.getElementById(estadoId);
+                        if (estadoElement) {
+                            const fecha = resumen.ultimaFecha;
+                            let fechaStr = '';
+                            if (fecha) {
+                                if (fecha.toDate) {
+                                    fechaStr = fecha.toDate().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+                                } else if (typeof fecha === 'string') {
+                                    const dateObj = new Date(fecha);
+                                    fechaStr = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+                                }
+                            }
+                            
+                            if (resumen.aprobado) {
+                                estadoElement.innerHTML = `
+                                    <span class="badge bg-success" style="font-size: 0.7rem; padding: 0.2rem 0.4rem; margin-right: 5px;">
+                                        ✓ ${resumen.ultimaNota.toFixed(0)}%
+                                    </span>
+                                    ${fechaStr ? `<button class="btn btn-sm btn-outline-success" onclick="verCertificado('${resumen.procedimientoId}', '${resumen.procedimientoNombre.replace(/'/g, "\\'")}', ${resumen.ultimaNota}, '${fechaStr}')" style="font-size: 0.65rem; padding: 0.15rem 0.3rem; white-space: nowrap; min-width: auto;" title="Ver certificado">
+                                        <i class="fas fa-certificate"></i>
+                                    </button>` : ''}
+                                `;
+                            } else {
+                                estadoElement.innerHTML = `
+                                    <span class="badge bg-warning" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">
+                                        ✗ ${resumen.ultimaNota.toFixed(0)}%
+                                    </span>
+                                `;
+                            }
+                        }
+                    }
+                });
+
+                // Guardar datos para el PDF
+                window.datosCapacitacionesPDF = {
+                    user: user,
+                    resumenPorProcedimiento: resumenPorProcedimiento,
+                    capacitaciones: capacitaciones
+                };
+            } catch (error) {
+                console.error('Error cargando resumen:', error);
+                const resumenContent = document.getElementById('resumenContent');
+                const resumenLoading = document.getElementById('resumenLoading');
+                if (resumenLoading) {
+                    resumenLoading.style.display = 'none';
+                }
+                resumenContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Error al cargar el resumen:</strong> ${error.message}
+                        <p class="mb-0 mt-2">Por favor intenta nuevamente o recarga la página.</p>
+                    </div>
+                `;
+            }
+        }
+
+        let certificadoActual = null;
+
+        // Función para ver certificado individual
+        window.verCertificado = function(procedimientoId, procedimientoNombre, nota, fecha) {
+            const user = window.authManager.getCurrentUser();
+            if (!user) {
+                alert('Usuario no autenticado');
+                return;
+            }
+
+            certificadoActual = {
+                procedimientoId: procedimientoId,
+                procedimientoNombre: procedimientoNombre,
+                nota: nota,
+                fecha: fecha,
+                empleadoNombre: user.nombre || 'Usuario',
+                empleadoUsername: user.username || user.id
+            };
+
+            // Generar HTML del certificado
+            const certificadoContent = document.getElementById('certificadoContent');
+            certificadoContent.innerHTML = `
+                <div class="certificado-container">
+                    <div class="certificado-decoracion decoracion-tl">
+                        <i class="fas fa-certificate" style="font-size: 120px; color: #d4af37;"></i>
+                    </div>
+                    <div class="certificado-decoracion decoracion-tr">
+                        <i class="fas fa-certificate" style="font-size: 120px; color: #d4af37;"></i>
+                    </div>
+                    <div class="certificado-decoracion decoracion-bl">
+                        <i class="fas fa-certificate" style="font-size: 120px; color: #d4af37;"></i>
+                    </div>
+                    <div class="certificado-decoracion decoracion-br">
+                        <i class="fas fa-certificate" style="font-size: 120px; color: #d4af37;"></i>
+                    </div>
+                    
+                    <div class="certificado-border">
+                        <div class="certificado-header">
+                            <div class="certificado-logo">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                            <div class="certificado-title">Certificado de Capacitación</div>
+                            <div class="certificado-subtitle">Fumigadora Eco Plagas</div>
+                        </div>
+                        
+                        <div class="certificado-body">
+                            <p>Fumigadora <strong>Eco Plagas</strong> certifica que el Colaborador</p>
+                            <div class="certificado-nombre">${certificadoActual.empleadoNombre}</div>
+                            <p>ha completado de forma satisfactoria el curso</p>
+                            <div class="certificado-curso">${certificadoActual.procedimientoNombre}</div>
+                            <p>con una nota de</p>
+                            <div class="certificado-nota">${certificadoActual.nota.toFixed(1)}%</div>
+                            <p>lo cual es <strong style="color: #28a745;">APROBADO</strong></p>
+                            <p style="margin-top: 5px; font-size: 0.85rem; color: #666;">
+                                Fecha de finalización: ${certificadoActual.fecha}
+                            </p>
+                        </div>
+                        
+                        <div class="certificado-footer">
+                            <div class="certificado-firma">
+                                <div class="certificado-firma-line"></div>
+                                <div class="certificado-firma-text">Fumigadora Eco Plagas</div>
+                            </div>
+                            <div class="certificado-firma">
+                                <div class="certificado-firma-line"></div>
+                                <div class="certificado-firma-text">Recursos Humanos</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Mostrar modal
+            const modalElement = document.getElementById('modalCertificado');
+            const modal = new bootstrap.Modal(modalElement, {
+                backdrop: 'static',
+                keyboard: false
+            });
+            
+            // Manejar eventos del modal para evitar problemas de aria-hidden
+            modalElement.addEventListener('shown.bs.modal', function() {
+                // Asegurar que el modal esté accesible
+                modalElement.removeAttribute('aria-hidden');
+            });
+            
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                // Limpiar cuando se cierra
+                modalElement.setAttribute('aria-hidden', 'true');
+            });
+            
+            modal.show();
+        };
+
+
+        // Función para descargar certificado completo en PDF (mantener para compatibilidad)
+        window.descargarCertificadoPDF = function() {
+            alert('Por favor, usa el botón "Certificado" de cada curso aprobado para ver e imprimir el certificado individual.');
+            return;
+        }
+
+        // Verificar permisos al cargar la página
+        // NOTA: El script del head ya verificó autenticación y mostró el body si está autenticado
+        // Aquí solo verificamos permisos, no autenticación
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Esperar a que secureAuthManager esté disponible (máximo 5 segundos)
+            let retries = 0;
+            const maxRetries = 50; // 5 segundos
+            
+            while (retries < maxRetries) {
+                if (window.secureAuthManager && window.authManager) {
+                    break;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            // Si después de esperar no hay authManager, algo está mal pero no redirigimos
+            // porque el script del head ya debería haber manejado la autenticación
+            if (!window.authManager) {
+                console.warn('⚠️ [RECURSOS_HUMANOS] authManager no disponible después de esperar');
+                // Si el body está visible, significa que el script del head verificó autenticación
+                // Continuar con la carga normal
+                if (document.body.classList.contains('authenticated')) {
+                    await cargarResumenCapacitaciones();
+                }
+                return;
+            }
+            
+            // Refrescar permisos antes de verificar
+            if (window.authManager.refreshUserPermissions) {
+                try {
+                    await window.authManager.refreshUserPermissions();
+                } catch (e) {
+                    console.error('Error refrescando permisos:', e);
+                }
+            }
+            
+            // Verificar permiso de recursos_humanos
+            const hasPermission = window.authManager.hasPermission('recursos_humanos');
+            
+            if (!hasPermission) {
+                console.log('⚠️ [RECURSOS_HUMANOS] Usuario autenticado pero sin permiso de recursos_humanos');
+                alert('No tienes permisos para acceder a esta página.');
+                window.location.href = 'inicio.html';
+                return;
+            }
+            
+            // Cargar resumen de capacitaciones al inicio
+            await cargarResumenCapacitaciones();
+        });
+        
+        // Función para toggle de procedimientos expandibles
+        window.toggleProcedimiento = function(procId) {
+            const content = document.getElementById(`content-${procId}`);
+            const icon = document.getElementById(`icon-${procId}`);
+            
+            if (content && icon) {
+                if (content.style.display === 'none' || content.style.display === '') {
+                    content.style.display = 'block';
+                    icon.classList.add('expanded');
+                } else {
+                    content.style.display = 'none';
+                    icon.classList.remove('expanded');
+                }
+            }
+        };
+    </script>
+</body>
+</html>
+
