@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Bodeguita Seguro - Eco Plagas</title>
+    <link rel="icon" type="image/png" href="Logo Eco Plagas.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=1.7.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        // Guardar auth en window para uso global
+        window.firebaseAuth = auth;
+        
+        // VERIFICACIÓN INMEDIATA DE AUTENTICACIÓN - Redirigir antes de cargar contenido
+        (async function() {
+            // Prevenir múltiples ejecuciones
+            if (window.authCheckInProgress) {
+                return;
+            }
+            window.authCheckInProgress = true;
+            
+            // Ocultar body inmediatamente
+            if (document.body) {
+                document.body.style.display = 'none';
+            }
+            
+            // Esperar a que auth-secure.js se cargue completamente
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Verificar si ya estamos en iniciar_sesion.html (evitar loop)
+            if (window.location.pathname.includes('iniciar_sesion.html')) {
+                window.authCheckInProgress = false;
+                return;
+            }
+            
+            // Verificar autenticación de manera simple
+            let retries = 0;
+            const maxRetries = 100; // 10 segundos
+            
+            while (retries < maxRetries) {
+                // Verificar Firebase Auth directamente
+                if (auth.currentUser) {
+                    console.log('✅ [OPERARIO_BODEGA_SECURE] Usuario autenticado:', auth.currentUser.email);
+                    
+                    // Esperar a secureAuthManager
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        // Esperar un poco más
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    // Mostrar body
+                    if (document.body) {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+                    
+                    window.authCheckInProgress = false;
+                    return; // Usuario autenticado, continuar
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            // Si llegamos aquí, no hay autenticación
+            console.log('❌ [OPERARIO_BODEGA_SECURE] No autenticado después de esperar');
+            if (document.body) {
+                document.body.style.display = 'none';
+            }
+            
+            // Solo redirigir si no estamos ya en loginsecure
+            if (!window.location.pathname.includes('iniciar_sesion.html')) {
+                try {
+                    sessionStorage.setItem('postLoginRedirect', window.location.href);
+                } catch (e) { console.error('Error saving redirect:', e); }
+                window.location.replace('iniciar_sesion.html');
+            }
+            
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        /* Ocultar contenido hasta verificar autenticación */
+        body {
+            display: none !important;
+        }
+        body.authenticated {
+            display: block !important;
+        }
+        /* Estilos para título como en Reportes Gerenciales */
+        .page-header {
+            text-align: center;
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            background-color: #BBDEFB !important;
+            background: #BBDEFB !important;
+            border-radius: 12px;
+            box-shadow: none !important;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .page-header::before {
+            display: none !important;
+        }
+        
+        .page-header h1 {
+            color: #000000 !important;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: none !important;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+        
+        .page-header h1 i {
+            color: #ff0000 !important;
+            animation: heartbeat 1.5s ease-in-out infinite;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+        }
+        
+        /* Animación de latido del corazón */
+        @keyframes heartbeat {
+            0% {
+                transform: scale(1);
+            }
+            14% {
+                transform: scale(1.1);
+            }
+            28% {
+                transform: scale(1);
+            }
+            42% {
+                transform: scale(1.1);
+            }
+            70% {
+                transform: scale(1);
+            }
+        }
+        
+        /* Animación pulse-down (estilo 2) para iconos de despliegue */
+        @keyframes pulse-down {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(4px);
+                opacity: 0.7;
+            }
+        }
+        
+        /* Clase para icono animado con pulse-down */
+        .icon-expand-pulse {
+            animation: pulse-down 1.5s ease-in-out infinite;
+        }
+        
+        /* Detener animación cuando el collapse está expandido */
+        [aria-expanded="true"] .icon-expand-pulse {
+            animation: none;
+        }
+        
+        /* Responsive para móviles */
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 1.8rem;
+                flex-direction: column;
+                gap: 0.4rem;
+            }
+            
+            .page-header {
+                padding: 1rem;
+                margin-bottom: 1.2rem;
+            }
+            
+            /* Optimización para móvil */
+            .container-fluid {
+                padding: 0.5rem !important;
+            }
+            
+            /* Botones más grandes en móvil */
+            .btn-lg {
+                padding: 0.75rem 1rem !important;
+                font-size: 1rem !important;
+            }
+            
+            /* Secciones más compactas */
+            .section-card {
+                margin-bottom: 1rem !important;
+            }
+            
+            .section-header {
+                padding: 0.5rem !important;
+            }
+            
+            .section-content {
+                padding: 1rem !important;
+            }
+            
+            /* Tablas responsive */
+            .table-responsive {
+                border: none !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .table {
+                font-size: 0.85rem !important;
+                margin-bottom: 0 !important;
+            }
+            
+            .table th,
+            .table td {
+                padding: 0.5rem 0.25rem !important;
+                white-space: nowrap;
+            }
+            
+            /* Modales más pequeños en móvil */
+            .modal-dialog {
+                margin: 0.5rem !important;
+                max-width: calc(100% - 1rem) !important;
+            }
+            
+            .modal-body {
+                padding: 1rem !important;
+            }
+            
+            /* Formularios normales en móvil */
+            .form-label {
+                font-size: 0.95rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+            
+            .form-control,
+            .form-select {
+                font-size: 1rem !important;
+                padding: 0.5rem 0.75rem !important;
+                line-height: 1.5 !important;
+            }
+            
+            /* Botones de cantidad normales */
+            .btn-sm {
+                padding: 0.5rem !important;
+                font-size: 1rem !important;
+                min-width: 40px !important;
+                min-height: 40px !important;
+            }
+            
+            /* Ocultar elementos no esenciales en móvil */
+            .section-badge {
+                display: none !important;
+            }
+            
+            /* Badges normales en móvil */
+            .badge {
+                font-size: 0.875rem !important;
+                padding: 0.35rem 0.65rem !important;
+            }
+            
+            /* Sub-secciones APV normales en móvil */
+            .apv-subsection {
+                background: #ffffff !important;
+                border: 1px solid #dee2e6 !important;
+                border-radius: 8px !important;
+                margin-bottom: 1rem !important;
+                padding: 1rem !important;
+            }
+            
+            .apv-subsection-header {
+                background: #e9ecef !important;
+                border-radius: 6px !important;
+                padding: 0.6rem 0.8rem !important;
+                margin: -1rem -1rem 0.75rem -1rem !important;
+                font-weight: 600 !important;
+                font-size: 1rem !important;
+            }
+            
+            .apv-product-item {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 0.6rem 0 !important;
+                border-bottom: 1px solid #f8f9fa !important;
+            }
+            
+            .apv-product-item:last-child {
+                border-bottom: none !important;
+            }
+            
+            .apv-product-name {
+                font-size: 0.95rem !important;
+                font-weight: 500 !important;
+                flex: 1 !important;
+                margin-right: 0.75rem !important;
+            }
+            
+            .apv-product-quantity {
+                font-size: 0.9rem !important;
+                font-weight: 600 !important;
+                color: #0d6efd !important;
+                background: #e7f3ff !important;
+                padding: 0.35rem 0.65rem !important;
+                border-radius: 4px !important;
+                min-width: 50px !important;
+                text-align: center !important;
+            }
+            
+            /* Inventario personal para móvil */
+            .inventario-item {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 0.75rem !important;
+                background: #ffffff !important;
+                border: 1px solid #dee2e6 !important;
+                border-radius: 8px !important;
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .inventario-item:last-child {
+                margin-bottom: 0 !important;
+            }
+            
+            .inventario-product-name {
+                font-size: 0.95rem !important;
+                font-weight: 500 !important;
+                flex: 1 !important;
+                margin-right: 0.75rem !important;
+            }
+            
+            .inventario-product-quantity {
+                font-size: 0.9rem !important;
+                font-weight: 600 !important;
+                color: #198754 !important;
+                background: #d1e7dd !important;
+                padding: 0.25rem 0.5rem !important;
+                border-radius: 4px !important;
+                min-width: 50px !important;
+                text-align: center !important;
+            }
+        }
+        
+        /* Estilos para fondos grises de secciones como en Reportes Gerenciales */
+        .section-card {
+            background: #f8f9fa !important;
+            border: 1px solid rgba(0,0,0,0.05) !important;
+            border-radius: 6px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+            margin-bottom: 12px !important;
+        }
+        
+        /* Sección "Mis Productos" - Verde Pastel */
+        #seccion-mis-productos {
+            background-color: #c8e6c9 !important;
+            background: #c8e6c9 !important;
+        }
+        
+        /* Encabezado "Mis Productos" - Verde Pastel */
+        #seccion-mis-productos .section-header {
+            background-color: #c8e6c9 !important;
+            background: #c8e6c9 !important;
+        }
+        
+        /* Texto del encabezado en negro */
+        #seccion-mis-productos .section-header h3 {
+            color: #000000 !important;
+        }
+        
+        /* Icono del encabezado en negro */
+        #seccion-mis-productos .section-header h3 i {
+            color: #000000 !important;
+        }
+        
+        /* Badge "Disponibles" en Verde Primario */
+        #seccion-mis-productos .section-badge .badge.bg-success {
+            background-color: #0b7835 !important;
+            background: #0b7835 !important;
+            color: #ffffff !important;
+            border-color: #0b7835 !important;
+        }
+        
+        /* Asegurar que el icono del badge también sea blanco */
+        #seccion-mis-productos .section-badge .badge.bg-success i {
+            color: #ffffff !important;
+        }
+        
+        /* Estilos para "Mi Bodega Personal" - Azul Primario */
+        /* El fondo ya está aplicado inline, pero agregamos estilos adicionales por si acaso */
+        #seccion-mis-productos .rounded-3:has(button[data-bs-target="#collapseRutero"]) {
+            background-color: #2196F3 !important;
+            border-color: #2196F3 !important;
+        }
+        
+        /* Botón de colapso para "Mi Bodega Personal" - Azul Pastel */
+        #seccion-mis-productos button[data-bs-target="#collapseRutero"] {
+            background-color: #BBDEFB !important;
+            background: #BBDEFB !important;
+            border-color: #BBDEFB !important;
+            color: #2196F3 !important;
+        }
+        
+        /* Icono animado en Azul Primario */
+        #seccion-mis-productos button[data-bs-target="#collapseRutero"] .icon-expand-pulse {
+            color: #2196F3 !important;
+        }
+        
+        /* Asegurar que el texto "Mi Bodega Personal" sea blanco */
+        #seccion-mis-productos .rounded-3:has(button[data-bs-target="#collapseRutero"]) h5 {
+            color: #ffffff !important;
+        }
+        
+        /* Estilos para "Mi Bodega Especial" - Verde Primario */
+        #seccion-mis-productos .rounded-3:has(button[data-bs-target="#collapseEspecial"]) {
+            background-color: #0b7835 !important;
+            border-color: #0b7835 !important;
+        }
+        
+        /* Botón de colapso para "Mi Bodega Especial" - Verde Pastel */
+        #seccion-mis-productos button[data-bs-target="#collapseEspecial"] {
+            background-color: #c8e6c9 !important;
+            background: #c8e6c9 !important;
+            border-color: #c8e6c9 !important;
+            color: #0b7835 !important;
+        }
+        
+        /* Icono animado en Verde Primario */
+        #seccion-mis-productos button[data-bs-target="#collapseEspecial"] .icon-expand-pulse {
+            color: #0b7835 !important;
+        }
+        
+        /* Asegurar que el texto "Mi Bodega Especial" sea blanco */
+        #seccion-mis-productos .rounded-3:has(button[data-bs-target="#collapseEspecial"]) h5 {
+            color: #ffffff !important;
+        }
+        
+        /* Botón toggleSaldoCero también en Verde Pastel */
+        #seccion-mis-productos #toggleSaldoCero {
+            background-color: #c8e6c9 !important;
+            background: #c8e6c9 !important;
+            border-color: #c8e6c9 !important;
+            color: #0b7835 !important;
+        }
+        
+        /* Estilos para "Inventario APV" - Amarillo Primario */
+        #seccion-mis-productos .rounded-3:has(button[data-bs-target="#collapseAPV"]) {
+            background-color: #fbdc02 !important;
+            border-color: #fbdc02 !important;
+        }
+        
+        /* Botón de colapso para "Inventario APV" - Amarillo Pastel */
+        #seccion-mis-productos button[data-bs-target="#collapseAPV"] {
+            background-color: #fff9c4 !important;
+            background: #fff9c4 !important;
+            border-color: #fff9c4 !important;
+            color: #fbdc02 !important;
+        }
+        
+        /* Icono animado en Amarillo Primario */
+        #seccion-mis-productos button[data-bs-target="#collapseAPV"] .icon-expand-pulse {
+            color: #fbdc02 !important;
+        }
+        
+        /* Asegurar que el texto "Inventario APV" sea blanco */
+        #seccion-mis-productos .rounded-3:has(button[data-bs-target="#collapseAPV"]) h5 {
+            color: #ffffff !important;
+        }
+        
+        /* Estilos para sección "Mis Herramientas y Equipo" - Verde Pastel */
+        #seccion-mis-herramientas {
+            background-color: #c8e6c9 !important;
+            background: #c8e6c9 !important;
+        }
+        
+        /* Encabezado "Mis Herramientas y Equipo" - Verde Pastel */
+        #seccion-mis-herramientas .section-header {
+            background-color: #c8e6c9 !important;
+            background: #c8e6c9 !important;
+        }
+        
+        /* Texto del encabezado en negro */
+        #seccion-mis-herramientas .section-header h3 {
+            color: #000000 !important;
+        }
+        
+        /* Icono del encabezado en negro */
+        #seccion-mis-herramientas .section-header h3 i {
+            color: #000000 !important;
+        }
+        
+        /* Badge "Disponibles" en Verde Primario */
+        #seccion-mis-herramientas .section-badge .badge.bg-warning {
+            background-color: #0b7835 !important;
+            background: #0b7835 !important;
+            color: #ffffff !important;
+            border-color: #0b7835 !important;
+        }
+        
+        /* Asegurar que el icono del badge también sea blanco */
+        #seccion-mis-herramientas .section-badge .badge.bg-warning i {
+            color: #ffffff !important;
+        }
+        
+        /* Estilos para sección "Gastos Recientes" - Rojo Pastel */
+        #seccion-gastos-recientes {
+            background-color: #ffcdd2 !important;
+            background: #ffcdd2 !important;
+        }
+        
+        /* Encabezado "Gastos Recientes" - Rojo Pastel */
+        #seccion-gastos-recientes .section-header {
+            background-color: #ffcdd2 !important;
+            background: #ffcdd2 !important;
+        }
+        
+        /* Texto del encabezado en negro */
+        #seccion-gastos-recientes .section-header h3 {
+            color: #000000 !important;
+        }
+        
+        /* Icono del encabezado en negro */
+        #seccion-gastos-recientes .section-header h3 i {
+            color: #000000 !important;
+        }
+        
+        /* Badge "Últimas 24 horas" en Amarillo Primario */
+        #seccion-gastos-recientes .section-badge .badge.bg-warning {
+            background-color: #fbdc02 !important;
+            background: #fbdc02 !important;
+            color: #000000 !important;
+            border-color: #fbdc02 !important;
+        }
+        
+        /* Asegurar que el icono del badge también sea negro */
+        #seccion-gastos-recientes .section-badge .badge.bg-warning i {
+            color: #000000 !important;
+        }
+        
+        .section-header {
+            background: #e9ecef !important;
+            padding: 4px 8px !important;
+            cursor: pointer !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            border-radius: 6px 6px 0 0 !important;
+            margin: -1px -1px 0 -1px !important;
+        }
+        
+        .section-content {
+            padding: 1rem !important;
+        }
+        
+        .section-header h3 {
+            margin: 0 !important;
+            color: #495057 !important;
+            font-weight: 600 !important;
+        }
+        
+        .section-badge .badge {
+            font-size: 0.75rem !important;
+            padding: 0.375rem 0.75rem !important;
+        }
+        
+        /* Estilos para las tablas dentro de las secciones */
+        .section-card .table {
+            margin-bottom: 0 !important;
+        }
+        
+        .section-card .table thead th {
+            background-color: #343a40 !important;
+            border-color: #495057 !important;
+            color: white !important;
+            font-weight: 600 !important;
+            padding: 0.5rem !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .section-card .table tbody td {
+            padding: 0.5rem !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .section-card .table tbody tr:hover {
+            background-color: rgba(0,123,255,0.05) !important;
+        }
+        
+        /* Estilos para los botones dentro de las secciones */
+        .section-card .btn {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+        }
+        
+        .section-card .btn:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        }
+
+        /* Ajustes de densidad y tamaños para que no se vea tan grande/pegado */
+        .page-header h1 {
+            font-size: 1.6rem !important;
+        }
+        .section-header {
+            gap: 8px !important;
+        }
+        .section-header h3 {
+            font-size: 1rem !important;
+            margin: 0 !important;
+        }
+        .section-card .table {
+            font-size: 0.8rem !important;
+        }
+        .section-card .table thead th {
+            padding: 0.4rem !important;
+            font-size: 0.85rem !important;
+        }
+        .section-card .table tbody td {
+            padding: 0.4rem !important;
+            font-size: 0.85rem !important;
+        }
+        /* Reducir padding excesivo de contenedores con p-4 dentro de secciones */
+        .section-card .p-4 {
+            padding: 1rem !important;
+        }
+        
+        /* Estilos normales para selects y form controls */
+        .form-select,
+        .form-control {
+            padding: 0.5rem 0.75rem !important;
+            font-size: 1rem !important;
+            line-height: 1.5 !important;
+        }
+        
+        /* Estilos normales para labels de formularios */
+        .form-label {
+            margin-bottom: 0.5rem !important;
+            font-size: 0.95rem !important;
+        }
+        
+        /* Espaciado normal entre campos de formulario */
+        .mb-3 {
+            margin-bottom: 1rem !important;
+        }
+        
+        /* Espaciado normal en tablas */
+        .table td,
+        .table th {
+            padding: 0.6rem 0.75rem !important;
+            line-height: 1.5 !important;
+        }
+        
+        /* Espaciado normal para headers de bodegas y productos */
+        .apv-subsection-header,
+        .section-header h5 {
+            padding: 0.6rem 0.8rem !important;
+            margin-bottom: 0.75rem !important;
+            font-size: 1rem !important;
+            line-height: 1.5 !important;
+        }
+        
+        /* Espaciado normal para contenedores de bodegas APV */
+        .rounded-3.p-4 {
+            padding: 1rem !important;
+        }
+        
+        /* Espaciado normal para items de productos */
+        .apv-product-item,
+        .inventario-item {
+            padding: 0.6rem 0 !important;
+            min-height: 2.5rem !important;
+        }
+        
+        /* Espaciado normal para badges y cantidades */
+        .badge,
+        .apv-product-quantity,
+        .inventario-product-quantity {
+            padding: 0.35rem 0.65rem !important;
+            font-size: 0.875rem !important;
+            line-height: 1.4 !important;
+        }
+
+        /* Evitar que la flecha (botón de colapso) se salga a la derecha */
+        .section-header .d-flex.align-items-center {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+        }
+        .section-header [data-bs-toggle="collapse"] {
+            margin-left: auto !important;
+            flex: 0 0 auto !important;
+        }
+        /* Específico para el bloque "Mi Inventario Personal" (collapsePersonal) */
+        .section-header [data-bs-target="#collapsePersonal"] {
+            margin-left: auto !important;
+        }
+        
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-1 px-2">
+        <!-- Header Principal -->
+        <div class="page-header">
+            <h1><i class="fas fa-boxes inventory-icon"></i> Mi Bodeguita</h1>
+        </div>
+
+        <!-- Sección de Mis Productos -->
+        <div class="section-card mb-3" id="seccion-mis-productos">
+            <div class="section-header">
+                <h3><i class="fas fa-boxes"></i> Mis Productos</h3>
+                <div class="section-badge d-none d-md-block">
+                    <span class="badge bg-success">
+                        <i class="fas fa-check-circle me-1"></i>Disponibles
+                    </span>
+                </div>
+            </div>
+            <div class="section-content">
+                <!-- Inventario Rutero -->
+                <div class="mb-4">
+                    <div class="rounded-3 p-4 border-start border-4" style="background-color: #2196F3 !important; border-color: #2196F3 !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0 fw-bold" style="color: #ffffff !important;">Mi Bodega Personal</h5>
+                            <button class="btn btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRutero" aria-expanded="true" style="background-color: #BBDEFB !important; color: #2196F3 !important; border-color: #BBDEFB !important;">
+                                <i class="fas fa-chevron-down icon-expand-pulse" style="color: #2196F3 !important;"></i>
+                            </button>
+                        </div>
+                        <div class="collapse show" id="collapseRutero">
+                            <div class="table-responsive">
+                                <table class="table table-modern table-sm" style="table-layout: fixed; width: 100%;">
+                                    <tbody id="tablaInventarioRutero">
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-3">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>Cargando...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventario Especial con Neteo por Día -->
+                <div class="mb-4">
+                    <div class="rounded-3 p-4 border-start border-4" style="background-color: #0b7835 !important; border-color: #0b7835 !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0 fw-bold" style="color: #ffffff !important;">Mi Bodega Especial</h5>
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn btn-sm" id="toggleSaldoCero" onclick="toggleDiasSaldoCero()" title="Mostrar neteados" style="display: none; background-color: #c8e6c9; color: #0b7835; border-color: #c8e6c9;">
+                                    <i class="fas fa-eye-slash"></i>
+                                </button>
+                                <button class="btn btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEspecial" aria-expanded="true" style="background-color: #c8e6c9 !important; color: #0b7835 !important; border-color: #c8e6c9 !important;">
+                                    <i class="fas fa-chevron-down icon-expand-pulse" style="color: #0b7835 !important;"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="collapse show" id="collapseEspecial">
+                            <div class="table-responsive">
+                                <div id="inventarioEspecialPorDia">
+                                    <div class="text-center text-muted py-3">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Cargando...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventario APV - Todas las bodegas APV -->
+                <div class="mb-4">
+                    <div class="rounded-3 p-4 border-start border-4" style="background-color: #fbdc02 !important; border-color: #fbdc02 !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0 fw-bold" style="color: #ffffff !important;">Inventario APV</h5>
+                            <button class="btn btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAPV" aria-expanded="true" style="background-color: #fff9c4 !important; color: #fbdc02 !important; border-color: #fff9c4 !important;">
+                                <i class="fas fa-chevron-down icon-expand-pulse" style="color: #fbdc02 !important;"></i>
+                            </button>
+                        </div>
+                        <div class="collapse show" id="collapseAPV">
+                            <div class="table-responsive">
+                                <div id="contenedorBodegasAPV">
+                                    <div class="text-center text-muted py-3">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>Cargando bodegas APV...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Mis Herramientas -->
+        <div class="section-card mb-3" id="seccion-mis-herramientas">
+            <div class="section-header">
+                <h3><i class="fas fa-tools"></i> Mis Herramientas y Equipo</h3>
+                <div class="section-badge d-none d-md-block">
+                    <span class="badge bg-warning text-dark">
+                        <i class="fas fa-check-circle me-1"></i>Disponibles
+                    </span>
+                </div>
+            </div>
+            <div class="section-content">
+                <!-- Inventario de Herramientas -->
+                <div class="mb-4">
+                    <div class="rounded-3 p-4 border-start border-4" style="background-color: #fbdc02 !important; border-color: #fbdc02 !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0 fw-bold" style="color: #ffffff !important;">Mi Inventario de Herramientas</h5>
+                            <button class="btn btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHerramientas" aria-expanded="true" style="background-color: #fff9c4 !important; color: #fbdc02 !important; border-color: #fff9c4 !important;">
+                                <i class="fas fa-chevron-down icon-expand-pulse" style="color: #fbdc02 !important;"></i>
+                            </button>
+                        </div>
+                        <div class="collapse show" id="collapseHerramientas">
+                            <div class="table-responsive">
+                                <table class="table table-modern table-sm" style="table-layout: fixed; width: 100%;">
+                                    <tbody id="tablaInventarioHerramientas">
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-3">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>Cargando...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Sección de Gastos Recientes -->
+        <div class="section-card mb-3" id="seccion-gastos-recientes">
+            <div class="section-header">
+                <h3><i class="fas fa-receipt"></i> Gastos Recientes</h3>
+                <div class="section-badge d-none d-md-block">
+                    <span class="badge bg-warning">
+                        <i class="fas fa-clock me-1"></i>Últimas 24 horas
+                    </span>
+                </div>
+            </div>
+            <div class="section-content">
+                <!-- Lista de Transacciones Recientes -->
+                <div id="listaGastos">
+                    <div class="text-center text-muted py-2">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                        <p>Cargando transacciones...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reportar Gasto Rutero -->
+    <div class="modal fade" id="modalReportarGastoRutero" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user me-2"></i>Reportar Gasto Rutero
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Importante:</strong> Un administrador de bodega revisará tu gasto y procederá con el refill si aplica.
+                    </div>
+                    <form id="formReportarGastoRutero">
+                        <div class="mb-3">
+                            <label for="bodegaOrigenRutero" class="form-label">Bodega de Origen *</label>
+                            <select class="form-select" id="bodegaOrigenRutero" required onchange="cargarProductosRutero()">
+                                <option value="">Seleccionar bodega...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productoGastoRutero" class="form-label">Producto *</label>
+                            <select class="form-select" id="productoGastoRutero" required onchange="actualizarSaldoRutero()">
+                                <option value="">Primero selecciona una bodega...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="infoSaldoRutero" style="display: none;">
+                            <div class="alert alert-info">
+                                <strong>Saldo Actual:</strong> <span id="saldoActualRutero">0</span> <span id="unidadRutero">unidades</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cantidadGastoRutero" class="form-label">Cantidad *</label>
+                            <div class="input-group">
+                                <button class="btn btn-outline-secondary" type="button" onclick="decrementarCantidad('cantidadGastoRutero')">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" class="form-control text-center" id="cantidadGastoRutero" required min="1" onchange="actualizarNuevoSaldoRutero()">
+                                <button class="btn btn-outline-secondary" type="button" onclick="incrementarCantidad('cantidadGastoRutero')">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="infoNuevoSaldoRutero" style="display: none;">
+                            <div class="alert alert-success">
+                                <strong>Nuevo Saldo:</strong> <span id="nuevoSaldoRutero">0</span> <span id="unidadNuevoRutero">unidades</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cuentaGastoRutero" class="form-label">Tipo de Gasto *</label>
+                            <select class="form-select" id="cuentaGastoRutero" required>
+                                <option value="">Seleccionar tipo de gasto...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="motivoGastoRutero" class="form-label">Motivo del Gasto *</label>
+                            <input type="text" class="form-control" id="motivoGastoRutero" required placeholder="Ej: Uso en cita de fumigación">
+                        </div>
+                        <div class="mb-3">
+                            <label for="observacionesGastoRutero" class="form-label">Observaciones</label>
+                            <textarea class="form-control" id="observacionesGastoRutero" rows="3" placeholder="Detalles adicionales..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="registrarGastoRutero()">
+                        <i class="fas fa-paper-plane me-2"></i>Reportar Gasto Rutero
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reportar Gasto APV -->
+    <div class="modal fade" id="modalReportarGastoAPV" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-truck me-2"></i>Reportar Gasto APV
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Importante:</strong> Los gastos de APV requieren justificación sólida con número de recibo de venta o justificación detallada.
+                    </div>
+                    <form id="formReportarGastoAPV">
+                        <div class="mb-3">
+                            <label for="bodegaOrigenAPV" class="form-label">Bodega APV *</label>
+                            <select class="form-select" id="bodegaOrigenAPV" required onchange="cargarProductosAPV()">
+                                <option value="">Seleccionar bodega APV...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="productoGastoAPV" class="form-label">Producto *</label>
+                            <select class="form-select" id="productoGastoAPV" required onchange="actualizarSaldoAPV()">
+                                <option value="">Primero selecciona una bodega APV...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="infoSaldoAPV" style="display: none;">
+                            <div class="alert alert-info">
+                                <strong>Saldo Actual:</strong> <span id="saldoActualAPV">0</span> <span id="unidadAPV">unidades</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cantidadGastoAPV" class="form-label">Cantidad *</label>
+                            <div class="input-group">
+                                <button class="btn btn-outline-secondary" type="button" onclick="decrementarCantidad('cantidadGastoAPV')">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" class="form-control text-center" id="cantidadGastoAPV" required min="1" onchange="actualizarNuevoSaldoAPV()">
+                                <button class="btn btn-outline-secondary" type="button" onclick="incrementarCantidad('cantidadGastoAPV')">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="infoNuevoSaldoAPV" style="display: none;">
+                            <div class="alert alert-success">
+                                <strong>Nuevo Saldo:</strong> <span id="nuevoSaldoAPV">0</span> <span id="unidadNuevoAPV">unidades</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cuentaGastoAPV" class="form-label">Tipo de Gasto *</label>
+                            <select class="form-select" id="cuentaGastoAPV" required>
+                                <option value="">Seleccionar tipo de gasto...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="numeroRecibo" class="form-label">Recibo *</label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="numeroRecibo" 
+                                   required 
+                                   min="1" 
+                                   step="1"
+                                   placeholder="Número de recibo (entero)">
+                            <small class="text-muted">Número entero obligatorio</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="motivoGastoAPV" class="form-label">Motivo del Gasto *</label>
+                            <input type="text" class="form-control" id="motivoGastoAPV" required placeholder="Ej: Venta directa a cliente ABC">
+                        </div>
+                        <div class="mb-3">
+                            <label for="justificacionAPV" class="form-label">Justificación Detallada *</label>
+                            <textarea class="form-control" id="justificacionAPV" rows="4" required placeholder="Describe detalladamente el uso del producto, cliente atendido, ubicación, etc."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="observacionesGastoAPV" class="form-label">Observaciones Adicionales</label>
+                            <textarea class="form-control" id="observacionesGastoAPV" rows="3" placeholder="Información adicional que consideres relevante..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-info" onclick="registrarGastoAPV()">
+                        <i class="fas fa-paper-plane me-2"></i>Reportar Gasto APV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reportar Gasto Simple -->
+    <div class="modal fade" id="modalGastoRutero" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-receipt me-2"></i>Reportar Gasto
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formGastoSimple">
+                        <div class="mb-3">
+                            <label class="form-label">Producto</label>
+                            <input type="text" class="form-control" id="productoNombreGasto" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cantidad Disponible</label>
+                            <input type="text" class="form-control" id="cantidadDisponibleGasto" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cantidadGastada" class="form-label">Cantidad a Reportar *</label>
+                            <input type="number" class="form-control" id="cantidadGastada" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cuentaGasto" class="form-label">Cuenta de Gasto *</label>
+                            <select class="form-select" id="cuentaGasto" required>
+                                <option value="gastos_operativos">Gastos Operativos</option>
+                                <option value="gastos_mantenimiento">Gastos de Mantenimiento</option>
+                                <option value="gastos_administrativos">Gastos Administrativos</option>
+                                <option value="otros_gastos">Otros Gastos</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="observacionesGasto" class="form-label">Observaciones</label>
+                            <textarea class="form-control" id="observacionesGasto" rows="2" placeholder="Detalles del gasto..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="registrarGastoSimple()">
+                        <i class="fas fa-paper-plane me-2"></i>Reportar Gasto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Liquidación Día Contable -->
+    <div class="modal fade" id="modalLiquidacionDiaContable" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>Liquidar Día
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info mb-3">
+                        <div class="fw-bold" id="infoProductoDia"></div>
+                        <div class="small" id="infoFechaDia"></div>
+                        <div class="small" id="infoSaldoDia"></div>
+                    </div>
+                    <form id="formLiquidacionDiaContable">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tipo de Liquidación *</label>
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-primary btn-lg" id="btnDevolucion" onclick="seleccionarTipoLiquidacion('devolucion')">
+                                    <i class="fas fa-undo me-2"></i>Devolución
+                                    <small class="d-block mt-1" style="font-size: 0.75rem;">A Bodega Principal</small>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-lg" id="btnGasto" onclick="seleccionarTipoLiquidacion('gasto')">
+                                    <i class="fas fa-receipt me-2"></i>Gasto
+                                    <small class="d-block mt-1" style="font-size: 0.75rem;">Gasto Natural</small>
+                                </button>
+                            </div>
+                            <input type="hidden" id="tipoLiquidacionDia" value="">
+                        </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Cantidad *</label>
+                                    <div class="input-group input-group-lg">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="decrementarCantidadDia()" style="min-width: 60px; font-size: 1.3rem; font-weight: bold; padding: 0.75rem;">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" 
+                                               class="form-control text-center" 
+                                               id="cantidadLiquidacionDia" 
+                                               min="1" 
+                                               step="1"
+                                               value="1"
+                                               required
+                                               style="font-size: 1.2rem; font-weight: bold;"
+                                               onchange="validarCantidadDia()">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="incrementarCantidadDia()" style="min-width: 60px; font-size: 1.3rem; font-weight: bold; padding: 0.75rem;">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">Máximo: <span id="maxCantidadDia">-</span></small>
+                                </div>
+                        <div class="mb-3" id="reciboLiquidacionDiaContainer" style="display: none;">
+                            <label class="form-label fw-bold">Recibo *</label>
+                            <input type="number" 
+                                   class="form-control form-control-lg" 
+                                   id="reciboLiquidacionDia" 
+                                   min="1" 
+                                   step="1"
+                                   placeholder="Número de recibo (entero)">
+                            <small class="text-muted">Número entero obligatorio para gastos</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="procesarLiquidacionDiaContable()">
+                        <i class="fas fa-check me-2"></i> Liquidar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Liquidar APV -->
+    <div class="modal fade" id="modalLiquidacionAPV" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">
+                        <i class="fas fa-minus-circle me-2"></i>Liquidar Producto
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info mb-3">
+                        <div class="fw-bold" id="infoProductoAPV"></div>
+                        <div class="small" id="infoBodegaAPV"></div>
+                        <div class="small" id="infoSaldoAPV"></div>
+                    </div>
+                            <form id="formLiquidacionAPV">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Cantidad *</label>
+                                    <div class="input-group input-group-lg">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="decrementarCantidadAPV()" style="min-width: 60px; font-size: 1.3rem; font-weight: bold; padding: 0.75rem;">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" 
+                                               class="form-control text-center" 
+                                               id="cantidadLiquidacionAPV" 
+                                               min="1" 
+                                               step="1"
+                                               value="1"
+                                               required
+                                               style="font-size: 1.2rem; font-weight: bold;"
+                                               onchange="validarCantidadAPV()">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="incrementarCantidadAPV()" style="min-width: 60px; font-size: 1.3rem; font-weight: bold; padding: 0.75rem;">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">Máximo: <span id="maxCantidadAPV">-</span></small>
+                                </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Recibo *</label>
+                            <input type="number" 
+                                   class="form-control form-control-lg" 
+                                   id="reciboLiquidacionAPV" 
+                                   min="1" 
+                                   step="1"
+                                   placeholder="Número de recibo"
+                                   required>
+                            <small class="text-muted">Número entero obligatorio</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="procesarLiquidacionAPV()">
+                        <i class="fas fa-check me-2"></i> Liquidar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Liquidar Rutero -->
+    <div class="modal fade" id="modalLiquidacionRutero" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">
+                        <i class="fas fa-minus-circle me-2"></i>Liquidar Producto
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info mb-3">
+                        <div class="fw-bold" id="infoProductoRutero"></div>
+                        <div class="small" id="infoSaldoRutero"></div>
+                    </div>
+                            <form id="formLiquidacionRutero">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Cantidad *</label>
+                                    <div class="input-group input-group-lg">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="decrementarCantidadRutero()" style="min-width: 60px; font-size: 1.3rem; font-weight: bold; padding: 0.75rem;">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" 
+                                               class="form-control text-center" 
+                                               id="cantidadLiquidacionRutero" 
+                                               min="1" 
+                                               step="1"
+                                               value="1"
+                                               required
+                                               style="font-size: 1.2rem; font-weight: bold;"
+                                               onchange="validarCantidadRutero()">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="incrementarCantidadRutero()" style="min-width: 60px; font-size: 1.3rem; font-weight: bold; padding: 0.75rem;">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">Máximo: <span id="maxCantidadRutero">-</span></small>
+                                </div>
+                            </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="procesarLiquidacionRutero()">
+                        <i class="fas fa-check me-2"></i> Liquidar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Devolución de Herramienta -->
+    <div class="modal fade" id="modalDevolucionHerramienta" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-undo me-2"></i>Devolver Herramienta
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Devolver a Bodega Principal Herramientas</strong>
+                        <div class="mt-2">
+                            <small><strong>Herramienta:</strong> <span id="herramientaNombreDevolucion"></span></small><br>
+                            <small><strong>Bodega Origen:</strong> <span id="bodegaOrigenDevolucion"></span></small><br>
+                            <small><strong>Saldo Actual:</strong> <span id="saldoActualDevolucion">0</span> unidades</small>
+                        </div>
+                    </div>
+                    <form id="formDevolucionHerramienta">
+                        <div class="mb-3">
+                            <label for="cantidadDevolucionHerramienta" class="form-label fw-bold">Cantidad a Devolver *</label>
+                            <div class="input-group input-group-lg">
+                                <button class="btn btn-outline-secondary" type="button" onclick="decrementarCantidad('cantidadDevolucionHerramienta')">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" class="form-control text-center" id="cantidadDevolucionHerramienta" required min="1" step="1" style="font-size: 1.2rem; font-weight: bold;">
+                                <button class="btn btn-outline-secondary" type="button" onclick="incrementarCantidad('cantidadDevolucionHerramienta')">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="procesarDevolucionHerramienta()">
+                        <i class="fas fa-check me-2"></i>Confirmar Devolución
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reportar Gasto de Herramienta -->
+    <div class="modal fade" id="modalReportarGastoHerramienta" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">
+                        <i class="fas fa-tools me-2"></i>Reportar Gasto de Herramienta
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Importante:</strong> Reporta pérdidas, daños o robos de herramientas. Un administrador revisará tu reporte.
+                    </div>
+                    <form id="formReportarGastoHerramienta">
+                        <div class="mb-3">
+                            <label for="bodegaOrigenHerramientaGasto" class="form-label">Bodega de Origen *</label>
+                            <select class="form-select" id="bodegaOrigenHerramientaGasto" required onchange="cargarHerramientasGasto(); actualizarSaldoHerramienta();">
+                                <option value="">Seleccionar bodega de herramientas...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="herramientaGasto" class="form-label">Herramienta *</label>
+                            <select class="form-select" id="herramientaGasto" required onchange="actualizarSaldoHerramienta()">
+                                <option value="">Primero selecciona una bodega...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="infoSaldoHerramienta" style="display: none;">
+                            <div class="alert alert-info">
+                                <strong>Saldo Actual:</strong> <span id="saldoActualHerramienta">0</span> unidades
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cantidadGastoHerramienta" class="form-label">Cantidad *</label>
+                            <div class="input-group">
+                                <button class="btn btn-outline-secondary" type="button" onclick="decrementarCantidad('cantidadGastoHerramienta')">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" class="form-control text-center" id="cantidadGastoHerramienta" required min="1" onchange="actualizarNuevoSaldoHerramienta()">
+                                <button class="btn btn-outline-secondary" type="button" onclick="incrementarCantidad('cantidadGastoHerramienta')">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3" id="infoNuevoSaldoHerramienta" style="display: none;">
+                            <div class="alert alert-success">
+                                <strong>Nuevo Saldo:</strong> <span id="nuevoSaldoHerramienta">0</span> unidades
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cuentaGastoHerramienta" class="form-label">Tipo de Gasto *</label>
+                            <select class="form-select" id="cuentaGastoHerramienta" required>
+                                <option value="">Seleccionar tipo de gasto...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reciboGastoHerramienta" class="form-label">Recibo *</label>
+                            <input type="number" class="form-control" id="reciboGastoHerramienta" required min="1" step="1" placeholder="Número de recibo (entero)">
+                            <small class="text-muted">Número entero obligatorio</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="motivoGastoHerramienta" class="form-label">Motivo del Gasto *</label>
+                            <select class="form-select" id="motivoGastoHerramienta" required>
+                                <option value="">Seleccionar motivo...</option>
+                                <option value="Pérdida">Pérdida</option>
+                                <option value="Daño">Daño</option>
+                                <option value="Robo">Robo</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="observacionesGastoHerramienta" class="form-label">Observaciones</label>
+                            <textarea class="form-control" id="observacionesGastoHerramienta" rows="3" placeholder="Detalles adicionales del gasto..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" onclick="registrarGastoHerramienta()">
+                        <i class="fas fa-paper-plane me-2"></i>Reportar Gasto de Herramienta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js?v=1.7.0"></script>
+    <script type="module" src="operario_bodegasecure.js?v=1.7.0"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script src="check-permissions.js?v=1.7.0"></script>
+    <script src="cache-buster.js?v=1.7.0"></script>
+</body>
+</html>
