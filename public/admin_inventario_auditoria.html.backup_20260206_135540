@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría de Transacciones - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        window.firebaseAuth = auth;
+        
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            if (document.body) document.body.style.display = 'none';
+
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken && document.body) {
+                document.body.style.display = 'block';
+                document.body.classList.add('authenticated');
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            let retries = 0;
+            while (retries < 40) {
+                if (auth.currentUser) {
+                    if (window.secureAuthManager) window.authManager = window.secureAuthManager;
+                    else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) window.authManager = window.secureAuthManager;
+                    }
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', {
+                        detail: { page: 'admin_inventario_auditoria', timestamp: Date.now() }
+                    }));
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            if (!hasSessionToken) window.location.replace('iniciar_sesion.html');
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-2 px-3">
+        <!-- Header Principal -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-search-dollar inventory-icon"></i> Auditoría de Transacciones</h1>
+            <a href="administrador_bodega.html" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+            </a>
+        </div>
+
+        <!-- Contenido Principal: Auditoría -->
+        <div class="section-content">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class="fas fa-check-double"></i> Control de Calidad</h3>
+                    <div class="section-badge">
+                        <span class="badge bg-warning text-dark">Auditoría</span>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <!-- Filtros de Auditoría -->
+                    <div class="row g-3 mb-4 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Fecha a Auditar *</label>
+                            <input type="date" class="form-control" id="fechaAuditoria">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Usuario</label>
+                            <select class="form-select" id="filtroUsuarioAuditoria">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Tipo de Transacción</label>
+                            <select class="form-select" id="filtroTipoAuditoria">
+                                <option value="">Todas</option>
+                                <option value="compra">Compras</option>
+                                <option value="transferencia">Transferencias</option>
+                                <option value="gasto">Gastos</option>
+                                <option value="reversion">Reversiones</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">Estado de Auditoría</label>
+                            <select class="form-select" id="filtroEstadoAuditoria">
+                                <option value="">Todas</option>
+                                <option value="pendiente">Pendientes</option>
+                                <option value="auditada">Auditadas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" onclick="cargarTransaccionesAuditoria()">
+                                <i class="fas fa-search me-2"></i>Cargar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Resumen de Auditoría -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-light border-0">
+                                <div class="card-body text-center py-2">
+                                    <h4 class="mb-0" id="totalAuditoria">0</h4>
+                                    <small class="text-muted">Total Transacciones</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light border-0">
+                                <div class="card-body text-center py-2">
+                                    <h4 class="mb-0 text-warning" id="pendientesAuditoria">0</h4>
+                                    <small class="text-muted">Pendientes</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light border-0">
+                                <div class="card-body text-center py-2">
+                                    <h4 class="mb-0 text-success" id="correctasAuditoria">0</h4>
+                                    <small class="text-muted">Correctas</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light border-0">
+                                <div class="card-body text-center py-2">
+                                    <h4 class="mb-0 text-danger" id="incorrectasAuditoria">0</h4>
+                                    <small class="text-muted">Incorrectas</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-modern table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Tipo</th>
+                                    <th>Producto</th>
+                                    <th>Cant.</th>
+                                    <th>Usuario</th>
+                                    <th>Estado</th>
+                                    <th>Auditoría</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaAuditoria">
+                                <tr><td colspan="8" class="text-center text-muted">Selecciona una fecha para comenzar la auditoría</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Auditar Transacción -->
+    <div class="modal fade" id="modalAuditarTransaccion" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">
+                        <i class="fas fa-search-dollar me-2"></i>Auditar Transacción
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Información de la transacción -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información de la Transacción</h6>
+                        </div>
+                        <div class="card-body" id="infoTransaccionAuditar">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+
+                    <form id="formAuditarTransaccion">
+                        <input type="hidden" id="transaccionIdAuditar">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold">Estado de la Auditoría *</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="statusAuditoria" id="statusCorrecta" value="correcta" required>
+                                    <label class="form-check-label text-success" for="statusCorrecta">
+                                        <i class="fas fa-check-circle me-2"></i>Correcta
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="statusAuditoria" id="statusIncorrecta" value="incorrecta" required>
+                                    <label class="form-check-label text-danger" for="statusIncorrecta">
+                                        <i class="fas fa-times-circle me-2"></i>Incorrecta
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Detalle de la Auditoría *</label>
+                                <textarea class="form-control" id="detalleAuditoria" rows="4" required placeholder="Describe los hallazgos de la auditoría, incluyendo el número de recibo si aplica..."></textarea>
+                                <small class="text-muted">Incluye el número de recibo y cualquier observación relevante</small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" onclick="guardarAuditoria()">
+                        <i class="fas fa-save me-2"></i>Guardar Auditoría
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="admin_inventario_auditoria.js"></script>
+</body>
+</html>
