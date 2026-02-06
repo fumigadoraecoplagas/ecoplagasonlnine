@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Inventario - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <!-- Sistema de Autenticación Seguro -->
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        
+        window.firebaseAuth = auth;
+        
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            
+            if (document.body) document.body.style.display = 'none';
+
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken) {
+                if (document.body) {
+                    document.body.style.display = 'block';
+                    document.body.classList.add('authenticated');
+                }
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            let retries = 0;
+            const maxRetries = 40;
+            
+            while (retries < maxRetries) {
+                if (auth.currentUser) {
+                    if (window.secureAuthManager) {
+                        window.authManager = window.secureAuthManager;
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) {
+                            window.authManager = window.secureAuthManager;
+                        }
+                    }
+                    
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', {
+                        detail: { page: 'admin_inventario_productos', timestamp: Date.now() }
+                    }));
+                    
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            
+            if (!hasSessionToken) {
+                window.location.replace('iniciar_sesion.html');
+            }
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+        .table-primary td, .table-success td, .table-info td, .table-warning td {
+            border-top: none !important; font-weight: 600; color: #495057;
+        }
+        .table-primary { background-color: rgba(13, 110, 253, 0.1) !important; border-left: 4px solid #0d6efd !important; }
+        .table-success { background-color: rgba(25, 135, 84, 0.1) !important; border-left: 4px solid #198754 !important; }
+        .table-info { background-color: rgba(13, 202, 240, 0.1) !important; border-left: 4px solid #0dcaf0 !important; }
+        .table-warning { background-color: rgba(255, 193, 7, 0.1) !important; border-left: 4px solid #ffc107 !important; }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    
+    <div class="container-fluid mt-2 px-3">
+        <!-- Header Principal -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-boxes inventory-icon"></i> Catálogo de Inventario</h1>
+            <a href="administrador_bodega.html" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Panel
+            </a>
+        </div>
+
+        <!-- Contenido Principal: Tabs -->
+        <div class="section-content">
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs mb-4" id="catalogoTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="productos-tab" data-bs-toggle="tab" data-bs-target="#productos" type="button" role="tab" aria-controls="productos" aria-selected="true">
+                        <i class="fas fa-box me-2"></i>Productos
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="herramientas-tab" data-bs-toggle="tab" data-bs-target="#herramientas" type="button" role="tab" aria-controls="herramientas" aria-selected="false">
+                        <i class="fas fa-tools me-2"></i>Herramientas
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="resumen-tab" data-bs-toggle="tab" data-bs-target="#resumen" type="button" role="tab" aria-controls="resumen" aria-selected="false">
+                        <i class="fas fa-chart-pie me-2"></i>Resumen Pivot
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="catalogoTabContent">
+                <!-- Tab Productos -->
+                <div class="tab-pane fade show active" id="productos" role="tabpanel" aria-labelledby="productos-tab">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3><i class="fas fa-box"></i> Catálogo de Productos</h3>
+                            <div class="section-badge">
+                                <span class="badge bg-success">Inventario</span>
+                            </div>
+                        </div>
+                        <div class="section-body">
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control" id="buscarProducto" placeholder="Buscar producto por nombre, código o categoría...">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <button class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#modalProducto">
+                                    <i class="fas fa-plus me-2"></i>Nuevo Producto
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botón de eliminar producto (solo administradores) -->
+                    <div class="row mb-3" id="adminControls" style="display: none;">
+                        <div class="col-md-4 offset-md-8">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-danger" onclick="mostrarModalEliminacionProducto()" title="Eliminar producto">
+                                    <i class="fas fa-trash-alt me-2"></i>Eliminar Producto
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-modern">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-barcode me-2"></i>Código</th>
+                                    <th><i class="fas fa-box me-2"></i>Nombre</th>
+                                    <th><i class="fas fa-tags me-2"></i>Categoría</th>
+                                    <th><i class="fas fa-ruler me-2"></i>Unidad</th>
+                                    <th><i class="fas fa-dollar-sign me-2"></i>Precio</th>
+                                    <th><i class="fas fa-exclamation-triangle me-2"></i>Stock Mínimo</th>
+                                    <th><i class="fas fa-warehouse me-2"></i>Stock Disponible</th>
+                                    <th><i class="fas fa-list-alt me-2"></i>Transacciones</th>
+                                    <th><i class="fas fa-toggle-on me-2"></i>Estado</th>
+                                    <th><i class="fas fa-cogs me-2"></i>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaProductos">
+                                <!-- Se llena dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="text-center py-3" id="loadingSpinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Cargando productos...</p>
+                    </div>
+                </div>
+            </div>
+                </div>
+
+                <!-- Tab Herramientas -->
+                <div class="tab-pane fade" id="herramientas" role="tabpanel" aria-labelledby="herramientas-tab">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3><i class="fas fa-tools"></i> Catálogo de Herramientas</h3>
+                            <div class="section-badge">
+                                <span class="badge bg-warning">Herramientas</span>
+                            </div>
+                        </div>
+                        <div class="section-body">
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        <input type="text" class="form-control" id="buscarHerramienta" placeholder="Buscar herramienta por nombre o código...">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-grid">
+                                        <button class="btn btn-warning btn-lg" data-bs-toggle="modal" data-bs-target="#modalHerramienta">
+                                            <i class="fas fa-plus me-2"></i>Nueva Herramienta
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Botón de eliminar herramienta (solo administradores) -->
+                            <div class="row mb-3" id="adminControlsHerramientas" style="display: none;">
+                                <div class="col-md-4 offset-md-8">
+                                    <div class="d-grid">
+                                        <button class="btn btn-outline-danger" onclick="mostrarModalEliminacionHerramienta()" title="Eliminar herramienta">
+                                            <i class="fas fa-trash-alt me-2"></i>Eliminar Herramienta
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-modern">
+                                    <thead>
+                                        <tr>
+                                            <th><i class="fas fa-hashtag me-2"></i>ID</th>
+                                            <th><i class="fas fa-tools me-2"></i>Nombre</th>
+                                            <th><i class="fas fa-dollar-sign me-2"></i>Precio Unitario</th>
+                                            <th><i class="fas fa-warehouse me-2"></i>Stock Disponible</th>
+                                            <th><i class="fas fa-list-alt me-2"></i>Transacciones</th>
+                                            <th><i class="fas fa-toggle-on me-2"></i>Estado</th>
+                                            <th><i class="fas fa-cogs me-2"></i>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaHerramientas">
+                                        <!-- Se llena dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="text-center py-3" id="loadingSpinnerHerramientas">
+                                <div class="spinner-border text-warning" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Cargando herramientas...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Resumen Pivot -->
+                <div class="tab-pane fade" id="resumen" role="tabpanel" aria-labelledby="resumen-tab">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <h3><i class="fas fa-chart-pie"></i> Resumen Pivot: Productos vs Herramientas</h3>
+                            <div class="section-badge">
+                                <span class="badge bg-info">Análisis</span>
+                            </div>
+                        </div>
+                        <div class="section-body">
+                            <!-- Explicación de Productos vs Herramientas -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="card border-primary h-100">
+                                        <div class="card-header bg-primary text-white">
+                                            <i class="fas fa-box me-2"></i><strong>PRODUCTOS (productoId)</strong>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-2"><strong>¿Qué son?</strong></p>
+                                            <ul class="mb-3 small">
+                                                <li>Items <strong>consumibles</strong> o <strong>gastables</strong></li>
+                                                <li>Se <strong>agotan</strong> con el uso</li>
+                                                <li>Tienen <strong>código</strong> y <strong>categoría</strong></li>
+                                                <li>Ejemplos: Insumos, químicos, trampas, cebos</li>
+                                            </ul>
+                                            <p class="mb-2"><strong>Características:</strong></p>
+                                            <ul class="mb-0 small">
+                                                <li>Colección: <code>productos</code></li>
+                                                <li>Campo ID: <code>productoId</code></li>
+                                                <li>Tienen: código, categoría, unidad, precio</li>
+                                                <li>Stock se reduce al usarse</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-warning h-100">
+                                        <div class="card-header bg-warning text-dark">
+                                            <i class="fas fa-tools me-2"></i><strong>HERRAMIENTAS (herramientaId)</strong>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-2"><strong>¿Qué son?</strong></p>
+                                            <ul class="mb-3 small">
+                                                <li>Items <strong>reutilizables</strong> o <strong>equipos</strong></li>
+                                                <li>Se <strong>prestan</strong> y <strong>devuelven</strong></li>
+                                                <li>No tienen categoría (solo nombre)</li>
+                                                <li>Ejemplos: Taladros, martillos, termonebulizadoras</li>
+                                            </ul>
+                                            <p class="mb-2"><strong>Características:</strong></p>
+                                            <ul class="mb-0 small">
+                                                <li>Colección: <code>herramientas</code></li>
+                                                <li>Campo ID: <code>herramientaId</code></li>
+                                                <li>Tienen: nombre, precio</li>
+                                                <li>Stock representa disponibilidad</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Resumen:</strong> Comparación de productos y herramientas por categoría/tipo, mostrando conteo y stock global.
+                                <br><small class="text-muted">Los <strong>productos</strong> se agrupan por categoría (Insumos Gastables, Equipos, etc.). Las <strong>herramientas</strong> no tienen categoría y se muestran todas juntas.</small>
+                            </div>
+                            
+                            <div class="table-responsive mt-4">
+                                <table class="table table-modern table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="align-middle" style="min-width: 200px;">
+                                                Categoría / Tipo<br>
+                                                <small class="text-muted fw-normal">(Productos por categoría | Herramientas sin categoría)</small>
+                                            </th>
+                                            <th class="text-center bg-primary bg-opacity-10" style="min-width: 150px;">
+                                                <i class="fas fa-box me-2 text-primary"></i><strong>PRODUCTOS</strong><br>
+                                                <small class="text-muted">Cantidad de items con <code>productoId</code></small>
+                                            </th>
+                                            <th class="text-center bg-primary bg-opacity-10" style="min-width: 150px;">
+                                                <i class="fas fa-warehouse me-2 text-primary"></i><strong>Stock Productos</strong><br>
+                                                <small class="text-muted">Unidades totales (suma de todos los <code>productoId</code>)</small>
+                                            </th>
+                                            <th class="text-center bg-warning bg-opacity-10" style="min-width: 150px;">
+                                                <i class="fas fa-tools me-2 text-warning"></i><strong>HERRAMIENTAS</strong><br>
+                                                <small class="text-muted">Cantidad de items con <code>herramientaId</code></small>
+                                            </th>
+                                            <th class="text-center bg-warning bg-opacity-10" style="min-width: 150px;">
+                                                <i class="fas fa-warehouse me-2 text-warning"></i><strong>Stock Herramientas</strong><br>
+                                                <small class="text-muted">Unidades totales (suma de todos los <code>herramientaId</code>)</small>
+                                            </th>
+                                            <th class="text-center" style="min-width: 150px;">
+                                                <i class="fas fa-calculator me-2"></i><strong>Total Items</strong><br>
+                                                <small class="text-muted">Conteo combinado</small>
+                                            </th>
+                                            <th class="text-center" style="min-width: 150px;">
+                                                <i class="fas fa-calculator me-2"></i><strong>Stock Total</strong><br>
+                                                <small class="text-muted">Stock combinado</small>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaResumenPivot">
+                                        <tr>
+                                            <td colspan="7" class="text-center py-4">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Cargando...</span>
+                                                </div>
+                                                <p class="mt-2 text-muted">Cargando resumen...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot class="table-light fw-bold">
+                                        <tr id="filaTotalesPivot">
+                                            <td class="align-middle">TOTALES</td>
+                                            <td class="text-center" id="totalProductosCount">0</td>
+                                            <td class="text-center" id="totalProductosStock">0</td>
+                                            <td class="text-center" id="totalHerramientasCount">0</td>
+                                            <td class="text-center" id="totalHerramientasStock">0</td>
+                                            <td class="text-center" id="totalItemsCount">0</td>
+                                            <td class="text-center" id="totalStockGlobal">0</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h5><i class="fas fa-exclamation-triangle text-warning me-2"></i>Posibles Duplicados</h5>
+                                <div id="duplicadosDetectados" class="alert alert-warning" style="display: none;">
+                                    <p class="mb-2"><strong>Se encontraron posibles duplicados entre productos y herramientas:</strong></p>
+                                    <ul id="listaDuplicados" class="mb-0">
+                                        <!-- Se llena dinámicamente -->
+                                    </ul>
+                                </div>
+                                <div id="sinDuplicados" class="alert alert-success" style="display: none;">
+                                    <i class="fas fa-check-circle me-2"></i>No se encontraron duplicados obvios.
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h5><i class="fas fa-code me-2"></i>Datos JSON para Análisis</h5>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Instrucciones:</strong> Copia el contenido del siguiente campo y compártelo para un análisis detallado de inconsistencias.
+                                </div>
+                                <div class="mb-2">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="copiarJSON()">
+                                        <i class="fas fa-copy me-2"></i>Copiar JSON
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="actualizarJSON()">
+                                        <i class="fas fa-sync me-2"></i>Actualizar JSON
+                                    </button>
+                                    <span id="mensajeCopia" class="ms-2 text-success" style="display: none;">
+                                        <i class="fas fa-check me-2"></i>¡Copiado al portapapeles!
+                                    </span>
+                                </div>
+                                <textarea 
+                                    id="jsonDatos" 
+                                    class="form-control font-monospace" 
+                                    rows="20" 
+                                    readonly
+                                    style="font-size: 0.85rem; background-color: #f8f9fa;"
+                                    placeholder="Los datos JSON aparecerán aquí..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo/Editar Producto -->
+    <div class="modal fade" id="modalProducto" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formProducto">
+                        <input type="hidden" id="productoId">
+                        <div class="mb-3">
+                            <label class="form-label">Código *</label>
+                            <input type="text" class="form-control" id="codigoProducto" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="nombreProducto" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Categoría *</label>
+                            <select class="form-select" id="categoriaProducto" required>
+                                <option value="Insumos Gastables">Insumos Gastables</option>
+                            </select>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Todos los productos se crean con la categoría "Insumos Gastables".
+                            </small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Unidad *</label>
+                            <input type="text" class="form-control" id="unidadProducto" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Precio Unitario *</label>
+                            <input type="number" class="form-control" id="precioProducto" required min="0" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Stock Mínimo</label>
+                            <input type="number" class="form-control" id="stockMinimoProducto" value="0" min="0">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="guardarProducto()">Guardar Producto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nuevo/Editar Herramienta -->
+    <div class="modal fade" id="modalHerramienta" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title"><i class="fas fa-tools me-2"></i>Nueva Herramienta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formHerramienta">
+                        <input type="hidden" id="herramientaId">
+                        <div class="mb-3">
+                            <label class="form-label">ID</label>
+                            <input type="text" class="form-control" id="codigoHerramienta" readonly placeholder="Se generará automáticamente">
+                            <small class="text-muted">El ID se genera automáticamente al guardar</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="nombreHerramienta" required placeholder="Ej: Termonebulizador portátil">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Precio Unitario *</label>
+                            <input type="number" class="form-control" id="precioHerramienta" required min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" onclick="guardarHerramienta()">Guardar Herramienta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Eliminación de Herramienta -->
+    <div class="modal fade" id="modalEliminarHerramienta" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Eliminar Herramienta
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>ADVERTENCIA CRÍTICA:</strong> Esta acción eliminará permanentemente la herramienta y todo su historial.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Seleccionar Herramienta a Eliminar</label>
+                        <select class="form-select" id="herramientaEliminar">
+                            <option value="">Seleccionar herramienta...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Información de la Herramienta</label>
+                        <div id="infoHerramientaEliminar" class="card bg-light p-3">
+                            <div class="text-muted">Selecciona una herramienta para ver su información</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmarEliminacionHerramienta()" id="btnConfirmarEliminarHerramienta" disabled>
+                        <i class="fas fa-trash me-1"></i>Eliminar Permanentemente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Eliminación de Producto -->
+    <div class="modal fade" id="modalEliminarProducto" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Eliminar Producto
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>ADVERTENCIA CRÍTICA:</strong> Esta acción eliminará permanentemente el producto y todo su historial.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Seleccionar Producto a Eliminar</label>
+                        <select class="form-select" id="productoEliminar">
+                            <option value="">Seleccionar producto...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Información del Producto</label>
+                        <div id="infoProductoEliminar" class="card bg-light p-3">
+                            <div class="text-muted">Selecciona un producto para ver su información</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmarEliminacionProducto()" id="btnConfirmarEliminar" disabled>
+                        <i class="fas fa-trash me-1"></i>Eliminar Permanentemente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="admin_inventario_productos.js"></script>
+</body>
+</html>
