@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Encuestas - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script type="module" src="auth-secure.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <style>
+        body {
+            background: #f5f5f5;
+            padding-top: 80px;
+        }
+        
+        .reporte-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        
+        .encuesta-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .encuesta-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+        
+        .encuesta-item.active {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .encuesta-item-compact {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .encuesta-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .encuesta-item-score {
+            text-align: right;
+            flex-shrink: 0;
+        }
+        
+        .score-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .score-excelente {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .score-bueno {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .score-aceptable {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .score-critico {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .pregunta-row {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .pregunta-row:last-child {
+            border-bottom: none;
+        }
+        
+        .progress-custom {
+            height: 25px;
+            border-radius: 10px;
+            background: #e9ecef;
+        }
+        
+        .progress-bar-custom {
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .nav-encuestas {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-nav {
+            flex: 1;
+        }
+        
+        .stats-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stats-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .stats-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div id="header-placeholder"></div>
+    
+    <div class="reporte-container">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Reporte de Encuestas de Satisfacción</h4>
+            </div>
+            <div class="card-body">
+                <!-- Vista Individual -->
+                <h5 class="mb-3"><i class="fas fa-list me-2"></i>Vista Individual de Encuestas</h5>
+                <div class="row mb-5">
+                    <!-- Lista de Encuestas -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0"><i class="fas fa-list me-2"></i>Encuestas</h6>
+                            </div>
+                            <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+                                <div id="listaEncuestas">
+                                    <div class="text-center p-4">
+                                        <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                                        <p class="mt-2 text-muted">Cargando encuestas...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Detalle de Encuesta Seleccionada -->
+                    <div class="col-md-8">
+                        <div id="detalleEncuesta" style="display: none;">
+                            <!-- Navegación -->
+                            <div class="nav-encuestas mb-3">
+                                <button class="btn btn-outline-primary btn-nav" id="btnAnterior" disabled>
+                                    <i class="fas fa-chevron-left me-2"></i>Anterior
+                                </button>
+                                <button class="btn btn-outline-primary btn-nav" id="btnSiguiente" disabled>
+                                    Siguiente<i class="fas fa-chevron-right ms-2"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Resumen Global -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-star me-2"></i>Resumen Global</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="stats-card">
+                                                <div class="stats-label">Score Global</div>
+                                                <div class="stats-value" id="scoreGlobal">-</div>
+                                                <div id="labelGlobal" class="score-badge">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="stats-card">
+                                                <div class="stats-label">Calidad (Q1-Q6)</div>
+                                                <div class="stats-value" id="scoreCalidad">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="stats-card">
+                                                <div class="stats-label">Cumplimiento (Q7-Q12)</div>
+                                                <div class="stats-value" id="scoreCumplimiento">-</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Información de la Encuesta -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Fecha Servicio:</strong> <span id="fechaServicio">-</span></p>
+                                            <p><strong>Teléfono:</strong> <span id="telefono">-</span></p>
+                                            <p><strong>Técnico(s):</strong> <span id="tecnicosEncuesta">-</span></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Fecha Envío:</strong> <span id="fechaEnvio">-</span></p>
+                                            <p><strong>ID Encuesta:</strong> <span id="idEncuesta">-</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tabla de Preguntas -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-table me-2"></i>Detalle por Pregunta</h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Pregunta</th>
+                                                    <th>Respuesta</th>
+                                                    <th>Puntos</th>
+                                                    <th>Peso</th>
+                                                    <th>Ponderado</th>
+                                                    <th>%</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tablaPreguntas">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Gráficos -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Score por Pregunta</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="chart-container">
+                                                <canvas id="chartPreguntas"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Comparación Secciones</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="chart-container">
+                                                <canvas id="chartSecciones"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Comentarios -->
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-comments me-2"></i>Comentarios</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="comentariosContainer"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="sinSeleccion" class="text-center p-5">
+                            <i class="fas fa-mouse-pointer fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Seleccione una encuesta de la lista para ver los detalles</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-5">
+                
+                <!-- Vista por Técnico -->
+                <h5 class="mb-3"><i class="fas fa-trophy me-2"></i>Ranking y Métricas por Técnico</h5>
+                <div id="vistaTecnicosContainer">
+                    <div class="text-center p-4">
+                        <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                        <p class="mt-2 text-muted">Cargando datos por técnico...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getFirestore, collection, getDocs, query, orderBy, where, Timestamp, doc, getDoc, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        import { auth } from './auth-secure.js';
+        
+        const firebaseConfig = {
+            projectId: "cursorwebapp-f376d",
+            appId: "1:719990096116:web:07c1ff697e7655b2cd9ea1",
+            databaseURL: "https://cursorwebapp-f376d-default-rtdb.firebaseio.com",
+            storageBucket: "cursorwebapp-f376d.firebasestorage.app",
+            apiKey: "AIzaSyC-IQj0yHR8cELr-mw-v2xlnw6LlJYFUyk",
+            authDomain: "cursorwebapp-f376d.firebaseapp.com",
+            messagingSenderId: "719990096116",
+            measurementId: "G-DJXLKFR7CD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let todasLasEncuestas = [];
+        let encuestaSeleccionadaIndex = -1;
+        let chartPreguntas = null;
+        let chartSecciones = null;
+        let todasLasCitas = [];
+        let empleados = [];
+        let encuestasIdMap = {}; // Mapeo id_encuesta -> {telefono, fecha_servicio, ...}
+        let resultadosPorTecnico = {};
+        
+        // Esperar autenticación
+        async function waitForAuth() {
+            let retries = 0;
+            while (!auth.currentUser && retries < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            if (!auth.currentUser) {
+                window.location.replace('iniciar_sesion.html');
+                return false;
+            }
+            return true;
+        }
+        
+        // Cargar encuestas y encuestas_id
+        async function cargarEncuestas() {
+            try {
+                // Cargar encuestas
+                // ⚠️ SEGURIDAD: Limitar a 5000 encuestas para prevenir dumpeado masivo
+                // Si necesitas más, implementar paginación o filtrar por rango de fechas
+                const q = query(collection(db, 'encuestas'), orderBy('fecha_envio', 'desc'), limit(5000));
+                const querySnapshot = await getDocs(q);
+                
+                todasLasEncuestas = [];
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    todasLasEncuestas.push({
+                        id: doc.id,
+                        ...data
+                    });
+                });
+                
+                console.log(`✅ Cargadas ${todasLasEncuestas.length} encuestas`);
+                
+                // Cargar encuestas_id para obtener telefono y fecha_servicio
+                // ⚠️ SEGURIDAD: Limitar a 5000 para prevenir dumpeado masivo
+                const encuestasIdQuery = query(collection(db, 'encuestas_id'), limit(5000));
+                const encuestasIdSnapshot = await getDocs(encuestasIdQuery);
+                encuestasIdMap = {};
+                encuestasIdSnapshot.forEach((doc) => {
+                    encuestasIdMap[doc.id] = doc.data();
+                });
+                console.log(`✅ Cargados ${Object.keys(encuestasIdMap).length} mapeos de encuestas_id`);
+                
+                renderizarListaEncuestas();
+                
+                // Cargar datos adicionales para vista por técnico (en background, no bloquea)
+                // Esto procesará y renderizará automáticamente los datos por técnico
+                cargarDatosParaTecnicos().catch(error => {
+                    console.error('Error cargando datos para técnicos:', error);
+                });
+            } catch (error) {
+                console.error('❌ Error cargando encuestas:', error);
+                document.getElementById('listaEncuestas').innerHTML = `
+                    <div class="alert alert-danger m-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Error cargando encuestas: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // Cargar citas, encuestas_id y empleados para relacionar con técnicos
+        async function cargarDatosParaTecnicos() {
+            try {
+                // Cargar encuestas_id (mapeo id_encuesta -> telefono/fecha)
+                const encuestasIdQuery = query(collection(db, 'encuestas_id'));
+                const encuestasIdSnapshot = await getDocs(encuestasIdQuery);
+                const encuestasIdMap = {};
+                encuestasIdSnapshot.forEach((doc) => {
+                    encuestasIdMap[doc.id] = doc.data();
+                });
+                console.log(`✅ Cargados ${Object.keys(encuestasIdMap).length} mapeos de encuestas_id`);
+                
+                // Cargar citas
+                const citasQuery = query(collection(db, 'citas'));
+                const citasSnapshot = await getDocs(citasQuery);
+                todasLasCitas = [];
+                citasSnapshot.forEach((doc) => {
+                    todasLasCitas.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                console.log(`✅ Cargadas ${todasLasCitas.length} citas`);
+                
+                // Cargar empleados
+                const empleadosQuery = query(collection(db, 'empleados'));
+                const empleadosSnapshot = await getDocs(empleadosQuery);
+                empleados = [];
+                empleadosSnapshot.forEach((doc) => {
+                    empleados.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                console.log(`✅ Cargados ${empleados.length} empleados`);
+                
+                // Procesar encuestas por técnico (pasar el mapa de encuestas_id)
+                await procesarEncuestasPorTecnico(encuestasIdMap);
+            } catch (error) {
+                console.error('❌ Error cargando datos para técnicos:', error);
+            }
+        }
+        
+        // Procesar encuestas agrupadas por técnico
+        // JOIN: encuestas -> encuestas_id -> citas -> ruteador -> técnicos
+        async function procesarEncuestasPorTecnico(encuestasIdMap) {
+            resultadosPorTecnico = {};
+            console.log('🔄 [PROCESAR_TECNICOS] Iniciando procesamiento...');
+            console.log(`📊 [PROCESAR_TECNICOS] Total encuestas: ${todasLasEncuestas.length}, Total citas: ${todasLasCitas.length}, Total encuestas_id: ${Object.keys(encuestasIdMap).length}`);
+            
+            for (let i = 0; i < todasLasEncuestas.length; i++) {
+                const encuesta = todasLasEncuestas[i];
+                console.log(`\n🔍 [PROCESAR_TECNICOS] Procesando encuesta ${i + 1}/${todasLasEncuestas.length}:`, {
+                    id: encuesta.id,
+                    id_encuesta: encuesta.id_encuesta
+                });
+                
+                // PASO 1: JOIN encuestas -> encuestas_id (usando id_encuesta)
+                if (!encuesta.id_encuesta) {
+                    console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Sin id_encuesta`);
+                    continue;
+                }
+                
+                const encuestaIdData = encuestasIdMap[encuesta.id_encuesta];
+                if (!encuestaIdData) {
+                    console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: No se encontró mapeo en encuestas_id para id_encuesta=${encuesta.id_encuesta}`);
+                    continue;
+                }
+                
+                console.log(`✅ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Mapeo encontrado en encuestas_id:`, {
+                    telefono: encuestaIdData.telefono,
+                    fecha_servicio: encuestaIdData.fecha_servicio,
+                    cita_id: encuestaIdData.cita_id
+                });
+                
+                // Obtener telefono y fecha de encuestas_id
+                const telefonoCompleto = encuestaIdData.telefono || '';
+                if (!telefonoCompleto) {
+                    console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Sin teléfono en encuestas_id`);
+                    continue;
+                }
+                
+                // Obtener fecha de servicio en formato YYYY-MM-DD
+                let fechaServicio = null;
+                if (encuestaIdData.fecha_servicio) {
+                    if (encuestaIdData.fecha_servicio.toDate) {
+                        fechaServicio = encuestaIdData.fecha_servicio.toDate();
+                    } else if (encuestaIdData.fecha_servicio instanceof Date) {
+                        fechaServicio = encuestaIdData.fecha_servicio;
+                    } else if (typeof encuestaIdData.fecha_servicio === 'string') {
+                        fechaServicio = new Date(encuestaIdData.fecha_servicio);
+                    }
+                }
+                
+                if (!fechaServicio || isNaN(fechaServicio.getTime())) {
+                    console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Fecha inválida en encuestas_id`, fechaServicio);
+                    continue;
+                }
+                
+                const fechaStr = fechaServicio.toISOString().split('T')[0]; // YYYY-MM-DD
+                // Normalizar teléfono: remover todo excepto dígitos, y remover código de país 506 si existe
+                let telefono = telefonoCompleto.replace(/\D/g, '');
+                if (telefono.startsWith('506')) {
+                    telefono = telefono.substring(3);
+                }
+                console.log(`📅 [PROCESAR_TECNICOS] Encuesta ${i + 1}: Fecha=${fechaStr}, Teléfono normalizado=${telefono}`);
+                
+                // PASO 2: JOIN encuestas_id -> citas
+                // Intentar usar cita_id si está disponible, sino buscar por telefono y fecha
+                let cita = null;
+                
+                if (encuestaIdData.cita_id) {
+                    // Buscar cita directamente por ID
+                    cita = todasLasCitas.find(c => c.id === encuestaIdData.cita_id);
+                    if (cita) {
+                        console.log(`✅ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Cita encontrada por cita_id:`, {
+                            citaId: cita.id,
+                            telefono: cita.telefono,
+                            ruta: cita.metadata?.ruta || cita.ruta
+                        });
+                    } else {
+                        console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: cita_id=${encuestaIdData.cita_id} no encontrado en citas`);
+                    }
+                }
+                
+                // Si no se encontró por cita_id, buscar por telefono y fecha
+                if (!cita) {
+                    // Normalizar teléfonos de citas de la misma manera
+                    let citasConMismoTelefono = todasLasCitas.filter(c => {
+                    if (!c.telefono) return false;
+                    let telefonoCita = String(c.telefono).replace(/\D/g, '');
+                    if (telefonoCita.startsWith('506')) {
+                        telefonoCita = telefonoCita.substring(3);
+                    }
+                    const coincide = telefonoCita === telefono;
+                    if (coincide) {
+                        console.log(`📞 [PROCESAR_TECNICOS] Encuesta ${i + 1}: Teléfono coincide!`, {
+                            telefonoEncuesta: telefono,
+                            telefonoCita: telefonoCita,
+                            telefonoOriginal: c.telefono,
+                            citaId: c.id
+                        });
+                    }
+                    return coincide;
+                });
+                
+                console.log(`🔍 [PROCESAR_TECNICOS] Encuesta ${i + 1}: Citas con mismo teléfono: ${citasConMismoTelefono.length}`);
+                if (citasConMismoTelefono.length === 0) {
+                    // Mostrar algunos ejemplos de teléfonos en citas para debug
+                    const telefonosEjemplo = todasLasCitas.slice(0, 5).map(c => ({
+                        citaId: c.id,
+                        telefono: c.telefono,
+                        telefonoNormalizado: c.telefono ? String(c.telefono).replace(/\D/g, '').replace(/^506/, '') : null
+                    }));
+                    console.log(`📋 [PROCESAR_TECNICOS] Encuesta ${i + 1}: Ejemplos de teléfonos en citas:`, telefonosEjemplo);
+                }
+                
+                for (const c of citasConMismoTelefono) {
+                    let fechaCita = null;
+                    let fechaCitaStr = null;
+                    
+                    if (c.inicio_gmt6) {
+                        if (c.inicio_gmt6.toDate) {
+                            // Es un Timestamp de Firestore
+                            const fechaUTC = c.inicio_gmt6.toDate();
+                            // inicio_gmt6 representa GMT-6, pero toDate() devuelve UTC
+                            // Para obtener la fecha correcta en GMT-6, necesitamos ajustar
+                            // El timestamp almacenado en Firestore es UTC, pero representa GMT-6
+                            // Entonces la fecha del día en GMT-6 es la misma que la fecha UTC
+                            fechaCita = fechaUTC;
+                            fechaCitaStr = fechaUTC.toISOString().split('T')[0];
+                        } else if (c.inicio_gmt6 instanceof Date) {
+                            fechaCita = c.inicio_gmt6;
+                            fechaCitaStr = fechaCita.toISOString().split('T')[0];
+                        } else if (typeof c.inicio_gmt6 === 'string') {
+                            fechaCita = new Date(c.inicio_gmt6);
+                            fechaCitaStr = fechaCita.toISOString().split('T')[0];
+                        }
+                    } else if (c.service_start_time) {
+                        // Fallback para formato legacy
+                        if (c.service_start_time.toDate) {
+                            fechaCita = c.service_start_time.toDate();
+                            fechaCitaStr = fechaCita.toISOString().split('T')[0];
+                        }
+                    }
+                    
+                    if (!fechaCita || isNaN(fechaCita.getTime())) {
+                        console.log(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Cita ${c.id} sin fecha válida`, {
+                            inicio_gmt6: c.inicio_gmt6,
+                            service_start_time: c.service_start_time
+                        });
+                        continue;
+                    }
+                    
+                    console.log(`📆 [PROCESAR_TECNICOS] Encuesta ${i + 1}: Comparando fechas - Encuesta: ${fechaStr}, Cita: ${fechaCitaStr} (Cita ID: ${c.id})`);
+                    
+                    if (fechaCitaStr === fechaStr) {
+                        cita = c;
+                        console.log(`✅ [PROCESAR_TECNICOS] Encuesta ${i + 1}: ¡Cita encontrada!`, {
+                            citaId: c.id,
+                            telefono: c.telefono,
+                            fechaCita: fechaCitaStr,
+                            ruta: c.metadata?.ruta || c.ruta
+                        });
+                        break;
+                    }
+                }
+                
+                    if (!cita) {
+                        console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: No se encontró cita para fecha=${fechaStr}, teléfono=${telefono}`);
+                        if (citasConMismoTelefono && citasConMismoTelefono.length > 0) {
+                            console.log(`📋 [PROCESAR_TECNICOS] Encuesta ${i + 1}: Citas disponibles con ese teléfono:`, citasConMismoTelefono.map(c => ({
+                                id: c.id,
+                                telefono: c.telefono,
+                                inicio_gmt6: c.inicio_gmt6,
+                                ruta: c.metadata?.ruta || c.ruta
+                            })));
+                        }
+                        continue;
+                    }
+                }
+                
+                // PASO 3: JOIN citas -> ruteador (usando fecha y ruta)
+                // Obtener ruta de la cita
+                const ruta = cita.metadata?.ruta || cita.ruta || null;
+                if (!ruta) {
+                    console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Cita sin ruta asignada`, {
+                        citaId: cita.id,
+                        metadata: cita.metadata,
+                        ruta: cita.ruta
+                    });
+                    continue;
+                }
+                
+                console.log(`🛣️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Ruta encontrada=${ruta}`);
+                
+                // Cargar ruteador para esa fecha y ruta
+                // El ID se genera como: fecha_ruta (donde ruta tiene espacios reemplazados por guiones)
+                const rutaFormateada = ruta.replace(' ', '-');
+                const ruteadorId = `${fechaStr}_${rutaFormateada}`;
+                console.log(`🔑 [PROCESAR_TECNICOS] Encuesta ${i + 1}: Buscando ruteador con ID=${ruteadorId} (fecha=${fechaStr}, ruta=${ruta}, rutaFormateada=${rutaFormateada})`);
+                
+                const ruteadorRef = doc(db, 'ruteador', ruteadorId);
+                const ruteadorDoc = await getDoc(ruteadorRef);
+                
+                if (!ruteadorDoc.exists()) {
+                    console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Ruteador no existe para ID=${ruteadorId}`);
+                    // Intentar buscar todos los ruteadores de esa fecha para debug
+                    try {
+                        const ruteadoresFechaQuery = query(collection(db, 'ruteador'), where('fecha', '==', fechaStr));
+                        const ruteadoresFechaSnapshot = await getDocs(ruteadoresFechaQuery);
+                        console.log(`🔍 [PROCESAR_TECNICOS] Ruteadores encontrados para fecha ${fechaStr}:`, ruteadoresFechaSnapshot.docs.map(d => ({
+                            id: d.id,
+                            fecha: d.data().fecha,
+                            ruta: d.data().ruta,
+                            tecnicos: d.data().tecnicos
+                        })));
+                        
+                        // También buscar por ruta sin restricción de fecha
+                        const ruteadoresRutaQuery = query(collection(db, 'ruteador'), where('ruta', '==', ruta));
+                        const ruteadoresRutaSnapshot = await getDocs(ruteadoresRutaQuery);
+                        console.log(`🔍 [PROCESAR_TECNICOS] Ruteadores encontrados para ruta ${ruta}:`, ruteadoresRutaSnapshot.docs.map(d => ({
+                            id: d.id,
+                            fecha: d.data().fecha,
+                            ruta: d.data().ruta,
+                            tecnicos: d.data().tecnicos
+                        })));
+                    } catch (error) {
+                        console.error(`❌ [PROCESAR_TECNICOS] Error buscando ruteadores:`, error);
+                    }
+                    continue;
+                }
+                
+                const ruteadorData = ruteadorDoc.data();
+                const tecnicos = ruteadorData.tecnicos || [];
+                console.log(`👥 [PROCESAR_TECNICOS] Encuesta ${i + 1}: Técnicos encontrados en ruteador:`, tecnicos);
+                
+                if (tecnicos.length === 0) {
+                    console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Ruteador sin técnicos asignados`);
+                    continue;
+                }
+                
+                // PASO 4: Asignar encuesta a técnicos
+                // Si hay múltiples técnicos, la encuesta cuenta para todos
+                for (const tecnicoUsername of tecnicos) {
+                    if (!tecnicoUsername || String(tecnicoUsername).trim() === '') {
+                        console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Técnico inválido:`, tecnicoUsername);
+                        continue;
+                    }
+                    
+                    if (!resultadosPorTecnico[tecnicoUsername]) {
+                        resultadosPorTecnico[tecnicoUsername] = {
+                            username: tecnicoUsername,
+                            encuestas: [],
+                            promedioGlobal: 0,
+                            promedioCalidad: 0,
+                            promedioCumplimiento: 0,
+                            totalEncuestas: 0
+                        };
+                        console.log(`✨ [PROCESAR_TECNICOS] Nuevo técnico agregado: ${tecnicoUsername}`);
+                    }
+                    
+                    resultadosPorTecnico[tecnicoUsername].encuestas.push(encuesta);
+                    console.log(`✅ [PROCESAR_TECNICOS] Encuesta ${i + 1} asignada a técnico: ${tecnicoUsername}`);
+                }
+            }
+            
+            // Calcular promedios por técnico (incluyendo promedios por pregunta)
+            for (const username in resultadosPorTecnico) {
+                const tecnico = resultadosPorTecnico[username];
+                tecnico.totalEncuestas = tecnico.encuestas.length;
+                
+                let sumaGlobal = 0;
+                let sumaCalidad = 0;
+                let sumaCumplimiento = 0;
+                
+                // Inicializar promedios por pregunta (Q1-Q12)
+                tecnico.promediosPorPregunta = {};
+                for (let q = 1; q <= 12; q++) {
+                    tecnico.promediosPorPregunta[`Q${q}`] = {
+                        suma: 0,
+                        count: 0,
+                        promedio: 0
+                    };
+                }
+                
+                tecnico.encuestas.forEach(encuesta => {
+                    const scores = encuesta.scores || {};
+                    const global = scores.global || {};
+                    const sectionA = scores.sectionA || {};
+                    const sectionB = scores.sectionB || {};
+                    
+                    sumaGlobal += global.percent || 0;
+                    sumaCalidad += sectionA.percent || 0;
+                    sumaCumplimiento += sectionB.percent || 0;
+                    
+                    // Calcular promedios por pregunta
+                    if (scores.questions && Array.isArray(scores.questions)) {
+                        scores.questions.forEach(questionScore => {
+                            const qKey = questionScore.id; // Q1, Q2, etc.
+                            if (qKey && tecnico.promediosPorPregunta[qKey]) {
+                                tecnico.promediosPorPregunta[qKey].suma += questionScore.scorePercent || 0;
+                                tecnico.promediosPorPregunta[qKey].count += 1;
+                            }
+                        });
+                    }
+                });
+                
+                tecnico.promedioGlobal = tecnico.totalEncuestas > 0 ? sumaGlobal / tecnico.totalEncuestas : 0;
+                tecnico.promedioCalidad = tecnico.totalEncuestas > 0 ? sumaCalidad / tecnico.totalEncuestas : 0;
+                tecnico.promedioCumplimiento = tecnico.totalEncuestas > 0 ? sumaCumplimiento / tecnico.totalEncuestas : 0;
+                
+                // Calcular promedios finales por pregunta
+                for (let q = 1; q <= 12; q++) {
+                    const qKey = `Q${q}`;
+                    const qData = tecnico.promediosPorPregunta[qKey];
+                    qData.promedio = qData.count > 0 ? qData.suma / qData.count : 0;
+                }
+            }
+            
+            console.log('✅ [PROCESAR_TECNICOS] Procesadas encuestas por técnico:', resultadosPorTecnico);
+            console.log(`📊 [PROCESAR_TECNICOS] Total técnicos encontrados: ${Object.keys(resultadosPorTecnico).length}`);
+            
+            // Renderizar inmediatamente después de procesar
+            renderizarVistaTecnicos();
+        }
+        
+        // Renderizar vista por técnico con ranking y detalle por pregunta
+        function renderizarVistaTecnicos() {
+            console.log('🎨 [RENDER_TECNICOS] Iniciando renderizado...');
+            const container = document.getElementById('vistaTecnicosContainer');
+            
+            if (!container) {
+                console.error('❌ [RENDER_TECNICOS] Contenedor no encontrado');
+                return;
+            }
+            
+            const tecnicosArray = Object.values(resultadosPorTecnico).sort((a, b) => {
+                // Ordenar por promedio global descendente (ranking)
+                return b.promedioGlobal - a.promedioGlobal;
+            });
+            
+            if (tecnicosArray.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center p-4">
+                        <i class="fas fa-inbox fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No hay datos de técnicos disponibles</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Configuración de preguntas para el detalle (textos completos pero compactos)
+            const preguntasConfig = [
+                { id: 'Q1', texto: 'Servicio técnico en general', seccion: 'Calidad' },
+                { id: 'Q2', texto: 'Trato y respeto del técnico', seccion: 'Calidad' },
+                { id: 'Q3', texto: 'Presentación personal del técnico', seccion: 'Calidad' },
+                { id: 'Q4', texto: 'Tiempo que duró el servicio', seccion: 'Calidad' },
+                { id: 'Q5', texto: 'Explicación del técnico sobre lo que hizo', seccion: 'Calidad' },
+                { id: 'Q6', texto: 'Medidas preventivas para mascotas/personas', seccion: 'Calidad' },
+                { id: 'Q7', texto: 'Limpieza área y retiro de excesos', seccion: 'Cumplimiento' },
+                { id: 'Q8', texto: 'Aplicación de puntos de gel', seccion: 'Cumplimiento' },
+                { id: 'Q9', texto: 'Tratamiento en tuberías/desagües/cajas', seccion: 'Cumplimiento' },
+                { id: 'Q10', texto: 'Preguntó si necesitaba otro servicio', seccion: 'Cumplimiento' },
+                { id: 'Q11', texto: 'Informó métodos de pago disponibles', seccion: 'Cumplimiento' },
+                { id: 'Q12', texto: 'Puntualidad con horario acordado', seccion: 'Cumplimiento' }
+            ];
+            
+            container.innerHTML = `
+                <!-- Ranking de Técnicos -->
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Ranking de Técnicos</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 60px;">#</th>
+                                        <th>Técnico</th>
+                                        <th class="text-center">Encuestas</th>
+                                        <th>Promedio Global</th>
+                                        <th>Promedio Calidad (Q1-Q6)</th>
+                                        <th>Promedio Cumplimiento (Q7-Q12)</th>
+                                        <th>Clasificación</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tecnicosArray.map((tecnico, index) => {
+                                        const empleado = empleados.find(e => e.username === tecnico.username || e.id === tecnico.username);
+                                        const nombre = empleado 
+                                            ? `${empleado.primerNombre || ''} ${empleado.primerApellido || ''}`.trim() || tecnico.username
+                                            : tecnico.username;
+                                        
+                                        const label = getLabelForPercent(tecnico.promedioGlobal);
+                                        const scoreClass = `score-${label.toLowerCase()}`;
+                                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                                        
+                                        return `
+                                            <tr ${index < 3 ? 'class="table-warning"' : ''}>
+                                                <td class="text-center"><strong>${medal} ${index + 1}</strong></td>
+                                                <td><strong>${nombre}</strong><br><small class="text-muted">${tecnico.username}</small></td>
+                                                <td class="text-center"><strong>${tecnico.totalEncuestas}</strong></td>
+                                                <td>
+                                                    <div class="progress progress-custom" style="height: 30px;">
+                                                        <div class="progress-bar progress-bar-custom" 
+                                                             role="progressbar" 
+                                                             style="width: ${Math.min(tecnico.promedioGlobal, 100)}%; background: ${getColorForPercent(tecnico.promedioGlobal)}">
+                                                            ${tecnico.promedioGlobal.toFixed(1)}%
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="progress progress-custom" style="height: 25px;">
+                                                        <div class="progress-bar progress-bar-custom" 
+                                                             role="progressbar" 
+                                                             style="width: ${Math.min(tecnico.promedioCalidad, 100)}%; background: ${getColorForPercent(tecnico.promedioCalidad)}">
+                                                            ${tecnico.promedioCalidad.toFixed(1)}%
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="progress progress-custom" style="height: 25px;">
+                                                        <div class="progress-bar progress-bar-custom" 
+                                                             role="progressbar" 
+                                                             style="width: ${Math.min(tecnico.promedioCumplimiento, 100)}%; background: ${getColorForPercent(tecnico.promedioCumplimiento)}">
+                                                            ${tecnico.promedioCumplimiento.toFixed(1)}%
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td><span class="score-badge ${scoreClass}">${label}</span></td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Detalle por Pregunta por Técnico -->
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Detalle por Pregunta - Promedios por Técnico</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th rowspan="2" style="vertical-align: middle;">Técnico</th>
+                                        <th colspan="6" class="text-center bg-primary text-white">Calidad (Q1-Q6)</th>
+                                        <th colspan="6" class="text-center bg-success text-white">Cumplimiento (Q7-Q12)</th>
+                                    </tr>
+                                    <tr>
+                                        ${preguntasConfig.map(p => `
+                                            <th class="text-center ${p.seccion === 'Calidad' ? 'bg-primary text-white' : 'bg-success text-white'}" style="font-size: 0.65rem; padding: 6px 3px; white-space: normal; word-wrap: break-word; max-width: 90px; line-height: 1.2;">
+                                                ${p.texto}
+                                            </th>
+                                        `).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tecnicosArray.map(tecnico => {
+                                        const empleado = empleados.find(e => e.username === tecnico.username || e.id === tecnico.username);
+                                        const nombre = empleado 
+                                            ? `${empleado.primerNombre || ''} ${empleado.primerApellido || ''}`.trim() || tecnico.username
+                                            : tecnico.username;
+                                        
+                                        return `
+                                            <tr>
+                                                <td><strong>${nombre}</strong><br><small class="text-muted">${tecnico.username}</small></td>
+                                                ${preguntasConfig.map(p => {
+                                                    const promedio = tecnico.promediosPorPregunta && tecnico.promediosPorPregunta[p.id] 
+                                                        ? tecnico.promediosPorPregunta[p.id].promedio 
+                                                        : 0;
+                                                    return `
+                                                        <td class="text-center" style="background: ${getColorForPercent(promedio)}20; padding: 6px 4px; max-width: 85px; min-width: 85px;">
+                                                            <strong style="font-size: 0.75rem;">${promedio.toFixed(1)}%</strong>
+                                                            <div class="progress progress-custom mt-1" style="height: 12px;">
+                                                                <div class="progress-bar progress-bar-custom" 
+                                                                     role="progressbar" 
+                                                                     style="width: ${Math.min(promedio, 100)}%; background: ${getColorForPercent(promedio)}">
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    `;
+                                                }).join('')}
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            console.log('✅ [RENDER_TECNICOS] HTML generado y aplicado');
+            console.log('📏 [RENDER_TECNICOS] Longitud del HTML:', container.innerHTML.length);
+        }
+        
+        // Función helper para obtener label
+        function getLabelForPercent(percent) {
+            if (percent >= 90) return 'Excelente';
+            if (percent >= 75) return 'Bueno';
+            if (percent >= 60) return 'Aceptable';
+            return 'Crítico';
+        }
+        
+        
+        // Verificar si una encuesta tiene comentarios
+        function tieneComentarios(encuesta) {
+            // Verificar comentarios por pregunta
+            for (let i = 1; i <= 12; i++) {
+                if (encuesta[`comentario${i}`] && encuesta[`comentario${i}`].trim()) {
+                    return true;
+                }
+            }
+            // Verificar comentarios generales
+            if (encuesta.comentarios_generales && encuesta.comentarios_generales.trim()) {
+                return true;
+            }
+            return false;
+        }
+        
+        // Renderizar lista de encuestas
+        function renderizarListaEncuestas() {
+            const container = document.getElementById('listaEncuestas');
+            
+            if (todasLasEncuestas.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center p-4">
+                        <i class="fas fa-inbox fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No hay encuestas disponibles</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = todasLasEncuestas.map((encuesta, index) => {
+                const scores = encuesta.scores || {};
+                const global = scores.global || {};
+                const percent = global.percent || 0;
+                const label = global.label || 'N/A';
+                
+                let scoreClass = 'score-critico';
+                if (label === 'Excelente') scoreClass = 'score-excelente';
+                else if (label === 'Bueno') scoreClass = 'score-bueno';
+                else if (label === 'Aceptable') scoreClass = 'score-aceptable';
+                
+                // Obtener fecha y teléfono desde encuestas_id usando id_encuesta
+                let fecha = 'N/A';
+                let telefono = 'N/A';
+                
+                if (encuesta.id_encuesta && encuestasIdMap[encuesta.id_encuesta]) {
+                    const encuestaIdData = encuestasIdMap[encuesta.id_encuesta];
+                    telefono = encuestaIdData.telefono || 'N/A';
+                    
+                    if (encuestaIdData.fecha_servicio) {
+                        let fechaServicio = null;
+                        if (encuestaIdData.fecha_servicio.toDate) {
+                            fechaServicio = encuestaIdData.fecha_servicio.toDate();
+                        } else if (encuestaIdData.fecha_servicio instanceof Date) {
+                            fechaServicio = encuestaIdData.fecha_servicio;
+                        } else if (typeof encuestaIdData.fecha_servicio === 'string') {
+                            fechaServicio = new Date(encuestaIdData.fecha_servicio);
+                        }
+                        
+                        if (fechaServicio && !isNaN(fechaServicio.getTime())) {
+                            fecha = fechaServicio.toLocaleDateString('es-CR', { day: '2-digit', month: '2-digit' });
+                        }
+                    }
+                }
+                
+                const tieneComent = tieneComentarios(encuesta);
+                
+                return `
+                    <div class="encuesta-item ${index === encuestaSeleccionadaIndex ? 'active' : ''}" 
+                         onclick="seleccionarEncuesta(${index})">
+                        <div class="encuesta-item-compact">
+                            <div class="encuesta-item-info">
+                                <div class="d-flex align-items-center gap-2">
+                                    ${tieneComent ? '<i class="fas fa-comment text-info" title="Tiene comentarios"></i>' : ''}
+                                    <strong style="font-size: 0.85rem;">${fecha}</strong>
+                                </div>
+                                <small class="text-muted" style="font-size: 0.75rem;">${telefono}</small>
+                            </div>
+                            <div class="encuesta-item-score">
+                                <span class="score-badge ${scoreClass}" style="font-size: 0.75rem; padding: 3px 8px;">${percent.toFixed(0)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Seleccionar encuesta
+        window.seleccionarEncuesta = function(index) {
+            encuestaSeleccionadaIndex = index;
+            renderizarListaEncuestas();
+            mostrarDetalleEncuesta(todasLasEncuestas[index]);
+            actualizarBotonesNavegacion();
+        };
+        
+        // Obtener técnicos de una encuesta específica
+        async function obtenerTecnicosDeEncuesta(encuesta) {
+            try {
+                // PASO 1: JOIN encuestas -> encuestas_id
+                if (!encuesta.id_encuesta || !encuestasIdMap[encuesta.id_encuesta]) {
+                    return [];
+                }
+                
+                const encuestaIdData = encuestasIdMap[encuesta.id_encuesta];
+                const telefonoCompleto = encuestaIdData.telefono || '';
+                if (!telefonoCompleto) {
+                    return [];
+                }
+                
+                // Obtener fecha de servicio
+                let fechaServicio = null;
+                if (encuestaIdData.fecha_servicio) {
+                    if (encuestaIdData.fecha_servicio.toDate) {
+                        fechaServicio = encuestaIdData.fecha_servicio.toDate();
+                    } else if (encuestaIdData.fecha_servicio instanceof Date) {
+                        fechaServicio = encuestaIdData.fecha_servicio;
+                    } else if (typeof encuestaIdData.fecha_servicio === 'string') {
+                        fechaServicio = new Date(encuestaIdData.fecha_servicio);
+                    }
+                }
+                
+                if (!fechaServicio || isNaN(fechaServicio.getTime())) {
+                    return [];
+                }
+                
+                const fechaStr = fechaServicio.toISOString().split('T')[0];
+                let telefono = telefonoCompleto.replace(/\D/g, '');
+                if (telefono.startsWith('506')) {
+                    telefono = telefono.substring(3);
+                }
+                
+                // PASO 2: JOIN encuestas_id -> citas
+                let cita = null;
+                
+                if (encuestaIdData.cita_id) {
+                    cita = todasLasCitas.find(c => c.id === encuestaIdData.cita_id);
+                }
+                
+                if (!cita) {
+                    const citasConMismoTelefono = todasLasCitas.filter(c => {
+                        if (!c.telefono) return false;
+                        let telefonoCita = String(c.telefono).replace(/\D/g, '');
+                        if (telefonoCita.startsWith('506')) {
+                            telefonoCita = telefonoCita.substring(3);
+                        }
+                        return telefonoCita === telefono;
+                    });
+                    
+                    for (const c of citasConMismoTelefono) {
+                        let fechaCita = null;
+                        let fechaCitaStr = null;
+                        
+                        if (c.inicio_gmt6) {
+                            if (c.inicio_gmt6.toDate) {
+                                fechaCita = c.inicio_gmt6.toDate();
+                                fechaCitaStr = fechaCita.toISOString().split('T')[0];
+                            } else if (c.inicio_gmt6 instanceof Date) {
+                                fechaCita = c.inicio_gmt6;
+                                fechaCitaStr = fechaCita.toISOString().split('T')[0];
+                            } else if (typeof c.inicio_gmt6 === 'string') {
+                                fechaCita = new Date(c.inicio_gmt6);
+                                fechaCitaStr = fechaCita.toISOString().split('T')[0];
+                            }
+                        } else if (c.service_start_time) {
+                            if (c.service_start_time.toDate) {
+                                fechaCita = c.service_start_time.toDate();
+                                fechaCitaStr = fechaCita.toISOString().split('T')[0];
+                            }
+                        }
+                        
+                        if (fechaCita && !isNaN(fechaCita.getTime()) && fechaCitaStr === fechaStr) {
+                            cita = c;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!cita) {
+                    return [];
+                }
+                
+                // PASO 3: JOIN citas -> ruteador
+                const ruta = cita.metadata?.ruta || cita.ruta || null;
+                if (!ruta) {
+                    return [];
+                }
+                
+                const rutaFormateada = ruta.replace(' ', '-');
+                const ruteadorId = `${fechaStr}_${rutaFormateada}`;
+                
+                const ruteadorRef = doc(db, 'ruteador', ruteadorId);
+                const ruteadorDoc = await getDoc(ruteadorRef);
+                
+                if (!ruteadorDoc.exists()) {
+                    return [];
+                }
+                
+                const ruteadorData = ruteadorDoc.data();
+                const tecnicos = ruteadorData.tecnicos || [];
+                
+                // PASO 4: Obtener nombres de técnicos
+                const tecnicosConNombres = tecnicos.map(username => {
+                    const empleado = empleados.find(e => e.username === username || e.id === username);
+                    if (empleado) {
+                        const nombre = `${empleado.primerNombre || ''} ${empleado.primerApellido || ''}`.trim();
+                        return nombre || username;
+                    }
+                    return username;
+                });
+                
+                return tecnicosConNombres;
+            } catch (error) {
+                console.error('Error obteniendo técnicos de encuesta:', error);
+                return [];
+            }
+        }
+        
+        // Mostrar detalle de encuesta
+        async function mostrarDetalleEncuesta(encuesta) {
+            document.getElementById('sinSeleccion').style.display = 'none';
+            document.getElementById('detalleEncuesta').style.display = 'block';
+            
+            const scores = encuesta.scores || {};
+            const global = scores.global || {};
+            const sectionA = scores.sectionA || {};
+            const sectionB = scores.sectionB || {};
+            const questions = scores.questions || [];
+            
+            // Resumen global
+            document.getElementById('scoreGlobal').textContent = `${global.percent?.toFixed(1) || 0}%`;
+            document.getElementById('labelGlobal').textContent = global.label || 'N/A';
+            document.getElementById('labelGlobal').className = `score-badge score-${global.label?.toLowerCase() || 'critico'}`;
+            document.getElementById('scoreCalidad').textContent = `${sectionA.percent?.toFixed(1) || 0}%`;
+            document.getElementById('scoreCumplimiento').textContent = `${sectionB.percent?.toFixed(1) || 0}%`;
+            
+            // Información
+            // Obtener fecha y teléfono desde encuestas_id usando id_encuesta
+            let fechaServicio = 'N/A';
+            let telefono = 'N/A';
+            
+            if (encuesta.id_encuesta && encuestasIdMap[encuesta.id_encuesta]) {
+                const encuestaIdData = encuestasIdMap[encuesta.id_encuesta];
+                telefono = encuestaIdData.telefono || 'N/A';
+                
+                if (encuestaIdData.fecha_servicio) {
+                    let fechaServicioDate = null;
+                    if (encuestaIdData.fecha_servicio.toDate) {
+                        fechaServicioDate = encuestaIdData.fecha_servicio.toDate();
+                    } else if (encuestaIdData.fecha_servicio instanceof Date) {
+                        fechaServicioDate = encuestaIdData.fecha_servicio;
+                    } else if (typeof encuestaIdData.fecha_servicio === 'string') {
+                        fechaServicioDate = new Date(encuestaIdData.fecha_servicio);
+                    }
+                    
+                    if (fechaServicioDate && !isNaN(fechaServicioDate.getTime())) {
+                        fechaServicio = fechaServicioDate.toLocaleString('es-CR');
+                    }
+                }
+            }
+            
+            const fechaEnvio = encuesta.fecha_envio_local 
+                ? new Date(encuesta.fecha_envio_local).toLocaleString('es-CR')
+                : 'N/A';
+            
+            document.getElementById('fechaServicio').textContent = fechaServicio;
+            document.getElementById('telefono').textContent = telefono;
+            document.getElementById('fechaEnvio').textContent = fechaEnvio;
+            document.getElementById('idEncuesta').textContent = encuesta.id_encuesta || encuesta.id || 'N/A';
+            
+            // Obtener y mostrar técnicos
+            document.getElementById('tecnicosEncuesta').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+            const tecnicos = await obtenerTecnicosDeEncuesta(encuesta);
+            if (tecnicos.length > 0) {
+                document.getElementById('tecnicosEncuesta').textContent = tecnicos.join(', ');
+            } else {
+                document.getElementById('tecnicosEncuesta').textContent = 'No disponible';
+            }
+            
+            // Configuración de textos de preguntas
+            const preguntasTextos = {
+                'Q1': 'Servicio técnico en general',
+                'Q2': 'Trato y respeto del técnico',
+                'Q3': 'Presentación personal del técnico',
+                'Q4': 'Tiempo que duró el servicio',
+                'Q5': 'Explicación del técnico sobre lo que hizo',
+                'Q6': 'Medidas preventivas para mascotas/personas',
+                'Q7': 'Limpieza área y retiro de excesos',
+                'Q8': 'Aplicación de puntos de gel',
+                'Q9': 'Tratamiento en tuberías/desagües/cajas',
+                'Q10': 'Preguntó si necesitaba otro servicio',
+                'Q11': 'Informó métodos de pago disponibles',
+                'Q12': 'Puntualidad con horario acordado'
+            };
+            
+            // Tabla de preguntas
+            const tbody = document.getElementById('tablaPreguntas');
+            tbody.innerHTML = questions.map((q, index) => {
+                const preguntaNum = index + 1;
+                const preguntaId = q.id || `Q${preguntaNum}`;
+                const preguntaTexto = preguntasTextos[preguntaId] || preguntaId;
+                
+                return `
+                    <tr>
+                        <td style="font-size: 0.7rem; line-height: 1.2; max-width: 200px;"><strong>${preguntaTexto}</strong></td>
+                        <td>${q.answer || 'N/A'}</td>
+                        <td>${q.scoreRaw || 0}/3</td>
+                        <td>${q.weight || 1}</td>
+                        <td>${q.scoreWeighted?.toFixed(1) || 0}</td>
+                        <td>
+                            <div class="progress progress-custom">
+                                <div class="progress-bar progress-bar-custom" 
+                                     role="progressbar" 
+                                     style="width: ${q.scorePercent || 0}%; background: ${getColorForPercent(q.scorePercent || 0)}">
+                                    ${(q.scorePercent || 0).toFixed(1)}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            // Gráficos
+            renderizarGraficos(questions, sectionA, sectionB, global);
+            
+            // Comentarios
+            renderizarComentarios(encuesta);
+        }
+        
+        // Renderizar gráficos
+        function renderizarGraficos(questions, sectionA, sectionB, global) {
+            // Destruir gráficos anteriores
+            if (chartPreguntas) chartPreguntas.destroy();
+            if (chartSecciones) chartSecciones.destroy();
+            
+            // Gráfico de preguntas
+            const ctxPreguntas = document.getElementById('chartPreguntas').getContext('2d');
+            chartPreguntas = new Chart(ctxPreguntas, {
+                type: 'bar',
+                data: {
+                    labels: questions.map((q, i) => `Q${i + 1}`),
+                    datasets: [{
+                        label: 'Score %',
+                        data: questions.map(q => q.scorePercent || 0),
+                        backgroundColor: questions.map(q => getColorForPercent(q.scorePercent || 0)),
+                        borderColor: questions.map(q => getColorForPercent(q.scorePercent || 0)),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de secciones
+            const ctxSecciones = document.getElementById('chartSecciones').getContext('2d');
+            chartSecciones = new Chart(ctxSecciones, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Calidad', 'Cumplimiento'],
+                    datasets: [{
+                        data: [sectionA.percent || 0, sectionB.percent || 0],
+                        backgroundColor: ['#2196f3', '#4caf50'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        // Renderizar comentarios
+        function renderizarComentarios(encuesta) {
+            const container = document.getElementById('comentariosContainer');
+            let html = '';
+            
+            // Comentarios por pregunta
+            for (let i = 1; i <= 12; i++) {
+                const comentario = encuesta[`comentario${i}`];
+                if (comentario && comentario.trim()) {
+                    html += `
+                        <div class="mb-3">
+                            <strong>Q${i}:</strong>
+                            <p class="mb-0">${comentario}</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Comentarios generales
+            if (encuesta.comentarios_generales && encuesta.comentarios_generales.trim()) {
+                html += `
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <strong><i class="fas fa-comments me-2"></i>Comentarios Generales:</strong>
+                        <p class="mb-0 mt-2">${encuesta.comentarios_generales}</p>
+                    </div>
+                `;
+            }
+            
+            if (!html) {
+                html = '<p class="text-muted">No hay comentarios en esta encuesta.</p>';
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // Función auxiliar para colores
+        function getColorForPercent(percent) {
+            if (percent >= 90) return '#28a745';
+            if (percent >= 75) return '#17a2b8';
+            if (percent >= 60) return '#ffc107';
+            return '#dc3545';
+        }
+        
+        // Navegación
+        document.getElementById('btnAnterior').addEventListener('click', () => {
+            if (encuestaSeleccionadaIndex > 0) {
+                seleccionarEncuesta(encuestaSeleccionadaIndex - 1);
+            }
+        });
+        
+        document.getElementById('btnSiguiente').addEventListener('click', () => {
+            if (encuestaSeleccionadaIndex < todasLasEncuestas.length - 1) {
+                seleccionarEncuesta(encuestaSeleccionadaIndex + 1);
+            }
+        });
+        
+        function actualizarBotonesNavegacion() {
+            document.getElementById('btnAnterior').disabled = encuestaSeleccionadaIndex <= 0;
+            document.getElementById('btnSiguiente').disabled = encuestaSeleccionadaIndex >= todasLasEncuestas.length - 1;
+        }
+        
+        // Inicializar
+        (async function() {
+            if (await waitForAuth()) {
+                await cargarEncuestas();
+            }
+        })();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
