@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquidar Alistos Especiales - Eco Plagas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="eco-plagas-styles.css?v=4.0" rel="stylesheet">
+    <link href="unified-styles.css?v=1.0" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="cache-buster.js"></script>
+    <script src="check-permissions.js"></script>
+    <script type="module" src="csrf-token.js"></script>
+    <script type="module">
+        import { auth } from './auth-secure.js';
+        window.firebaseAuth = auth;
+        (async function() {
+            if (window.authCheckInProgress) return;
+            window.authCheckInProgress = true;
+            if (document.body) document.body.style.display = 'none';
+            const hasSessionToken = sessionStorage.getItem('firebaseAuthToken') === 'authenticated';
+            if (hasSessionToken && document.body) {
+                document.body.style.display = 'block';
+                document.body.classList.add('authenticated');
+            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+            let retries = 0;
+            while (retries < 40) {
+                if (auth.currentUser) {
+                    if (window.secureAuthManager) window.authManager = window.secureAuthManager;
+                    else {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        if (window.secureAuthManager) window.authManager = window.secureAuthManager;
+                    }
+                    if (document.body && document.body.style.display === 'none') {
+                        document.body.style.display = 'block';
+                        document.body.classList.add('authenticated');
+                    }
+                    window.dispatchEvent(new CustomEvent('secure-auth-ready', { detail: { page: 'admin_inventario_liquidar_especiales', timestamp: Date.now() } }));
+                    window.authCheckInProgress = false;
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                retries++;
+            }
+            if (!hasSessionToken) window.location.replace('iniciar_sesion.html');
+            window.authCheckInProgress = false;
+        })();
+    </script>
+    <style>
+        body { display: none !important; }
+        body.authenticated { display: block !important; }
+        
+        /* Estilos tabla liquidación mejorada */
+        .table-custom {
+            border-collapse: separate; 
+            border-spacing: 0;
+            width: 100%;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .table-custom thead th {
+            border-bottom: 2px solid #343a40;
+            background-color: #f8f9fa;
+        }
+        .table-custom tbody tr:hover {
+            background-color: #f1f3f5 !important;
+        }
+        .table-custom td {
+            vertical-align: middle;
+            border-right: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        .table-custom td:last-child {
+            border-right: none;
+        }
+        
+        .clickable-cell { cursor: pointer; transition: all 0.2s; }
+        .clickable-cell:hover { 
+            transform: translateY(-1px);
+            box-shadow: inset 0 0 0 2px rgba(0,0,0,0.1); 
+            z-index: 1;
+        }
+        
+        /* Badges internos de celda */
+        .cell-badge-entry { background-color: #e9ecef; color: #495057; font-size: 0.65rem; }
+        .cell-badge-exit { background-color: #e9ecef; color: #6c757d; font-size: 0.65rem; }
+        .cell-badge-pending { font-weight: 700; font-size: 0.75rem; }
+
+        .badge-pendiente { font-size: 0.9em; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="header-container"></div>
+    <div class="container-fluid mt-2 px-3">
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-cash-register inventory-icon"></i> Liquidación de Alistos Especiales</h1>
+            <a href="administrador_bodega.html" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i>Volver</a>
+        </div>
+
+        <div class="section-content">
+            <div class="section-card shadow-sm p-4">
+                <h3 class="mb-4"><i class="fas fa-file-invoice-dollar"></i> Liquidación de Saldos</h3>
+                
+                <div class="section-body">
+                    <!-- Resumen de Pendientes (Últimos 28 Días + Próximos 3 Días) -->
+                    <div id="contenedorResumenPendientes" class="mb-4" style="display: none;">
+                        <h5 class="mb-3"><i class="fas fa-calendar-alt me-2"></i>Resumen de Pendientes (Últimos 28 Días + Próximos 3 Días)</h5>
+                        <div id="resumenDiasPendientes" class="d-flex flex-wrap gap-2">
+                            <!-- Tarjetas dinámicas -->
+                            <div class="text-center text-muted py-2 w-100"><div class="spinner-border spinner-border-sm"></div> Analizando historial...</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <!-- Filtro de Fechas (Oculto pero funcional para la lógica interna) -->
+                        <div class="col-md-4 d-none">
+                            <label class="form-label fw-bold">Fechas de Alistos (Transferencias)</label>
+                            <div class="card p-2" style="max-height: 200px; overflow-y: auto;">
+                                <div id="listaFechasAlistos" class="d-flex flex-column gap-1">
+                                     <div class="text-center text-muted py-3">
+                                        <div class="spinner-border spinner-border-sm"></div> Buscando fechas...
+                                     </div>
+                                </div>
+                            </div>
+                            <small class="text-muted"><i class="fas fa-info-circle"></i> Se muestran los últimos 45 días con movimientos.</small>
+                        </div>
+
+                        <!-- Filtro de Bodegas (Expandido) -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Bodegas Especiales a Incluir</label>
+                            <div class="card p-3" style="max-height: 200px; overflow-y: auto;">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="seleccionarTodasBodegasLiq(true)">Seleccionar Todas</button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="seleccionarTodasBodegasLiq(false)">Deseleccionar Todas</button>
+                                </div>
+                                <div id="listaBodegasLiquidacion" class="row g-2">
+                                    <div class="text-center py-3"><div class="spinner-border spinner-border-sm"></div> Cargando bodegas...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <input type="text" id="filtroTextoTabla" class="form-control" placeholder="🔍 Buscar producto o bodega en los resultados..." onkeyup="window.filtrarTablaTexto()">
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-success w-100" onclick="generarMatrizLiquidacion()">
+                                <i class="fas fa-sync-alt me-2"></i> Actualizar Reporte
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="contenedorTablaLiquidacion" class="table-responsive mt-4 rounded-3" style="display: none;">
+                        <h5 class="mb-3 text-center text-secondary fw-bold" id="tituloReporteLiquidacion"></h5>
+                        <table class="table table-sm table-custom align-middle mb-0" id="tablaLiquidacion">
+                            <thead class="text-center sticky-top bg-white">
+                                <!-- Headers dinámicos -->
+                            </thead>
+                            <tbody>
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Liquidación Individual -->
+    <div class="modal fade" id="modalLiquidacionIndividual" tabindex="-1">
+        <div class="modal-dialog modal-xl"> <!-- Modal más ancho para la tabla -->
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-coins me-2"></i>Liquidar Ítem Pendiente</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Resumen del Ítem -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="card bg-light border-0">
+                                <div class="card-body py-2">
+                                    <small class="text-muted">Producto</small>
+                                    <h5 class="mb-0" id="modalProductoNombre">Cargando...</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light border-0">
+                                <div class="card-body py-2">
+                                    <small class="text-muted">Bodega</small>
+                                    <h5 class="mb-0" id="modalBodegaNombre">Cargando...</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-primary">
+                                <div class="card-body py-2 text-center bg-primary text-white">
+                                    <small>Pendiente de Liquidar</small>
+                                    <h3 class="mb-0" id="modalCantidadDisponible">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="border-bottom pb-2 mb-3">Detalle de Liquidación</h6>
+                    <div class="alert alert-warning py-2" style="font-size: 0.9em;">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Debes distribuir el total pendiente (<span id="maxCantidadTotalIndividual">0</span>) entre una o más transacciones.
+                    </div>
+
+                    <!-- Tabla dinámica de transacciones -->
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered" id="tablaTransaccionesLiquidacion">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 20%">Tipo</th>
+                                    <th style="width: 30%">Destino (Cta Gasto / Bodega)</th>
+                                    <th style="width: 15%">Cantidad</th>
+                                    <th style="width: 30%">Nota / Recibo</th>
+                                    <th style="width: 5%">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyTransaccionesLiquidacion">
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="agregarFilaTransaccion()">
+                        <i class="fas fa-plus me-1"></i> Agregar Otra Transacción
+                    </button>
+
+                    <div class="d-flex justify-content-end mt-3 align-items-center">
+                         <span class="me-3 fw-bold">Total Asignado: <span id="totalCantidadAsignada" class="text-danger">0</span></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" onclick="procesarLiquidacionIndividual()">
+                        <i class="fas fa-check-circle me-2"></i> Confirmar Liquidación
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="utils.js"></script>
+    <script type="module" src="load-headersecure.js"></script>
+    <script type="module" src="admin_inventario_liquidar_especiales.js"></script>
+</body>
+</html>
