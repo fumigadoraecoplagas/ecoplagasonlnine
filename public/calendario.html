@@ -415,7 +415,7 @@
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             margin-bottom: 0;
-            max-height: 1100px; /* Altura máxima aumentada para mostrar hasta las 11pm */
+            max-height: 1250px; /* Cabeceras (~250px) + timeline 24h (960px) para ver hasta 5am del día siguiente */
             overflow-y: auto; /* Permitir scroll vertical (se sobrescribirá cuando se aplique recorte) */
             overflow-x: hidden; /* No permitir scroll horizontal aquí */
             position: relative; /* Necesario para que el overflow funcione correctamente */
@@ -1940,6 +1940,17 @@
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Nombre del Cliente</label>
                                     <input type="text" id="editClientName" class="form-control" placeholder="Ingrese el nombre completo" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
                                 </div>
+                                
+                                <!-- Confirmada dentro de 24-48 horas -->
+                                <div class="col-12 col-md" style="flex: 0 0 auto; min-width: 220px;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Confirmada dentro de 24-48 horas</label>
+                                    <div class="form-check form-switch mt-1">
+                                        <input class="form-check-input" type="checkbox" id="editConfirmada24_48" role="switch" aria-label="Cliente avisado">
+                                        <label class="form-check-label" for="editConfirmada24_48">Cliente avisado (recordatorio enviado)</label>
+                                    </div>
+                                    <small id="editConfirmada24_48Mensaje" class="text-muted d-block mt-1"></small>
+                                    <small id="editConfirmada24_48Timestamp" class="d-block mt-1" style="display:none;"></small>
+                                </div>
                                         </div>
                                     </div>
                                 </div>
@@ -2019,18 +2030,6 @@
                                         </div>
                                     </div>
                                     <div id="editPlagasSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
-                                </div>
-                                
-                                <!-- Confirmada dentro de 24-48 horas -->
-                                <div class="col-12">
-                                    <h6 class="form-subsection-title mb-2">Confirmada dentro de 24-48 horas</h6>
-                                    <p class="small text-muted mb-2">Indique si ya avisó al cliente que su cita fue asignada. Solo se puede activar cuando faltan menos de 48 horas para la cita.</p>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="editConfirmada24_48" role="switch" aria-label="Cliente avisado">
-                                        <label class="form-check-label" for="editConfirmada24_48">Cliente avisado (recordatorio enviado)</label>
-                                    </div>
-                                    <small id="editConfirmada24_48Mensaje" class="text-muted d-block mt-1"></small>
-                                    <small id="editConfirmada24_48Timestamp" class="d-block mt-1" style="display:none;"></small>
                                 </div>
             </div>
         </div>
@@ -2376,6 +2375,17 @@
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Nombre del Cliente</label>
                                     <input type="text" id="newClientName" class="form-control" placeholder="Ingrese el nombre completo" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px; color: #000000;">
                                 </div>
+                                
+                                <!-- Confirmada dentro de 24-48 horas -->
+                                <div class="col-12 col-md" style="flex: 0 0 auto; min-width: 220px;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Confirmada dentro de 24-48 horas</label>
+                                    <div class="form-check form-switch mt-1">
+                                        <input class="form-check-input" type="checkbox" id="newConfirmada24_48" role="switch" aria-label="Cliente avisado">
+                                        <label class="form-check-label" for="newConfirmada24_48">Cliente avisado (recordatorio enviado)</label>
+                                    </div>
+                                    <small id="newConfirmada24_48Mensaje" class="text-muted d-block mt-1"></small>
+                                    <small id="newConfirmada24_48Timestamp" class="d-block mt-1" style="display:none;"></small>
+                                </div>
                                     </div>
                                 </div>
                                         </div>
@@ -2455,18 +2465,6 @@
                                         </div>
                                     </div>
                                     <div id="newPlagasSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
-                                </div>
-                                
-                                <!-- Confirmada dentro de 24-48 horas -->
-                                <div class="col-12">
-                                    <h6 class="form-subsection-title mb-2">Confirmada dentro de 24-48 horas</h6>
-                                    <p class="small text-muted mb-2">Indique si ya avisó al cliente que su cita fue asignada. Solo se puede activar cuando faltan menos de 48 horas para la cita.</p>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="newConfirmada24_48" role="switch" aria-label="Cliente avisado">
-                                        <label class="form-check-label" for="newConfirmada24_48">Cliente avisado (recordatorio enviado)</label>
-                                    </div>
-                                    <small id="newConfirmada24_48Mensaje" class="text-muted d-block mt-1"></small>
-                                    <small id="newConfirmada24_48Timestamp" class="d-block mt-1" style="display:none;"></small>
                                 </div>
                                         </div>
                         </div>
