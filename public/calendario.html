@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -2089,6 +2089,18 @@
                                         </table>
                                     </div>
                                 </div>
+                                <div class="col-12 mt-3" style="position: relative; z-index: 998;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
+                                        Equipo y Herramientas
+                                    </label>
+                                    <div class="dropdown-container" style="position: relative;">
+                                        <input type="text" id="editEquipoSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar equipo" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                        <div class="dropdown-menu" id="editEquipoDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
+                                            <div class="dropdown-item text-muted" id="noResultsEditEquipo" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
+                                        </div>
+                                    </div>
+                                    <div id="editEquipoSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                </div>
                                 <div class="col-12 mt-2">
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Monto de Venta (₡)</label>
                                     <input type="text" id="editMontoVenta" class="form-control" placeholder="0" style="border: 1px solid #27ae60; font-size: 1rem; font-weight: 600; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f0fff4; border-radius: 8px; color: #000000;">
@@ -2132,10 +2144,10 @@
                         </div>
                     </div>
 
-                    <!-- Vendedores, Equipo, Certificados, Descripción -->
+                    <!-- Vendedores, Certificados, Descripción -->
                     <div class="card mb-2" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; position: relative; z-index: 1;">
                         <div class="card-header" style="background: #e8eef4; border-bottom: 1px solid #dee2e6; padding: 0.75rem 1rem; border-radius: 8px 8px 0 0;">
-                            <h5 class="mb-0 form-section-title">Vendedores, equipo y descripción</h5>
+                            <h5 class="mb-0 form-section-title">Vendedores y descripción</h5>
                 </div>
                         <div class="card-body" id="contentAdicionalEdit" style="padding: 1rem;">
                             <div class="row" style="gap: 0.75rem 0;">
@@ -2151,18 +2163,6 @@
                                     </div>
                                     <div id="editVendedoresSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
                         </div>
-                                <div class="col-12">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
-                                        Equipo y Herramientas
-                                    </label>
-                                    <div class="dropdown-container" style="position: relative;">
-                                        <input type="text" id="editEquipoSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar equipo" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
-                                        <div class="dropdown-menu" id="editEquipoDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
-                                            <div class="dropdown-item text-muted" id="noResultsEditEquipo" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
-                                        </div>
-                                    </div>
-                                    <div id="editEquipoSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
-                                </div>
                                 <div class="col-12">
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
                                         <i class="fas fa-certificate me-1" style="opacity: 0.7;"></i>Certificados de Fumigación
@@ -2524,6 +2524,18 @@
                                         </table>
                                     </div>
                                 </div>
+                                <div class="col-12 mt-3" style="position: relative; z-index: 998;">
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
+                                        Equipo y Herramientas
+                                    </label>
+                                    <div class="dropdown-container" style="position: relative;">
+                                        <input type="text" id="newEquipoSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar equipo" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
+                                        <div class="dropdown-menu" id="newEquipoDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
+                                            <div class="dropdown-item text-muted" id="noResultsNewEquipo" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
+                                        </div>
+                                    </div>
+                                    <div id="newEquipoSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
+                                </div>
                                 <div class="col-12 mt-2">
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Monto de Venta (₡)</label>
                                     <input type="text" id="newMontoVenta" class="form-control" placeholder="0" style="border: 1px solid #27ae60; font-size: 1rem; font-weight: 600; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #f0fff4; border-radius: 8px; color: #000000;">
@@ -2586,18 +2598,6 @@
                                     </div>
                                     <div id="newVendedoresSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
                                         </div>
-                                <div class="col-12">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
-                                        Equipo y Herramientas
-                                    </label>
-                                    <div class="dropdown-container" style="position: relative;">
-                                        <input type="text" id="newEquipoSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar equipo" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
-                                        <div class="dropdown-menu" id="newEquipoDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
-                                            <div class="dropdown-item text-muted" id="noResultsNewEquipo" style="display: none; padding: 0.75rem; color: #6c757d; font-size: 0.9rem;">No se encontraron resultados</div>
-                                        </div>
-                                    </div>
-                                    <div id="newEquipoSelected" class="d-flex flex-wrap gap-1 mb-2 mt-2"></div>
-                                </div>
                                 <div class="col-12">
                                     <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">
                                         <i class="fas fa-certificate me-1" style="opacity: 0.7;"></i>Certificados de Fumigación
@@ -5087,21 +5087,18 @@
                             <td colspan="5" style="padding: 0.75rem;">
                                 <div style="border-left: 3px solid #007bff; padding-left: 0.75rem;">
                                     <label style="font-size: 0.85rem; font-weight: 600; color: #333; margin-bottom: 0.5rem; display: block;">
-                                        Comentarios <span style="color: #dc3545;">*</span>
+                                        Comentarios <span style="color: #6c757d; font-size: 0.8rem;">(Opcional)</span>
                                     </label>
                                     <textarea 
                                         id="textareaComentarios-${prefix}-${serv.id}"
                                         class="form-control servicio-comentarios-textarea" 
                                         rows="3" 
-                                        placeholder="Ingrese los comentarios para este servicio (obligatorio)"
-                                        required
+                                        placeholder="Ingrese los comentarios para este servicio (opcional)"
                                         data-servicio-id="${serv.id}"
                                         data-prefix="${prefix}"
                                         style="font-size: 0.9rem; resize: vertical; border: 1px solid #ced4da;"
                                         onblur="guardarComentariosServicio('${serv.id}', '${prefix}')"
-                                        oninput="window.validarComentarioServicioIndividual && window.validarComentarioServicioIndividual('${serv.id}', '${prefix}')"
                                     >${comentariosEscapados}</textarea>
-                                    <small id="errorComentarios-${prefix}-${serv.id}" style="color: #dc3545; display: none; font-size: 0.8rem; margin-top: 0.25rem;">Este campo es obligatorio</small>
                                 </div>
                             </td>
                         </tr>
@@ -5386,7 +5383,6 @@
             // Función para validar comentarios de un servicio individual (en tiempo real)
             window.validarComentarioServicioIndividual = function(servicioId, prefix) {
                 const textarea = document.getElementById(`textareaComentarios-${prefix}-${servicioId}`);
-                const errorMsg = document.getElementById(`errorComentarios-${prefix}-${servicioId}`);
                 
                 if (!textarea) return;
                 
@@ -5412,76 +5408,25 @@
                     }
                 }
                 
-                // Validar y mostrar/ocultar error
-                if (comentarios === '') {
-                    textarea.classList.add('is-invalid');
-                    if (errorMsg) {
-                        errorMsg.style.display = 'block';
-                    }
-                } else {
-                    textarea.classList.remove('is-invalid');
-                    if (errorMsg) {
-                        errorMsg.style.display = 'none';
-                    }
-                }
+                // Los comentarios ahora son opcionales, no validamos como obligatorio
+                textarea.classList.remove('is-invalid');
             };
             
             window.validarComentariosServicios = function(prefix) {
-                const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
-                const serviciosSinComentarios = [];
-                
-                selected.forEach(serv => {
-                    const servicioId = typeof serv === 'string' ? serv : serv.id;
-                    const comentarios = typeof serv === 'object' && serv.comentarios !== undefined ? serv.comentarios : '';
-                    
-                    if (!comentarios || comentarios.trim() === '') {
-                        const servicio = window.todosLosServicios.find(s => s.id === servicioId);
-                        serviciosSinComentarios.push(servicio?.nombre || servicioId);
-                        
-                        // Marcar el textarea como inválido
-                        const textarea = document.getElementById(`textareaComentarios-${prefix}-${servicioId}`);
-                        const errorMsg = document.getElementById(`errorComentarios-${prefix}-${servicioId}`);
-                        if (textarea) {
-                            textarea.classList.add('is-invalid');
-                            textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                        if (errorMsg) {
-                            errorMsg.style.display = 'block';
-                        }
-                    }
-                });
-                
-                if (serviciosSinComentarios.length > 0) {
-                    alert(`Por favor, complete los comentarios para los siguientes servicios:\n\n${serviciosSinComentarios.join('\n')}\n\nLos comentarios son obligatorios para cada servicio.`);
-                    return false;
-                }
-                
+                // Los comentarios ahora son opcionales, siempre retornamos true
                 return true;
             };
             
-            // Función para guardar comentarios del servicio (obligatorio)
+            // Función para guardar comentarios del servicio (opcional)
             window.guardarComentariosServicio = function(servicioId, prefix) {
                 const textarea = document.getElementById(`textareaComentarios-${prefix}-${servicioId}`);
-                const errorMsg = document.getElementById(`errorComentarios-${prefix}-${servicioId}`);
                 
                 if (!textarea) return;
                 
                 const comentarios = textarea.value.trim();
                 
-                // Validar que no esté vacío (obligatorio)
-                if (comentarios === '') {
-                    textarea.classList.add('is-invalid');
-                    if (errorMsg) {
-                        errorMsg.style.display = 'block';
-                    }
-                    return;
-                }
-                
-                // Remover error si tiene contenido
+                // Remover clase de error si existe (los comentarios ahora son opcionales)
                 textarea.classList.remove('is-invalid');
-                if (errorMsg) {
-                    errorMsg.style.display = 'none';
-                }
                 
                 const selected = prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew;
                 const servicio = selected.find(s => {
@@ -14586,7 +14531,7 @@
                     return;
                 }
                 
-                // Validar que todos los servicios tengan comentarios (obligatorio)
+                // Validar comentarios de servicios (ahora opcionales, siempre pasa)
                 if (!window.validarComentariosServicios('edit')) {
                     return;
                 }
@@ -15008,7 +14953,7 @@
                     return;
                 }
                 
-                // Validar que todos los servicios tengan comentarios (obligatorio)
+                // Validar comentarios de servicios (ahora opcionales, siempre pasa)
                 if (!window.validarComentariosServicios('new')) {
                     return;
                 }
