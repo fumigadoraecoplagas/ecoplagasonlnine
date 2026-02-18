@@ -5398,6 +5398,8 @@
                 });
                 
                 if (servicio) {
+                    const num = parseFloat(nuevoPrecio);
+                    const precioValido = !isNaN(num) && num >= 0 ? num : (typeof servicio === 'object' && servicio !== null && servicio.precio !== undefined ? servicio.precio : 0);
                     // Convertir a objeto si es string
                     if (typeof servicio === 'string') {
                         const index = selected.indexOf(servicio);
@@ -5405,15 +5407,15 @@
                         selected[index] = {
                             id: servicioId,
                             cantidad: 1,
-                            precio: parseFloat(nuevoPrecio) || servicioObj?.precio || 0,
+                            precio: !isNaN(num) && num >= 0 ? num : (servicioObj?.precio ?? 0),
                             comentarios: ''
                         };
                     } else {
-                        servicio.precio = parseFloat(nuevoPrecio) || servicio.precio || 0;
+                        servicio.precio = precioValido;
                     }
-                    
-                    const precioUnitario = servicio.precio || 0;
-                    const cantidad = servicio.cantidad || 1;
+                    const actualizado = selected.find(s => (typeof s === 'string' ? s : s.id) === servicioId);
+                    const precioUnitario = precioValido;
+                    const cantidad = (typeof actualizado === 'object' && actualizado && actualizado.cantidad !== undefined) ? actualizado.cantidad : 1;
                     const precioTotal = precioUnitario * cantidad;
                     console.log('[SERVICIOS] Precio unitario actualizado', { servicio, precioUnitario, cantidad, total: precioTotal });
                     
@@ -5534,7 +5536,8 @@
                 const selected = prefix === 'edit' ? window.productosSeleccionadosEdit : window.productosSeleccionadosNew;
                 const item = selected.find(p => (typeof p === 'object' ? p.id : p) === productoId);
                 if (item && typeof item === 'object') {
-                    item.precio = Math.max(0, parseFloat(String(nuevoPrecio).replace(/[^\d.-]/g, '')) || 0);
+                    const num = parseFloat(String(nuevoPrecio).replace(/[^\d.-]/g, ''));
+                    item.precio = (!isNaN(num) && num >= 0) ? num : 0;
                     if (window.renderizarTablaProductos) window.renderizarTablaProductos(prefix);
                 }
             };
