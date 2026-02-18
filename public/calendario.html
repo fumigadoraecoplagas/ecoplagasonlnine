@@ -306,8 +306,8 @@
         .cita-item.Ruta-19 { background: #2E7D4A; border-color: #25633A; color: #fff; font-weight: 600; }
         .cita-item.Ruta-20 { background: #A50000; border-color: #840000; color: #fff; font-weight: 600; }
         .cita-item.Sin-asignar { background: #B0BEC5; border-color: #9E9E9E; color: #000; font-weight: 600; }
-        .cita-item.monto-cero { border: 3px solid #ff1744 !important; box-shadow: 0 0 0 1px #ff1744; }
-        .cita-item-dia.monto-cero { border: 3px solid #ff1744 !important; box-shadow: 0 0 8px rgba(255,23,68,0.6); }
+        .cita-item.monto-cero { border: 3px solid #ff1744 !important; box-shadow: 0 0 0 2px #ff1744; outline: 3px solid #ff1744; outline-offset: 1px; }
+        .cita-item-dia.monto-cero { border: 3px solid #ff1744 !important; box-shadow: 0 0 0 2px #ff1744; outline: 3px solid #ff1744; outline-offset: 1px; }
 
         .filters-section {
             background: var(--light-gradient);
@@ -919,6 +919,7 @@
         .cita-bloque.Ruta-19 { border-color: #25633A; background: #2E7D4A; color: #fff; font-weight: 600; }
         .cita-bloque.Ruta-20 { border-color: #840000; background: #A50000; color: #fff; font-weight: 600; }
         .cita-bloque.Sin-asignar { border-color: #424242; background: #616161; color: #fff; font-weight: 600; }
+        .cita-bloque.monto-cero { border: 3px solid #ff1744 !important; box-shadow: 0 0 0 2px #ff1744; outline: 3px solid #ff1744; outline-offset: 1px; }
 
         .cita-hora-cronograma {
             font-weight: 600;
@@ -14137,7 +14138,9 @@
                 const emojiTurno = obtenerTurnoEmoji(cita);
                 
                 const citaBloque = document.createElement('div');
-                citaBloque.className = `cita-bloque ${ruta.replace(' ', '-')}`;
+                const montoCitaBloque = window.obtenerMonto ? window.obtenerMonto(cita) : undefined;
+                const esMontoCeroBloque = (Number(montoCitaBloque) || 0) === 0;
+                citaBloque.className = `cita-bloque ${ruta.replace(' ', '-')}${esMontoCeroBloque ? ' monto-cero' : ''}`;
                 citaBloque.style.cssText = `top: ${top}px; height: ${height}px; cursor: move;`;
                 citaBloque.setAttribute('data-cita-id', cita.id);
                 citaBloque.setAttribute('draggable', 'true');
