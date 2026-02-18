@@ -4502,7 +4502,7 @@
                 const entradas = Object.entries(ventasPorVendedor).sort((a, b) => b[1] - a[1]);
                 const maxVendedor = entradas.length ? Math.max(...entradas.map(e => e[1]), 1) : 1;
                 const fmtMilesV = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                const nombreStyle = 'min-width: 0; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 1;';
+                const nombreStyle = 'width: 140px; min-width: 140px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
                 const barraWrapStyle = 'flex: 1; min-width: 48px; height: 14px; background: #e0e0e0; border-radius: 3px; overflow: hidden;';
                 const renderFilaVendedor = (nombre, total, barColor) => {
                     const pct = maxVendedor > 0 ? Math.min(100, (total / maxVendedor) * 100) : 0;
@@ -4571,7 +4571,7 @@
                 const entradasR20 = Object.entries(ventasPorVendedorR20).sort((a, b) => b[1] - a[1]);
                 const maxVendedorR20 = entradasR20.length ? Math.max(...entradasR20.map(e => e[1]), 1) : 1;
                 const fmtMilesVR20 = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                const nombreStyleR20 = 'min-width: 0; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 1;';
+                const nombreStyleR20 = 'width: 140px; min-width: 140px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
                 const barraWrapStyleR20 = 'flex: 1; min-width: 48px; height: 14px; background: #e0e0e0; border-radius: 3px; overflow: hidden;';
                 const renderFilaR20 = (nombre, total) => {
                     const pct = maxVendedorR20 > 0 ? Math.min(100, (total / maxVendedorR20) * 100) : 0;
