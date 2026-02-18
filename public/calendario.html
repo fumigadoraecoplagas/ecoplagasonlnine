@@ -306,6 +306,8 @@
         .cita-item.Ruta-19 { background: #2E7D4A; border-color: #25633A; color: #fff; font-weight: 600; }
         .cita-item.Ruta-20 { background: #A50000; border-color: #840000; color: #fff; font-weight: 600; }
         .cita-item.Sin-asignar { background: #B0BEC5; border-color: #9E9E9E; color: #000; font-weight: 600; }
+        .cita-item.monto-cero { box-shadow: 0 0 0 2px #ff1744; outline: 2px solid #ff1744; outline-offset: -2px; }
+        .cita-item-dia.monto-cero { box-shadow: 0 0 0 2px #ff1744; border: 2px solid #ff1744 !important; }
 
         .filters-section {
             background: var(--light-gradient);
@@ -12489,7 +12491,8 @@
                                         const emojiTurno = obtenerTurnoEmoji(cita);
                                         
                                         const citaElement = document.createElement('div');
-                                        citaElement.className = 'cita-item-dia';
+                                        const montoCitaDia = window.obtenerMonto ? (window.obtenerMonto(cita) || 0) : 0;
+                                        citaElement.className = 'cita-item-dia' + (montoCitaDia === 0 ? ' monto-cero' : '');
                                         citaElement.setAttribute('data-cita-id', cita.id);
                                         citaElement.style.cursor = 'pointer';
                                         
@@ -14337,7 +14340,8 @@
                 citasDelDia.forEach(cita => {
                     const citaElement = document.createElement('div');
                     const ruta = obtenerRuta(cita);
-                    citaElement.className = `cita-item ${ruta?.replace(' ', '-')}`;
+                    const montoCita = window.obtenerMonto ? (window.obtenerMonto(cita) || 0) : 0;
+                    citaElement.className = `cita-item ${ruta?.replace(' ', '-')}${montoCita === 0 ? ' monto-cero' : ''}`;
                     citaElement.setAttribute('data-cita-id', cita.id);
                     citaElement.style.cursor = 'pointer';
                     citaElement.style.position = 'relative';
