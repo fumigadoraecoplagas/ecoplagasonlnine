@@ -11422,6 +11422,11 @@
             // Actualizar el campo de monto de venta
             const montoVentaInput = document.getElementById(prefix === 'edit' ? 'editMontoVenta' : 'newMontoVenta');
             if (montoVentaInput) {
+                // Si no hay desglose (suma 0) y el input ya tiene un monto > 0, no sobrescribir (preserva citas CSV o sin desglose)
+                if (montoVentaCalculado === 0) {
+                    const valorActual = parseFloat(window.extraerValorNumerico(montoVentaInput.value) || '0') || 0;
+                    if (valorActual > 0) return;
+                }
                 const montoFormateado = window.formatearMontoVenta(montoVentaCalculado);
                 montoVentaInput.value = montoFormateado;
             }
