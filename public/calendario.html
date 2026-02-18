@@ -1582,6 +1582,16 @@
                                 <div style="font-size: 0.65rem; font-weight: 700; color: #333;">Ventas por vendedor (mes)</div>
                                 <div id="dayBarsVendedores" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; min-height: 20px; align-content: start;"></div>
                             </div>
+                            <div style="border-top: 1px solid #e0e0e0; margin-top: 6px; padding-top: 6px;">
+                                <button type="button" id="btnToggleCancelaciones" style="display: flex; align-items: center; gap: 6px; width: 100%; padding: 6px 8px; font-size: 0.7rem; font-weight: 600; color: #666; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 6px; cursor: pointer; text-align: left;"><i class="fas fa-chevron-right" id="iconToggleCancelaciones" style="transition: transform 0.2s;"></i> Ver ventas perdidas (Cancelaciones Ruta 20)</button>
+                                <div id="cancelacionesRuta20Wrap" style="display: none; flex-direction: column; gap: 6px; padding: 8px 2px 4px; margin-top: 6px;">
+                                    <div id="dayBarsResumenCancelaciones" style="font-size: 0.7rem; font-weight: 700; color: #333; padding: 2px 0;">Ventas perdidas (Ruta 20): ₡0</div>
+                                    <div id="dayBarsAxisCancelaciones" class="day-bars-axis" style="display: flex; justify-content: space-between; font-size: 0.6rem; font-weight: 600; color: #6c757d; padding: 0 2px; line-height: 1;">0</div>
+                                    <div id="dayBarsRowCancelaciones" class="day-bars-row" style="position: relative; display: flex; flex-wrap: nowrap; gap: 3px; padding: 2px 0; height: 80px; align-items: flex-end;"></div>
+                                    <div style="font-size: 0.65rem; font-weight: 700; color: #333;">Ventas perdidas por vendedor (Ruta 20)</div>
+                                    <div id="dayBarsVendedoresCancelaciones" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; min-height: 20px; align-content: start;"></div>
+                                </div>
+                            </div>
                         </div>
                         <button id="btnNextMonthCronograma" class="btn-date-nav" style="background: #f5f5f5; border: none; border-radius: 8px; width: 32px; height: 32px; min-width: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; color: #4CAF50;" onmouseover="this.style.background='#4CAF50'; this.style.color='white';" onmouseout="this.style.background='#f5f5f5'; this.style.color='#4CAF50';">
                             <i class="fas fa-chevron-right" style="font-size: 0.85rem;"></i>
@@ -4300,14 +4310,20 @@
         }
         
         // Función para calcular ventas totales de un día
-        function calcularVentasDia(year, month, day) {
+        // opts: { excluirRuta20: true } = no contar Ruta 20 (cancelaciones); { soloRuta20: true } = solo Ruta 20
+        function calcularVentasDia(year, month, day, opts) {
             if (!window.todasLasCitas || window.todasLasCitas.length === 0) {
                 return 0;
             }
+            const excluirRuta20 = opts && opts.excluirRuta20;
+            const soloRuta20 = opts && opts.soloRuta20;
             
             let totalVentas = 0;
             window.todasLasCitas.forEach(cita => {
                 if (!window.obtenerInicio) return;
+                const ruta = window.obtenerRuta ? window.obtenerRuta(cita) : '';
+                if (excluirRuta20 && ruta === 'Ruta 20') return;
+                if (soloRuta20 && ruta !== 'Ruta 20') return;
                 
                 const inicioCita = window.obtenerInicio(cita);
                 if (!inicioCita) return;
@@ -4406,7 +4422,7 @@
             
             const ventasPorDia = diasAMostrar.map(fechaDia => {
                 const y = fechaDia.getFullYear(), m = fechaDia.getMonth(), d = fechaDia.getDate();
-                return calcularVentasDia(y, m, d);
+                return calcularVentasDia(y, m, d, { excluirRuta20: true });
             });
             const metasPorDia = diasAMostrar.map(fechaDia => {
                 const fechaStr = formatearFechaParaInput(fechaDia);
@@ -4468,6 +4484,7 @@
             if (dayBarsVendedores && window.todasLasCitas && window.todasLasCitas.length > 0) {
                 const ventasPorVendedor = {};
                 window.todasLasCitas.forEach(cita => {
+                    if (window.obtenerRuta && window.obtenerRuta(cita) === 'Ruta 20') return;
                     const inicioCita = window.obtenerInicio && window.obtenerInicio(cita);
                     if (!inicioCita) return;
                     const fechaCita = window.formatearFecha && window.formatearFecha(inicioCita);
@@ -4495,6 +4512,81 @@
                     }).join('');
             } else if (dayBarsVendedores) {
                 dayBarsVendedores.innerHTML = '<span style="font-size: 0.6rem; color: #888;">Sin datos</span>';
+            }
+            
+            // Sección Cancelaciones (Ruta 20): barras por día y por vendedor solo Ruta 20
+            const dayBarsResumenCancelaciones = document.getElementById('dayBarsResumenCancelaciones');
+            const dayBarsAxisCancelaciones = document.getElementById('dayBarsAxisCancelaciones');
+            const dayBarsRowCancelaciones = document.getElementById('dayBarsRowCancelaciones');
+            const dayBarsVendedoresCancelaciones = document.getElementById('dayBarsVendedoresCancelaciones');
+            const ventasPorDiaRuta20 = diasAMostrar.map(fechaDia => calcularVentasDia(fechaDia.getFullYear(), fechaDia.getMonth(), fechaDia.getDate(), { soloRuta20: true }));
+            const totalVentasRuta20 = ventasPorDiaRuta20.reduce((s, v) => s + (v || 0), 0);
+            const maxVentasRuta20 = ventasPorDiaRuta20.length ? Math.max(...ventasPorDiaRuta20, 1) : 1;
+            const escalaMaxRuta20 = Math.max(500000, maxVentasRuta20);
+            const labelEjeMaxRuta20 = escalaMaxRuta20 >= 1000000 ? (escalaMaxRuta20 / 1000000).toFixed(1).replace(/\.0$/, '') + 'M' : (escalaMaxRuta20 / 1000).toFixed(0) + 'k';
+            const fmtMiles = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            if (dayBarsResumenCancelaciones) dayBarsResumenCancelaciones.textContent = 'Ventas perdidas (Ruta 20): ₡' + fmtMiles(totalVentasRuta20);
+            if (dayBarsAxisCancelaciones) dayBarsAxisCancelaciones.innerHTML = '<span>0</span><span>' + labelEjeMaxRuta20 + '</span>';
+            if (dayBarsRowCancelaciones) {
+                const barsWrapStyle = 'position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-wrap: nowrap; gap: 3px; align-items: flex-end; height: 100%;';
+                const barsHtmlRuta20 = ventasPorDiaRuta20.map((ventasDia, i) => {
+                    const fechaDia = diasAMostrar[i];
+                    const fechaString = formatearFechaParaInput(fechaDia);
+                    const esDomingo = fechaDia.getDay() === 0;
+                    const esFeriado = esFeriadoCR(fechaString);
+                    const esHabil = !esDomingo && !esFeriado;
+                    const pct = escalaMaxRuta20 > 0 ? Math.min(100, ((ventasDia || 0) / escalaMaxRuta20) * 100) : 0;
+                    const ventasFormateadasBar = (ventasDia || 0) >= 1000000 ? ((ventasDia || 0) / 1000000).toFixed(1) + 'M' : (ventasDia || 0) >= 1000 ? ((ventasDia || 0) / 1000).toFixed(0) + 'k' : (ventasDia || 0).toString();
+                    const titulo = '₡' + (ventasDia || 0).toLocaleString('es-CR');
+                    return '<div class="day-bar-cell" title="' + titulo.replace(/"/g, '&quot;') + '" data-fecha="' + fechaString + '" style="position: relative; min-width: 44px; max-width: 52px; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%;"><span style="font-size: 0.5rem; font-weight: 600; color: #333; margin-bottom: 2px; line-height: 1; white-space: nowrap; position: relative; z-index: 1;">' + ventasFormateadasBar + '</span><div style="flex: 1; width: 100%; min-height: 0; display: flex; align-items: flex-end; justify-content: center; position: relative; z-index: 1;"><div style="width: 85%; height: ' + (pct || 4) + '%; min-height: 4px; border-radius: 3px; background: linear-gradient(to top, #c62828, #e57373);"></div></div></div>';
+                }).join('');
+                dayBarsRowCancelaciones.innerHTML = '<div style="' + barsWrapStyle + '">' + barsHtmlRuta20 + '</div>';
+            }
+            if (dayBarsVendedoresCancelaciones && window.todasLasCitas) {
+                const ventasPorVendedorR20 = {};
+                window.todasLasCitas.forEach(cita => {
+                    if (!window.obtenerRuta || window.obtenerRuta(cita) !== 'Ruta 20') return;
+                    const inicioCita = window.obtenerInicio && window.obtenerInicio(cita);
+                    if (!inicioCita) return;
+                    const fechaCita = window.formatearFecha && window.formatearFecha(inicioCita);
+                    if (!fechaCita || fechaCita.getFullYear() !== year || fechaCita.getMonth() !== month) return;
+                    const monto = (window.obtenerMonto && window.obtenerMonto(cita)) || 0;
+                    let vendedores = (window.obtenerVendedores && window.obtenerVendedores(cita)) || [];
+                    if (!Array.isArray(vendedores)) vendedores = [];
+                    if (vendedores.length === 0) vendedores = ['Sin vendedor'];
+                    const atribuible = monto / vendedores.length;
+                    vendedores.forEach(v => {
+                        const key = (v && String(v).trim()) || 'Sin vendedor';
+                        ventasPorVendedorR20[key] = (ventasPorVendedorR20[key] || 0) + atribuible;
+                    });
+                });
+                const entradasR20 = Object.entries(ventasPorVendedorR20).sort((a, b) => b[1] - a[1]);
+                const maxVendedorR20 = entradasR20.length ? Math.max(...entradasR20.map(e => e[1]), 1) : 1;
+                const fmtMilesV = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                const nombreStyle = 'width: 94px; min-width: 94px; max-width: 94px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+                const barraWrapStyle = 'width: 64px; flex-shrink: 0; height: 14px; background: #e0e0e0; border-radius: 3px; overflow: hidden;';
+                dayBarsVendedoresCancelaciones.innerHTML = entradasR20.length === 0
+                    ? '<span style="font-size: 0.6rem; color: #888;">Sin datos</span>'
+                    : entradasR20.map(([nombre, total]) => {
+                        const pct = maxVendedorR20 > 0 ? Math.min(100, (total / maxVendedorR20) * 100) : 0;
+                        return '<div style="display: flex; align-items: center; gap: 6px; font-size: 0.6rem; min-width: 0;"><span style="' + nombreStyle + '" title="' + nombre.replace(/"/g, '&quot;') + '">' + nombre + '</span><div style="' + barraWrapStyle + '"><div style="height: 100%; width: ' + pct + '%; min-width: ' + (total > 0 ? 2 : 0) + 'px; border-radius: 3px; background: linear-gradient(to right, #c62828, #e57373);"></div></div><span style="font-weight: 600; white-space: nowrap; flex-shrink: 0;">₡' + fmtMilesV(total) + '</span></div>';
+                    }).join('');
+            }
+            const btnToggleCancelaciones = document.getElementById('btnToggleCancelaciones');
+            if (btnToggleCancelaciones && !btnToggleCancelaciones._toggleListener) {
+                btnToggleCancelaciones._toggleListener = true;
+                btnToggleCancelaciones.addEventListener('click', function() {
+                    const wrap = document.getElementById('cancelacionesRuta20Wrap');
+                    const icon = document.getElementById('iconToggleCancelaciones');
+                    if (wrap && (wrap.style.display === 'none' || !wrap.style.display)) {
+                        wrap.style.display = 'flex';
+                        wrap.style.flexDirection = 'column';
+                        if (icon) { icon.style.transform = 'rotate(90deg)'; icon.className = 'fas fa-chevron-down'; }
+                    } else if (wrap) {
+                        wrap.style.display = 'none';
+                        if (icon) { icon.style.transform = ''; icon.className = 'fas fa-chevron-right'; }
+                    }
+                });
             }
             
             let html = '';
