@@ -531,6 +531,17 @@ service cloud.firestore {
     }
     
     // ============================================
+    // COLECCIÓN: ENCUESTAS_CITAS (lógica primaria: doc id = cita_id)
+    // ============================================
+    // Creación con estado pendiente desde calendario (auth). Cliente actualiza con respuestas (sin auth).
+    match /encuestas_citas/{citaId} {
+      allow read: if isSecureSystem();
+      allow create: if isSecureSystem();
+      allow update: if request.resource.data.cita_id == citaId;
+      allow delete: if isSecureSystem();
+    }
+    
+    // ============================================
     // COLECCIÓN: JUSTIFICACIONES SIN ENCUESTA
     // ============================================
     // Solo usuarios autenticados pueden leer/escribir justificaciones

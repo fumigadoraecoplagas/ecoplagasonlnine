@@ -167,6 +167,40 @@
                 <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Reporte de Encuestas de Satisfacción</h4>
             </div>
             <div class="card-body">
+                <!-- Filtro por fecha -->
+                <div class="card mb-4 border-primary">
+                    <div class="card-body py-3">
+                        <h6 class="mb-2"><i class="fas fa-filter me-2"></i>Filtrar por fecha de envío</h6>
+                        <div class="row align-items-end g-2 flex-wrap">
+                            <div class="col-auto">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="filtroFechaTipo" id="filtroMesActual" value="mes_actual" checked>
+                                    <label class="form-check-label" for="filtroMesActual">Mes actual</label>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="filtroFechaTipo" id="filtroRango" value="rango">
+                                    <label class="form-check-label" for="filtroRango">Rango</label>
+                                </div>
+                            </div>
+                            <div class="col-auto" id="wrapFiltroRango" style="display: none;">
+                                <label class="form-label small mb-0 me-1">Desde</label>
+                                <input type="date" id="filtroDesde" class="form-control form-control-sm" style="max-width: 150px;">
+                            </div>
+                            <div class="col-auto" id="wrapFiltroHasta" style="display: none;">
+                                <label class="form-label small mb-0 me-1">Hasta</label>
+                                <input type="date" id="filtroHasta" class="form-control form-control-sm" style="max-width: 150px;">
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" id="btnAplicarFiltro" class="btn btn-sm btn-primary"><i class="fas fa-check me-1"></i>Aplicar</button>
+                            </div>
+                            <div class="col-auto ms-2">
+                                <span id="filtroResumen" class="text-muted small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- Vista Individual -->
                 <h5 class="mb-3"><i class="fas fa-list me-2"></i>Vista Individual de Encuestas</h5>
                 <div class="row mb-5">
@@ -356,6 +390,7 @@
         const db = getFirestore(app);
         
         let todasLasEncuestas = [];
+        let encuestasFiltradas = []; // Lista filtrada por fecha (por defecto mes actual)
         let encuestaSeleccionadaIndex = -1;
         let chartPreguntas = null;
         let chartSecciones = null;
@@ -363,6 +398,67 @@
         let empleados = [];
         let encuestasIdMap = {}; // Mapeo id_encuesta -> {telefono, fecha_servicio, ...}
         let resultadosPorTecnico = {};
+        
+        // Obtener fecha de envío de una encuesta como Date (para filtrar)
+        function getFechaEnvio(encuesta) {
+            if (!encuesta) return new Date(0);
+            if (encuesta.fecha_envio && encuesta.fecha_envio.toDate) return encuesta.fecha_envio.toDate();
+            if (encuesta.fecha_envio_local) return new Date(encuesta.fecha_envio_local);
+            if (encuesta.fecha_envio instanceof Date) return encuesta.fecha_envio;
+            return new Date(0);
+        }
+        
+        // Aplicar filtro de fecha y actualizar lista + ranking por técnico
+        function aplicarFiltroFecha() {
+            const esMesActual = document.getElementById('filtroMesActual').checked;
+            const hoy = new Date();
+            let desde = null;
+            let hasta = null;
+            if (esMesActual) {
+                desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+                hasta = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0, 23, 59, 59, 999);
+            } else {
+                const desdeStr = document.getElementById('filtroDesde').value;
+                const hastaStr = document.getElementById('filtroHasta').value;
+                if (desdeStr) desde = new Date(desdeStr);
+                if (hastaStr) {
+                    hasta = new Date(hastaStr);
+                    hasta.setHours(23, 59, 59, 999);
+                }
+            }
+            encuestasFiltradas = todasLasEncuestas.filter((e) => {
+                const f = getFechaEnvio(e);
+                if (!desde && !hasta) return true;
+                if (desde && f < desde) return false;
+                if (hasta && f > hasta) return false;
+                return true;
+            });
+            const resumen = document.getElementById('filtroResumen');
+            if (esMesActual) {
+                resumen.textContent = `Mes actual (${desde.toLocaleDateString('es-CR', { month: 'long', year: 'numeric' })}): ${encuestasFiltradas.length} encuestas`;
+            } else {
+                resumen.textContent = `${encuestasFiltradas.length} encuestas en el rango seleccionado`;
+            }
+            encuestaSeleccionadaIndex = -1;
+            document.getElementById('sinSeleccion').style.display = 'block';
+            document.getElementById('detalleEncuesta').style.display = 'none';
+            renderizarListaEncuestas();
+            actualizarBotonesNavegacion();
+            if (todasLasCitas.length > 0) {
+                procesarEncuestasPorTecnico(encuestasIdMap);
+                renderizarResultadosPorTecnico();
+            }
+        }
+        
+        // Formatear fecha y hora de cita para la lista (ej: "6 mar 2026, 8:00 a.m.")
+        function formatFechaHoraCita(dateOrTimestamp) {
+            if (!dateOrTimestamp) return 'N/A';
+            const d = (dateOrTimestamp && dateOrTimestamp.toDate) ? dateOrTimestamp.toDate() : (dateOrTimestamp instanceof Date ? dateOrTimestamp : new Date(dateOrTimestamp));
+            if (isNaN(d.getTime())) return 'N/A';
+            const fecha = d.toLocaleDateString('es-CR', { day: 'numeric', month: 'short', year: 'numeric' });
+            const hora = d.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: true });
+            return `${fecha}, ${hora}`;
+        }
         
         // Esperar autenticación
         async function waitForAuth() {
@@ -378,28 +474,20 @@
             return true;
         }
         
-        // Cargar encuestas y encuestas_id
+        // Cargar encuestas y encuestas_id (legacy) + encuestas_citas (primaria)
         async function cargarEncuestas() {
             try {
-                // Cargar encuestas
-                // ⚠️ SEGURIDAD: Limitar a 5000 encuestas para prevenir dumpeado masivo
-                // Si necesitas más, implementar paginación o filtrar por rango de fechas
+                // --- Legacy: encuestas
                 const q = query(collection(db, 'encuestas'), orderBy('fecha_envio', 'desc'), limit(5000));
                 const querySnapshot = await getDocs(q);
-                
-                todasLasEncuestas = [];
+                const encuestasLegacy = [];
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    todasLasEncuestas.push({
-                        id: doc.id,
-                        ...data
-                    });
+                    encuestasLegacy.push({ id: doc.id, ...data });
                 });
-                
-                console.log(`✅ Cargadas ${todasLasEncuestas.length} encuestas`);
-                
-                // Cargar encuestas_id para obtener telefono y fecha_servicio
-                // ⚠️ SEGURIDAD: Limitar a 5000 para prevenir dumpeado masivo
+                console.log(`✅ Cargadas ${encuestasLegacy.length} encuestas (legacy)`);
+
+                // --- Legacy: encuestas_id
                 const encuestasIdQuery = query(collection(db, 'encuestas_id'), limit(5000));
                 const encuestasIdSnapshot = await getDocs(encuestasIdQuery);
                 encuestasIdMap = {};
@@ -407,11 +495,72 @@
                     encuestasIdMap[doc.id] = doc.data();
                 });
                 console.log(`✅ Cargados ${Object.keys(encuestasIdMap).length} mapeos de encuestas_id`);
+
+                // --- Primaria: encuestas_citas (respondidas) y cargar solo las citas que necesitamos por ID
+                const qCitas = query(
+                    collection(db, 'encuestas_citas'),
+                    where('estado', '==', 'respondida'),
+                    limit(5000)
+                );
+                const encuestasCitasSnapshot = await getDocs(qCitas);
+                const citaIdsPrimaria = [...encuestasCitasSnapshot.docs].map((d) => d.id);
+                const citasMap = {};
+                if (citaIdsPrimaria.length > 0) {
+                    const citasPromises = citaIdsPrimaria.map((citaId) => getDoc(doc(db, 'citas', citaId)));
+                    const citasDocs = await Promise.all(citasPromises);
+                    citasDocs.forEach((d, idx) => {
+                        if (d.exists()) {
+                            const c = { id: d.id, ...d.data() };
+                            citasMap[d.id] = c;
+                        }
+                    });
+                    console.log(`✅ Cargadas ${Object.keys(citasMap).length}/${citaIdsPrimaria.length} citas para encuestas primaria`);
+                }
+                // todasLasCitas se llena en cargarDatosParaTecnicos (para legacy y para ranking por técnico)
+
+                const encuestasPrimaria = [];
+                encuestasCitasSnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const citaId = docSnap.id;
+                    const cita = citasMap[citaId] || null;
+                    let _fecha_servicio = null;
+                    if (cita && cita.inicio_gmt6) {
+                        const t = cita.inicio_gmt6;
+                        if (t && t.toDate) _fecha_servicio = t.toDate();
+                        else if (t instanceof Date) _fecha_servicio = t;
+                        else if (typeof t === 'string') _fecha_servicio = new Date(t);
+                    }
+                    encuestasPrimaria.push({
+                        id: citaId,
+                        cita_id: citaId,
+                        _origen: 'primaria',
+                        _telefono: (cita && cita.telefono) ? cita.telefono : 'N/A',
+                        _fecha_servicio: _fecha_servicio,
+                        _cita: cita || undefined,
+                        ...data
+                    });
+                });
+                console.log(`✅ Cargadas ${encuestasPrimaria.length} encuestas (primaria, encuestas_citas)`);
+
+                // Unificar y ordenar por fecha_envio (más reciente primero)
+                todasLasEncuestas = [...encuestasLegacy, ...encuestasPrimaria];
+                todasLasEncuestas.sort((a, b) => {
+                    const fa = (a.fecha_envio && a.fecha_envio.toDate) ? a.fecha_envio.toDate() : (a.fecha_envio_local ? new Date(a.fecha_envio_local) : new Date(0));
+                    const fb = (b.fecha_envio && b.fecha_envio.toDate) ? b.fecha_envio.toDate() : (b.fecha_envio_local ? new Date(b.fecha_envio_local) : new Date(0));
+                    return fb.getTime() - fa.getTime();
+                });
+                console.log(`✅ Total unificado: ${todasLasEncuestas.length} encuestas`);
                 
-                renderizarListaEncuestas();
+                // Inicializar fechas del rango al mes actual
+                const hoy = new Date();
+                const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+                const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+                document.getElementById('filtroDesde').value = primerDia.toISOString().split('T')[0];
+                document.getElementById('filtroHasta').value = ultimoDia.toISOString().split('T')[0];
+                
+                aplicarFiltroFecha();
                 
                 // Cargar datos adicionales para vista por técnico (en background, no bloquea)
-                // Esto procesará y renderizará automáticamente los datos por técnico
                 cargarDatosParaTecnicos().catch(error => {
                     console.error('Error cargando datos para técnicos:', error);
                 });
@@ -473,15 +622,69 @@
         async function procesarEncuestasPorTecnico(encuestasIdMap) {
             resultadosPorTecnico = {};
             console.log('🔄 [PROCESAR_TECNICOS] Iniciando procesamiento...');
-            console.log(`📊 [PROCESAR_TECNICOS] Total encuestas: ${todasLasEncuestas.length}, Total citas: ${todasLasCitas.length}, Total encuestas_id: ${Object.keys(encuestasIdMap).length}`);
+            console.log(`📊 [PROCESAR_TECNICOS] Total encuestas (filtradas): ${encuestasFiltradas.length}, Total citas: ${todasLasCitas.length}, Total encuestas_id: ${Object.keys(encuestasIdMap).length}`);
             
-            for (let i = 0; i < todasLasEncuestas.length; i++) {
-                const encuesta = todasLasEncuestas[i];
-                console.log(`\n🔍 [PROCESAR_TECNICOS] Procesando encuesta ${i + 1}/${todasLasEncuestas.length}:`, {
+            for (let i = 0; i < encuestasFiltradas.length; i++) {
+                const encuesta = encuestasFiltradas[i];
+                console.log(`\n🔍 [PROCESAR_TECNICOS] Procesando encuesta ${i + 1}/${encuestasFiltradas.length}:`, {
                     id: encuesta.id,
-                    id_encuesta: encuesta.id_encuesta
+                    id_encuesta: encuesta.id_encuesta,
+                    _origen: encuesta._origen
                 });
-                
+
+                // Flujo primaria: encuestas_citas por cita_id -> cita -> ruteador
+                if (encuesta._origen === 'primaria' && encuesta.cita_id) {
+                    const cita = todasLasCitas.find(c => c.id === encuesta.cita_id);
+                    if (!cita) {
+                        console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1} (primaria): cita_id no encontrado`);
+                        continue;
+                    }
+                    let fechaServicio = null;
+                    if (cita.inicio_gmt6) {
+                        const t = cita.inicio_gmt6;
+                        if (t && t.toDate) fechaServicio = t.toDate();
+                        else if (t instanceof Date) fechaServicio = t;
+                        else if (typeof t === 'string') fechaServicio = new Date(t);
+                    }
+                    if (!fechaServicio || isNaN(fechaServicio.getTime())) {
+                        console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1} (primaria): cita sin fecha válida`);
+                        continue;
+                    }
+                    const fechaStr = fechaServicio.toISOString().split('T')[0];
+                    const ruta = cita.metadata?.ruta || cita.ruta || null;
+                    if (!ruta) {
+                        console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1} (primaria): cita sin ruta`);
+                        continue;
+                    }
+                    const ruteadorId = `${fechaStr}_${ruta.replace(' ', '-')}`;
+                    const ruteadorRef = doc(db, 'ruteador', ruteadorId);
+                    const ruteadorDoc = await getDoc(ruteadorRef);
+                    if (!ruteadorDoc.exists()) {
+                        console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1} (primaria): ruteador no existe ${ruteadorId}`);
+                        continue;
+                    }
+                    const tecnicos = ruteadorDoc.data().tecnicos || [];
+                    if (tecnicos.length === 0) {
+                        console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1} (primaria): ruteador sin técnicos`);
+                        continue;
+                    }
+                    for (const tecnicoUsername of tecnicos) {
+                        if (!tecnicoUsername || String(tecnicoUsername).trim() === '') continue;
+                        if (!resultadosPorTecnico[tecnicoUsername]) {
+                            resultadosPorTecnico[tecnicoUsername] = {
+                                username: tecnicoUsername,
+                                encuestas: [],
+                                promedioGlobal: 0,
+                                promedioCalidad: 0,
+                                promedioCumplimiento: 0,
+                                totalEncuestas: 0
+                            };
+                        }
+                        resultadosPorTecnico[tecnicoUsername].encuestas.push(encuesta);
+                    }
+                    continue;
+                }
+
                 // PASO 1: JOIN encuestas -> encuestas_id (usando id_encuesta)
                 if (!encuesta.id_encuesta) {
                     console.warn(`⚠️ [PROCESAR_TECNICOS] Encuesta ${i + 1}: Sin id_encuesta`);
@@ -996,17 +1199,17 @@
         function renderizarListaEncuestas() {
             const container = document.getElementById('listaEncuestas');
             
-            if (todasLasEncuestas.length === 0) {
+            if (encuestasFiltradas.length === 0) {
                 container.innerHTML = `
                     <div class="text-center p-4">
                         <i class="fas fa-inbox fa-2x text-muted mb-3"></i>
-                        <p class="text-muted">No hay encuestas disponibles</p>
+                        <p class="text-muted">No hay encuestas en el período seleccionado</p>
                     </div>
                 `;
                 return;
             }
             
-            container.innerHTML = todasLasEncuestas.map((encuesta, index) => {
+            container.innerHTML = encuestasFiltradas.map((encuesta, index) => {
                 const scores = encuesta.scores || {};
                 const global = scores.global || {};
                 const percent = global.percent || 0;
@@ -1021,24 +1224,13 @@
                 let fecha = 'N/A';
                 let telefono = 'N/A';
                 
-                if (encuesta.id_encuesta && encuestasIdMap[encuesta.id_encuesta]) {
+                if (encuesta._origen === 'primaria') {
+                    telefono = encuesta._telefono || 'N/A';
+                    fecha = formatFechaHoraCita(encuesta._fecha_servicio);
+                } else if (encuesta.id_encuesta && encuestasIdMap[encuesta.id_encuesta]) {
                     const encuestaIdData = encuestasIdMap[encuesta.id_encuesta];
                     telefono = encuestaIdData.telefono || 'N/A';
-                    
-                    if (encuestaIdData.fecha_servicio) {
-                        let fechaServicio = null;
-                        if (encuestaIdData.fecha_servicio.toDate) {
-                            fechaServicio = encuestaIdData.fecha_servicio.toDate();
-                        } else if (encuestaIdData.fecha_servicio instanceof Date) {
-                            fechaServicio = encuestaIdData.fecha_servicio;
-                        } else if (typeof encuestaIdData.fecha_servicio === 'string') {
-                            fechaServicio = new Date(encuestaIdData.fecha_servicio);
-                        }
-                        
-                        if (fechaServicio && !isNaN(fechaServicio.getTime())) {
-                            fecha = fechaServicio.toLocaleDateString('es-CR', { day: '2-digit', month: '2-digit' });
-                        }
-                    }
+                    fecha = formatFechaHoraCita(encuestaIdData.fecha_servicio);
                 }
                 
                 const tieneComent = tieneComentarios(encuesta);
@@ -1067,14 +1259,54 @@
         window.seleccionarEncuesta = function(index) {
             encuestaSeleccionadaIndex = index;
             renderizarListaEncuestas();
-            mostrarDetalleEncuesta(todasLasEncuestas[index]);
+            mostrarDetalleEncuesta(encuestasFiltradas[index]);
             actualizarBotonesNavegacion();
         };
         
         // Obtener técnicos de una encuesta específica
         async function obtenerTecnicosDeEncuesta(encuesta) {
             try {
-                // PASO 1: JOIN encuestas -> encuestas_id
+                // Flujo primaria: encuesta por cita_id -> cita -> ruteador (usar _cita guardada o todasLasCitas)
+                if (encuesta._origen === 'primaria' && encuesta.cita_id) {
+                    const cita = encuesta._cita || todasLasCitas.find(c => c.id === encuesta.cita_id);
+                    if (!cita) return [];
+                    const ruta = cita.metadata?.ruta || cita.ruta || null;
+                    if (!ruta) return [];
+                    let fechaServicio = null;
+                    if (cita.inicio_gmt6) {
+                        const t = cita.inicio_gmt6;
+                        if (t && t.toDate) fechaServicio = t.toDate();
+                        else if (t instanceof Date) fechaServicio = t;
+                        else if (typeof t === 'string') fechaServicio = new Date(t);
+                    }
+                    if (!fechaServicio || isNaN(fechaServicio.getTime())) return [];
+                    const fechaStr = fechaServicio.toISOString().split('T')[0];
+                    const rutaFormateada = ruta.replace(/\s+/g, '-');
+                    const ruteadorId = `${fechaStr}_${rutaFormateada}`;
+                    let ruteadorDoc = await getDoc(doc(db, 'ruteador', ruteadorId));
+                    if (!ruteadorDoc.exists()) {
+                        const qRuteador = query(
+                            collection(db, 'ruteador'),
+                            where('fecha', '==', fechaStr),
+                            where('ruta', '==', ruta)
+                        );
+                        const snap = await getDocs(qRuteador);
+                        if (!snap.empty) ruteadorDoc = snap.docs[0];
+                    }
+                    if (!ruteadorDoc || !ruteadorDoc.exists()) return [];
+                    const tecnicos = ruteadorDoc.data().tecnicos || [];
+                    const tecnicosConNombres = tecnicos.map(username => {
+                        const empleado = empleados.find(e => e.username === username || e.id === username);
+                        if (empleado) {
+                            const nombre = `${empleado.primerNombre || ''} ${empleado.primerApellido || ''}`.trim();
+                            return nombre || username;
+                        }
+                        return username;
+                    });
+                    return tecnicosConNombres;
+                }
+
+                // PASO 1: JOIN encuestas -> encuestas_id (legacy)
                 if (!encuesta.id_encuesta || !encuestasIdMap[encuesta.id_encuesta]) {
                     return [];
                 }
@@ -1211,39 +1443,27 @@
             document.getElementById('scoreCalidad').textContent = `${sectionA.percent?.toFixed(1) || 0}%`;
             document.getElementById('scoreCumplimiento').textContent = `${sectionB.percent?.toFixed(1) || 0}%`;
             
-            // Información
-            // Obtener fecha y teléfono desde encuestas_id usando id_encuesta
+            // Información (legacy: encuestas_id; primaria: _telefono / _fecha_servicio)
             let fechaServicio = 'N/A';
             let telefono = 'N/A';
             
-            if (encuesta.id_encuesta && encuestasIdMap[encuesta.id_encuesta]) {
+            if (encuesta._origen === 'primaria') {
+                telefono = encuesta._telefono || 'N/A';
+                fechaServicio = formatFechaHoraCita(encuesta._fecha_servicio);
+            } else if (encuesta.id_encuesta && encuestasIdMap[encuesta.id_encuesta]) {
                 const encuestaIdData = encuestasIdMap[encuesta.id_encuesta];
                 telefono = encuestaIdData.telefono || 'N/A';
-                
-                if (encuestaIdData.fecha_servicio) {
-                    let fechaServicioDate = null;
-                    if (encuestaIdData.fecha_servicio.toDate) {
-                        fechaServicioDate = encuestaIdData.fecha_servicio.toDate();
-                    } else if (encuestaIdData.fecha_servicio instanceof Date) {
-                        fechaServicioDate = encuestaIdData.fecha_servicio;
-                    } else if (typeof encuestaIdData.fecha_servicio === 'string') {
-                        fechaServicioDate = new Date(encuestaIdData.fecha_servicio);
-                    }
-                    
-                    if (fechaServicioDate && !isNaN(fechaServicioDate.getTime())) {
-                        fechaServicio = fechaServicioDate.toLocaleString('es-CR');
-                    }
-                }
+                fechaServicio = formatFechaHoraCita(encuestaIdData.fecha_servicio);
             }
             
             const fechaEnvio = encuesta.fecha_envio_local 
-                ? new Date(encuesta.fecha_envio_local).toLocaleString('es-CR')
-                : 'N/A';
+                ? formatFechaHoraCita(encuesta.fecha_envio_local)
+                : (encuesta.fecha_envio && encuesta.fecha_envio.toDate ? formatFechaHoraCita(encuesta.fecha_envio.toDate()) : 'N/A');
             
             document.getElementById('fechaServicio').textContent = fechaServicio;
             document.getElementById('telefono').textContent = telefono;
             document.getElementById('fechaEnvio').textContent = fechaEnvio;
-            document.getElementById('idEncuesta').textContent = encuesta.id_encuesta || encuesta.id || 'N/A';
+            document.getElementById('idEncuesta').textContent = encuesta.id_encuesta || encuesta.cita_id || encuesta.id || 'N/A';
             
             // Obtener y mostrar técnicos
             document.getElementById('tecnicosEncuesta').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
@@ -1406,19 +1626,31 @@
         });
         
         document.getElementById('btnSiguiente').addEventListener('click', () => {
-            if (encuestaSeleccionadaIndex < todasLasEncuestas.length - 1) {
+            if (encuestaSeleccionadaIndex < encuestasFiltradas.length - 1) {
                 seleccionarEncuesta(encuestaSeleccionadaIndex + 1);
             }
         });
         
         function actualizarBotonesNavegacion() {
             document.getElementById('btnAnterior').disabled = encuestaSeleccionadaIndex <= 0;
-            document.getElementById('btnSiguiente').disabled = encuestaSeleccionadaIndex >= todasLasEncuestas.length - 1;
+            document.getElementById('btnSiguiente').disabled = encuestaSeleccionadaIndex >= encuestasFiltradas.length - 1;
         }
+        
+        // Mostrar/ocultar inputs de rango según tipo de filtro
+        function actualizarVisibilidadFiltroRango() {
+            const esRango = document.getElementById('filtroRango').checked;
+            document.getElementById('wrapFiltroRango').style.display = esRango ? '' : 'none';
+            document.getElementById('wrapFiltroHasta').style.display = esRango ? '' : 'none';
+        }
+        
+        document.getElementById('filtroMesActual').addEventListener('change', actualizarVisibilidadFiltroRango);
+        document.getElementById('filtroRango').addEventListener('change', actualizarVisibilidadFiltroRango);
+        document.getElementById('btnAplicarFiltro').addEventListener('click', () => aplicarFiltroFecha());
         
         // Inicializar
         (async function() {
             if (await waitForAuth()) {
+                actualizarVisibilidadFiltroRango();
                 await cargarEncuestas();
             }
         })();

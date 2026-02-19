@@ -1991,6 +1991,9 @@
                         <button type="button" id="btnEnviarEncuesta" title="Generar link de encuesta post-servicio" style="background: #fbdc02; color: #000; border: none; border-radius: 8px; padding: 0.4rem 0.65rem; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                             <i class="fas fa-clipboard-check me-1"></i>Encuesta
                         </button>
+                        <button type="button" id="btnVerResultadoEncuesta" title="Ver resultado de la encuesta" style="display: none; background: #0b7835; color: white; border: none; border-radius: 8px; padding: 0.4rem 0.65rem; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                            <i class="fas fa-chart-bar me-1"></i>Ver resultado encuesta
+                        </button>
                         <button type="button" id="btnVerHistorial" title="Ver historial de ediciones" style="background: #6c757d; color: white; border: none; border-radius: 8px; padding: 0.4rem 0.65rem; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                             <i class="fas fa-history me-1"></i>Ver historial
                         </button>
@@ -2442,6 +2445,28 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Resultado de encuesta (cliente ya respondió) -->
+    <div class="modal fade" id="modalResultadoEncuesta" tabindex="-1" aria-labelledby="modalResultadoEncuestaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #0b7835 0%, #0d5c28 100%);">
+                    <h5 class="modal-title" id="modalResultadoEncuestaLabel"><i class="fas fa-chart-bar me-2"></i>Resultado de encuesta de satisfacción</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-0" id="modalResultadoEncuestaBody">
+                    <div id="modalResultadoEncuestaCargando" class="p-4 text-center text-muted">
+                        <div class="spinner-border text-success mb-2" role="status"></div>
+                        <p class="mb-0">Cargando resultado...</p>
+                    </div>
+                    <div id="modalResultadoEncuestaContenido" style="display: none;"></div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Cerrar</button>
                 </div>
             </div>
         </div>
@@ -3215,9 +3240,11 @@
         let semanaActual = obtenerLunesSemanaInit(new Date()); // Fecha del lunes de la semana actual en vista compacta
         console.log('🔍 [CALENDARIO] Variables globales inicializadas');
         // Mapas de encuestas:
-        // - mapaLinksEncuestas: links generados (encuestas_id) - clave = "telefono_fechaServicio"
-        // - mapaRespuestasEncuestas: respuestas recibidas (encuestas) - clave = "id_encuesta"
-        // - mapaJustificacionesSinEncuesta: justificaciones de citas sin encuesta - clave = "cita_id"
+        // - mapEncuestasCitas: lógica primaria - clave = cita_id, valor = { estado: 'pendiente'|'respondida' }
+        // - mapaLinksEncuestas: legacy - clave = "telefono_fechaServicio"
+        // - mapaRespuestasEncuestas: legacy - clave = "id_encuesta"
+        // - mapaJustificacionesSinEncuesta: justificaciones - clave = "cita_id"
+        let mapEncuestasCitas = new Map();
         let mapaLinksEncuestas = new Map();
         let mapaRespuestasEncuestas = new Map();
         let mapaJustificacionesSinEncuesta = new Map();
@@ -4363,6 +4390,13 @@
             console.log('🔍 metadata:', cita.metadata);
             console.log('🔍 metadata.observaciones:', window.obtenerCampoCita(cita, 'observaciones', ''));
             document.getElementById('editDescription').value = descripcion || '';
+
+            // Mostrar u ocultar botón "Ver resultado encuesta" según si la cita ya tiene encuesta respondida
+            const btnVerResultadoEncuestaEdit = document.getElementById('btnVerResultadoEncuesta');
+            if (btnVerResultadoEncuestaEdit) {
+                const estadoEnc = typeof window.obtenerEstadoEncuesta === 'function' ? window.obtenerEstadoEncuesta(cita) : 0;
+                btnVerResultadoEncuestaEdit.style.display = estadoEnc === 2 ? '' : 'none';
+            }
 
             // Resetear botón antes de abrir modal
             const btnSave = document.getElementById('btnSaveCitaTop');
@@ -12406,11 +12440,22 @@
         // Función para cargar encuestas y crear mapas
         async function cargarMapaEncuestas() {
             try {
+                mapEncuestasCitas.clear();
                 mapaLinksEncuestas.clear();
                 mapaRespuestasEncuestas.clear();
                 mapaJustificacionesSinEncuesta.clear();
                 
-                // Cargar links generados (encuestas_id)
+                // Cargar encuestas por cita (lógica primaria: doc id = cita_id)
+                const encuestasCitasQuery = query(collection(window.db, 'encuestas_citas'), limit(5000));
+                const encuestasCitasSnapshot = await getDocs(encuestasCitasQuery);
+                encuestasCitasSnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const citaId = docSnap.id;
+                    const estado = data.estado === 'respondida' ? 'respondida' : 'pendiente';
+                    mapEncuestasCitas.set(citaId, { estado });
+                });
+                
+                // Cargar links generados (encuestas_id) - legacy
                 // ⚠️ SEGURIDAD: Limitar a 5000 para prevenir dumpeado masivo
                 const encuestasIdQuery = query(collection(window.db, 'encuestas_id'), limit(5000));
                 const encuestasIdSnapshot = await getDocs(encuestasIdQuery);
@@ -12464,7 +12509,7 @@
                 });
                 console.log(`✅ Total justificaciones cargadas en mapa: ${mapaJustificacionesSinEncuesta.size}`);
                 
-                console.log(`✅ Mapas de encuestas cargados: ${mapaLinksEncuestas.size} links generados, ${mapaRespuestasEncuestas.size} respuestas recibidas, ${mapaJustificacionesSinEncuesta.size} justificaciones`);
+                console.log(`✅ Mapas de encuestas cargados: ${mapEncuestasCitas.size} encuestas_citas (primaria), ${mapaLinksEncuestas.size} links legacy, ${mapaRespuestasEncuestas.size} respuestas legacy, ${mapaJustificacionesSinEncuesta.size} justificaciones`);
             } catch (error) {
                 console.error('❌ Error cargando mapas de encuestas:', error);
             }
@@ -12480,37 +12525,48 @@
                 return 3; // Justificada sin encuesta
             }
             
-            if (!window.obtenerTelefono(cita) || !window.obtenerInicio(cita)) return 0;
-            
-            // Normalizar teléfono
-            let telefonoNormalizado = window.obtenerTelefono(cita).replace(/\D/g, '');
-            if (telefonoNormalizado.startsWith('506')) {
-                telefonoNormalizado = telefonoNormalizado.substring(3);
+            // Lógica primaria: encuestas_citas (doc id = cita_id)
+            const primaria = mapEncuestasCitas.get(cita.id);
+            if (primaria) {
+                return primaria.estado === 'respondida' ? 2 : 1;
             }
             
-            // Obtener timestamp de inicio (estándar inicio_gmt6)
+            // Legacy: telefono_fechaServicio → encuestas_id → encuestas
+            if (!window.obtenerTelefono(cita) || !window.obtenerInicio(cita)) return 0;
+            let telefonoNormalizado = window.obtenerTelefono(cita).replace(/\D/g, '');
+            if (telefonoNormalizado.startsWith('506')) telefonoNormalizado = telefonoNormalizado.substring(3);
             const inicio = window.obtenerInicio(cita);
             const fechaTimestamp = inicio && (inicio.toMillis ? inicio.toMillis() : (inicio.seconds * 1000));
             const clave = `${telefonoNormalizado}_${fechaTimestamp}`;
-            
-            // Verificar si se generó el link
             const idEncuesta = mapaLinksEncuestas.get(clave);
-            if (!idEncuesta) {
-                return 0; // Sin link generado
-            }
-            
-            // Verificar si el cliente respondió
-            if (mapaRespuestasEncuestas.has(idEncuesta)) {
-                return 2; // Cliente respondió
-            }
-            
-            return 1; // Link generado pero sin respuesta
+            if (!idEncuesta) return 0;
+            if (mapaRespuestasEncuestas.has(idEncuesta)) return 2;
+            return 1;
         }
+        window.obtenerEstadoEncuesta = obtenerEstadoEncuesta;
 
         // Función para obtener la justificación de una cita
         function obtenerJustificacion(cita) {
             if (!cita || !cita.id) return null;
             return mapaJustificacionesSinEncuesta.get(cita.id) || null;
+        }
+
+        // Obtener identificador de encuesta respondida para una cita (primaria o legacy). Retorna { tipo: 'primaria'|'legacy', id } o null.
+        function obtenerIdentificadorEncuestaRespuesta(cita) {
+            if (!cita || !cita.id) return null;
+            if (obtenerEstadoEncuesta(cita) !== 2) return null;
+            const primaria = mapEncuestasCitas.get(cita.id);
+            if (primaria && primaria.estado === 'respondida') return { tipo: 'primaria', id: cita.id };
+            if (!window.obtenerTelefono(cita) || !window.obtenerInicio(cita)) return null;
+            let telefonoNormalizado = String(window.obtenerTelefono(cita)).replace(/\D/g, '');
+            if (telefonoNormalizado.startsWith('506')) telefonoNormalizado = telefonoNormalizado.substring(3);
+            const inicio = window.obtenerInicio(cita);
+            const fechaTimestamp = inicio && (inicio.toMillis ? inicio.toMillis() : (inicio.seconds != null ? inicio.seconds * 1000 : null));
+            if (fechaTimestamp == null) return null;
+            const clave = `${telefonoNormalizado}_${fechaTimestamp}`;
+            const idEncuesta = mapaLinksEncuestas.get(clave);
+            if (!idEncuesta || !mapaRespuestasEncuestas.has(idEncuesta)) return null;
+            return { tipo: 'legacy', id: idEncuesta };
         }
 
         // Función para cargar datos
@@ -16062,78 +16118,33 @@
         };
         
         window.generarLinkEncuesta = async function(cita) {
-            if (!cita) {
-                console.error('❌ No se puede generar link: cita no proporcionada');
+            if (!cita || !cita.id) {
+                console.error('❌ No se puede generar link: cita no proporcionada o sin id');
                 return null;
             }
-            
-            const telefono = window.obtenerTelefono(cita);
-            if (!telefono) {
-                console.warn('⚠️ No se puede generar link: teléfono no disponible');
-                return null;
-            }
-            
-            const fechaInicio = window.formatearFecha(window.obtenerInicio(cita));
-            if (!fechaInicio) {
-                console.error('❌ No se puede generar link: fecha inválida');
-                return null;
-            }
-            
             try {
-                // Generar id_encuesta único
-                const idEncuesta = await window.generarIdEncuestaUnico();
-                if (idEncuesta === null) {
-                    console.error('❌ No se pudo generar ID único para la encuesta');
-                    return null;
-                }
-                
-                // Normalizar teléfono (mantener formato completo con 506)
-                let telefonoNormalizado = telefono.replace(/\D/g, '');
-                if (!telefonoNormalizado.startsWith('506')) {
-                    telefonoNormalizado = '506' + telefonoNormalizado;
-                }
-                
-                // Convertir fecha a Timestamp
-                const fechaTimestamp = fechaInicio instanceof Date 
-                    ? Timestamp.fromDate(fechaInicio)
-                    : Timestamp.fromMillis(fechaInicio);
-                
-                // Guardar en encuestas_id (usando id_encuesta como ID del documento)
-                const encuestaIdRef = doc(db, 'encuestas_id', idEncuesta);
-                await setDoc(encuestaIdRef, {
-                    id_encuesta: idEncuesta,
-                    telefono: telefonoNormalizado,
-                    fecha_servicio: fechaTimestamp,
-                    fecha_creacion: serverTimestamp(),
-                    cita_id: cita.id || null
-                });
-                
-                console.log(`✅ Mapeo guardado en encuestas_id/${idEncuesta}`);
-                
-                // Actualizar el mapa de links de encuestas en memoria
-                let telefonoParaMapa = telefonoNormalizado.replace(/\D/g, '');
-                if (telefonoParaMapa.startsWith('506')) {
-                    telefonoParaMapa = telefonoParaMapa.substring(3);
-                }
-                const fechaTimestampMillis = fechaTimestamp.toMillis ? fechaTimestamp.toMillis() : (fechaTimestamp.seconds * 1000);
-                const clave = `${telefonoParaMapa}_${fechaTimestampMillis}`;
-                mapaLinksEncuestas.set(clave, idEncuesta);
-                console.log(`✅ Mapa de links de encuestas actualizado para cita ${cita.id}`);
-                
-                // Regenerar la vista actual para mostrar el check
-                if (vistaActual === 'cronograma') {
-                    await generarCronograma();
-                } else if (vistaActual === 'mes') {
-                    generarCalendario();
-                } else if (vistaActual === 'dia') {
-                    generarVistaDia();
-                }
-                
-                // Generar URL con solo el id_encuesta
+                const refEncuestaCita = doc(window.db, 'encuestas_citas', cita.id);
                 const baseUrl = window.location.origin + '/encuesta.html';
-                const url = `${baseUrl}?e=${idEncuesta}`;
-                
-                console.log('✅ Link de encuesta generado:', url);
+                const url = `${baseUrl}?c=${encodeURIComponent(cita.id)}`;
+
+                const docSnap = await getDoc(refEncuestaCita);
+                if (docSnap.exists() && docSnap.data().estado === 'respondida') {
+                    // Ya hay respuesta: no sobrescribir, solo devolver el link para volver a copiar
+                    console.log('✅ Encuesta ya respondida; se devuelve el link para reenviar sin modificar resultados');
+                    return url;
+                }
+
+                // Sin respuesta (o pendiente): crear/actualizar a pendiente para que el cliente pueda responder
+                await setDoc(refEncuestaCita, {
+                    cita_id: cita.id,
+                    estado: 'pendiente',
+                    fecha_link_generado: serverTimestamp()
+                }, { merge: true });
+                mapEncuestasCitas.set(cita.id, { estado: 'pendiente' });
+                console.log('✅ Link de encuesta (primaria) generado:', url);
+                if (vistaActual === 'cronograma') await generarCronograma();
+                else if (vistaActual === 'mes') generarCalendario();
+                else if (vistaActual === 'dia') generarVistaDia();
                 return url;
             } catch (error) {
                 console.error('❌ Error generando link de encuesta:', error);
@@ -16182,7 +16193,149 @@
                 console.error('❌ Error generando o copiando link de encuesta:', err);
             }
         }
-        
+
+        // Textos de preguntas para el modal de resultado (igual que reporte_encuestas)
+        const TEXTO_PREGUNTAS_ENCUESTA = [
+            { id: 'Q1', texto: 'Servicio técnico en general', seccion: 'Calidad' },
+            { id: 'Q2', texto: 'Trato y respeto del técnico', seccion: 'Calidad' },
+            { id: 'Q3', texto: 'Presentación personal del técnico', seccion: 'Calidad' },
+            { id: 'Q4', texto: 'Tiempo que duró el servicio', seccion: 'Calidad' },
+            { id: 'Q5', texto: 'Explicación del técnico sobre lo que hizo', seccion: 'Calidad' },
+            { id: 'Q6', texto: 'Medidas preventivas para mascotas/personas', seccion: 'Calidad' },
+            { id: 'Q7', texto: 'Limpieza área y retiro de excesos', seccion: 'Cumplimiento' },
+            { id: 'Q8', texto: 'Aplicación de puntos de gel', seccion: 'Cumplimiento' },
+            { id: 'Q9', texto: 'Tratamiento en tuberías/desagües/cajas', seccion: 'Cumplimiento' },
+            { id: 'Q10', texto: 'Preguntó si necesitaba otro servicio', seccion: 'Cumplimiento' },
+            { id: 'Q11', texto: 'Informó métodos de pago disponibles', seccion: 'Cumplimiento' },
+            { id: 'Q12', texto: 'Puntualidad con horario acordado', seccion: 'Cumplimiento' }
+        ];
+
+        async function abrirModalResultadoEncuesta() {
+            const cita = typeof window.selectedCita === 'string'
+                ? window.todasLasCitas.find(c => c.id === window.selectedCita)
+                : window.selectedCita;
+            if (!cita) return;
+            const ident = obtenerIdentificadorEncuestaRespuesta(cita);
+            if (!ident) {
+                console.warn('⚠️ No hay encuesta respondida para esta cita');
+                return;
+            }
+            const body = document.getElementById('modalResultadoEncuestaBody');
+            const cargando = document.getElementById('modalResultadoEncuestaCargando');
+            const contenido = document.getElementById('modalResultadoEncuestaContenido');
+            cargando.style.display = 'block';
+            contenido.style.display = 'none';
+            contenido.innerHTML = '';
+            const modal = new bootstrap.Modal(document.getElementById('modalResultadoEncuesta'));
+            modal.show();
+            try {
+                const ref = ident.tipo === 'primaria'
+                    ? doc(window.db, 'encuestas_citas', ident.id)
+                    : doc(window.db, 'encuestas', ident.id);
+                const snap = await getDoc(ref);
+                if (!snap.exists()) {
+                    contenido.innerHTML = '<div class="p-4 text-center text-danger"><i class="fas fa-exclamation-triangle me-2"></i>No se encontró el resultado de la encuesta.</div>';
+                    cargando.style.display = 'none';
+                    contenido.style.display = 'block';
+                    return;
+                }
+                const d = snap.data();
+                const scores = d.scores || {};
+                const global = scores.global || {};
+                const sectionA = scores.sectionA || {};
+                const sectionB = scores.sectionB || {};
+                const percent = global.percent != null ? Number(global.percent) : 0;
+                const label = global.label || 'N/A';
+                let fechaEnvio = 'N/A';
+                if (d.fecha_envio_local) {
+                    try {
+                        const fd = new Date(d.fecha_envio_local);
+                        fechaEnvio = fd.toLocaleDateString('es-CR', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + fd.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    } catch (e) {}
+                } else if (d.fecha_envio && d.fecha_envio.toDate) {
+                    try {
+                        const fd = d.fecha_envio.toDate();
+                        fechaEnvio = fd.toLocaleDateString('es-CR', { day: 'numeric', month: 'short', year: 'numeric' }) + ', ' + fd.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    } catch (e) {}
+                }
+                const scoreClass = label === 'Excelente' ? 'success' : label === 'Bueno' ? 'info' : label === 'Aceptable' ? 'warning' : 'danger';
+                let html = `
+                    <div class="p-4">
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-4">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center">
+                                        <div class="text-muted small mb-1">Score global</div>
+                                        <div class="display-6 fw-bold text-${scoreClass}">${percent.toFixed(0)}%</div>
+                                        <div class="badge bg-${scoreClass} mt-1">${label}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center">
+                                        <div class="text-muted small mb-1">Calidad (Q1-Q6)</div>
+                                        <div class="h4 mb-0 text-primary">${(sectionA.percent != null ? Number(sectionA.percent) : 0).toFixed(0)}%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center">
+                                        <div class="text-muted small mb-1">Cumplimiento (Q7-Q12)</div>
+                                        <div class="h4 mb-0 text-success">${(sectionB.percent != null ? Number(sectionB.percent) : 0).toFixed(0)}%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-3"><i class="fas fa-clock me-1"></i>Fecha de envío: ${fechaEnvio}</p>
+                        <h6 class="fw-bold mb-2"><i class="fas fa-list me-1"></i>Respuestas por pregunta</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr><th style="width:32%">Pregunta</th><th>Respuesta</th><th class="text-center">Nota</th><th class="text-center">Comentario</th></tr>
+                                </thead>
+                                <tbody>
+                `;
+                const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const questionsScores = (scores.questions || []);
+                const scoreByQ = {};
+                questionsScores.forEach((q) => { if (q.id) scoreByQ[q.id] = q; });
+                for (let i = 1; i <= 12; i++) {
+                    const qId = 'Q' + i;
+                    const p = TEXTO_PREGUNTAS_ENCUESTA[i - 1];
+                    const resp = esc(d['pregunta' + i] || '-');
+                    const com = (d['comentario' + i] || '').trim();
+                    const qScore = scoreByQ[qId];
+                    const notaRaw = qScore && (qScore.scoreRaw != null) ? qScore.scoreRaw : null;
+                    const notaPct = qScore && (qScore.scorePercent != null) ? Number(qScore.scorePercent) : null;
+                    let notaStr = '-';
+                    if (notaRaw != null && notaPct != null) notaStr = notaRaw + '/3 (' + notaPct.toFixed(0) + '%)';
+                    else if (notaPct != null) notaStr = notaPct.toFixed(0) + '%';
+                    html += `<tr><td><small>${p.texto}</small></td><td>${resp}</td><td class="text-center fw-semibold">${notaStr}</td><td class="text-center">${com ? '<span class="text-info" title="' + esc(com) + '"><i class="fas fa-comment"></i></span>' : '-'}</td></tr>`;
+                }
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                `;
+                const comentariosGenerales = (d.comentarios_generales || '').trim();
+                if (comentariosGenerales) {
+                    html += `
+                        <h6 class="fw-bold mt-3 mb-2"><i class="fas fa-comment-dots me-1"></i>Comentarios generales</h6>
+                        <div class="alert alert-light border">${esc(comentariosGenerales).replace(/\n/g, '<br>')}</div>
+                    `;
+                }
+                html += '</div>';
+                contenido.innerHTML = html;
+            } catch (err) {
+                console.error('❌ Error cargando resultado encuesta:', err);
+                contenido.innerHTML = '<div class="p-4 text-center text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar el resultado. Intente de nuevo.</div>';
+            }
+            cargando.style.display = 'none';
+            contenido.style.display = 'block';
+        }
+
         // Los datos se cargan automáticamente al inicializar
         // btnSaveCita movido al header como btnSaveCitaTop
         document.getElementById('btnDeleteCita').addEventListener('click', eliminarCita);
@@ -16329,6 +16482,13 @@
             btnEnviarEncuesta.addEventListener('click', async (e) => {
                 e.preventDefault();
                 await manejarBotonEncuesta();
+            });
+        }
+        const btnVerResultadoEncuesta = document.getElementById('btnVerResultadoEncuesta');
+        if (btnVerResultadoEncuesta) {
+            btnVerResultadoEncuesta.addEventListener('click', (e) => {
+                e.preventDefault();
+                abrirModalResultadoEncuesta();
             });
         }
         

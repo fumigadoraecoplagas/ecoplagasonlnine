@@ -785,26 +785,24 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // Obtener id_encuesta de la URL
+        // Obtener parámetros de la URL: ?e= id_encuesta (legacy) o ?c= cita_id (primaria)
         const urlParams = new URLSearchParams(window.location.search);
-        const paramE = urlParams.get('e'); // Parámetro que contiene el id_encuesta (alfanumérico)
+        const paramE = urlParams.get('e');
+        const paramC = urlParams.get('c');
         
-        // Variable global para id_encuesta
         let idEncuesta = null;
+        let citaId = null;
         
-        // Procesar parámetro (debe ser alfanumérico, máximo 9 caracteres, base36: 0-9, a-z)
-        if (paramE) {
-            // Validar que sea alfanumérico (base36) y tenga máximo 9 caracteres
-            if (/^[0-9a-z]{1,9}$/.test(paramE)) {
-                idEncuesta = paramE;
-                console.log('✅ ID de encuesta recibido:', idEncuesta);
-            } else {
-                console.error('❌ ID de encuesta inválido (debe ser alfanumérico, máximo 9 caracteres):', paramE);
-            }
+        if (paramE && /^[0-9a-z]{1,9}$/.test(paramE)) {
+            idEncuesta = paramE;
+            console.log('✅ ID de encuesta (legacy) recibido:', idEncuesta);
+        }
+        if (paramC && typeof paramC === 'string' && paramC.trim().length > 0 && paramC.length <= 200) {
+            citaId = paramC.trim();
+            console.log('✅ Cita ID (primaria) recibido:', citaId);
         }
         
-        // Si no hay parámetro válido, mostrar error
-        if (!idEncuesta) {
+        if (!idEncuesta && !citaId) {
             document.getElementById('formEncuesta').style.display = 'none';
             document.getElementById('mensajeExito').innerHTML = `
                 <i class="fas fa-exclamation-triangle me-2"></i>
@@ -997,21 +995,16 @@
                 // Calcular scores
                 const scores = computeScores(questions);
                 
-                // Validar que tenemos id_encuesta (alfanumérico)
-                if (!idEncuesta || !/^[0-9a-z]{1,9}$/.test(idEncuesta)) {
+                const esFlujoPrimario = !!citaId;
+                if (!esFlujoPrimario && (!idEncuesta || !/^[0-9a-z]{1,9}$/.test(idEncuesta))) {
                     alert('Error: No se pudo identificar el servicio. Por favor, use el enlace completo proporcionado.');
                     btnEnviar.disabled = false;
                     btnEnviar.innerHTML = originalText;
                     return;
                 }
                 
-                // Preparar datos para Firestore
-                // NOTA: No incluimos teléfono ni fecha aquí, esos datos están en encuestas_id
-                // El id_encuesta es suficiente para hacer el JOIN en los reportes
-                const datos = {
-                    // ID de encuesta (usado para hacer JOIN con encuestas_id)
-                    id_encuesta: idEncuesta,
-                    
+                // Datos comunes: respuestas y scores
+                const datosBase = {
                     // Respuestas de preguntas
                     pregunta1: formData.get('pregunta1'),
                     comentario1: formData.get('comentario1') || '',
@@ -1056,22 +1049,24 @@
                     url_completa: window.location.href
                 };
                 
-                // Log para debugging (sin datos sensibles)
-                console.log('📤 Intentando guardar encuesta:', {
-                    idEncuesta: idEncuesta,
-                    tienePreguntas: !!datos.pregunta1 && !!datos.pregunta12,
-                    tieneScores: !!datos.scores
-                });
-                
-                // Crear referencia al documento usando id_encuesta como ID
-                // Firestore Rules validará que este id_encuesta existe en encuestas_id
-                const encuestaRef = doc(db, 'encuestas', idEncuesta);
-                
-                // Guardar en Firestore con merge para permitir actualizaciones
-                // Si el documento existe, actualiza; si no, crea
-                await setDoc(encuestaRef, datos, { merge: true });
-                
-                console.log('✅ Encuesta guardada exitosamente con ID:', idEncuesta);
+                if (esFlujoPrimario) {
+                    const datos = {
+                        cita_id: citaId,
+                        estado: 'respondida',
+                        ...datosBase
+                    };
+                    const encuestaCitaRef = doc(db, 'encuestas_citas', citaId);
+                    await setDoc(encuestaCitaRef, datos, { merge: true });
+                    console.log('✅ Encuesta guardada en encuestas_citas (primaria), cita_id:', citaId);
+                } else {
+                    const datos = {
+                        id_encuesta: idEncuesta,
+                        ...datosBase
+                    };
+                    const encuestaRef = doc(db, 'encuestas', idEncuesta);
+                    await setDoc(encuestaRef, datos, { merge: true });
+                    console.log('✅ Encuesta guardada en encuestas (legacy), id:', idEncuesta);
+                }
                 
                 // Ocultar formulario y mostrar mensaje de éxito
                 document.getElementById('formEncuesta').style.display = 'none';
