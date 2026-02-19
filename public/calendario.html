@@ -259,7 +259,7 @@
         }
         
         /* Punto indicador de encuesta: absoluto, centrado vertical, no empuja el layout */
-        /* Punto encuesta: sobre el borde derecho para no tapar el nombre del cliente */
+        /* Punto encuesta: sobre el borde derecho; borde del color de la cita (versión oscura) */
         .indicador-encuesta-punto {
             position: absolute;
             top: 50%;
@@ -269,19 +269,36 @@
             transform: translateY(-50%);
             border-radius: 50%;
             z-index: 10;
+            box-sizing: border-box;
+            border: 2px solid rgba(0,0,0,0.35);
         }
         
-        .indicador-encuesta-punto.rojo {
-            background-color: #f44336;
-        }
-        
-        .indicador-encuesta-punto.amarillo {
-            background-color: #ffc107;
-        }
-        
-        .indicador-encuesta-punto.verde {
-            background-color: #4caf50;
-        }
+        .indicador-encuesta-punto.rojo { background-color: #f44336; }
+        .indicador-encuesta-punto.amarillo { background-color: #ffc107; }
+        .indicador-encuesta-punto.verde { background-color: #4caf50; }
+
+        /* Borde del punto = color de la cita en versión oscura (mismo border-color que la tarjeta) */
+        .cita-item.Ruta-1 .indicador-encuesta-punto, .cita-bloque.Ruta-1 .indicador-encuesta-punto, .cita-item-dia.Ruta-1 .indicador-encuesta-punto { border-color: #258A59; }
+        .cita-item.Ruta-2 .indicador-encuesta-punto, .cita-bloque.Ruta-2 .indicador-encuesta-punto, .cita-item-dia.Ruta-2 .indicador-encuesta-punto { border-color: #7E3290; }
+        .cita-item.Ruta-3 .indicador-encuesta-punto, .cita-bloque.Ruta-3 .indicador-encuesta-punto, .cita-item-dia.Ruta-3 .indicador-encuesta-punto { border-color: #B89928; }
+        .cita-item.Ruta-4 .indicador-encuesta-punto, .cita-bloque.Ruta-4 .indicador-encuesta-punto, .cita-item-dia.Ruta-4 .indicador-encuesta-punto { border-color: #C55A20; }
+        .cita-item.Ruta-5 .indicador-encuesta-punto, .cita-bloque.Ruta-5 .indicador-encuesta-punto, .cita-item-dia.Ruta-5 .indicador-encuesta-punto { border-color: #3B8BC4; }
+        .cita-item.Ruta-6 .indicador-encuesta-punto, .cita-bloque.Ruta-6 .indicador-encuesta-punto, .cita-item-dia.Ruta-6 .indicador-encuesta-punto { border-color: #A1564C; }
+        .cita-item.Ruta-7 .indicador-encuesta-punto, .cita-bloque.Ruta-7 .indicador-encuesta-punto, .cita-item-dia.Ruta-7 .indicador-encuesta-punto { border-color: #4A5662; }
+        .cita-item.Ruta-8 .indicador-encuesta-punto, .cita-bloque.Ruta-8 .indicador-encuesta-punto, .cita-item-dia.Ruta-8 .indicador-encuesta-punto { border-color: #2A3890; }
+        .cita-item.Ruta-9 .indicador-encuesta-punto, .cita-bloque.Ruta-9 .indicador-encuesta-punto, .cita-item-dia.Ruta-9 .indicador-encuesta-punto { border-color: #25633A; }
+        .cita-item.Ruta-10 .indicador-encuesta-punto, .cita-bloque.Ruta-10 .indicador-encuesta-punto, .cita-item-dia.Ruta-10 .indicador-encuesta-punto { border-color: #840000; }
+        .cita-item.Ruta-11 .indicador-encuesta-punto, .cita-bloque.Ruta-11 .indicador-encuesta-punto, .cita-item-dia.Ruta-11 .indicador-encuesta-punto { border-color: #258A59; }
+        .cita-item.Ruta-12 .indicador-encuesta-punto, .cita-bloque.Ruta-12 .indicador-encuesta-punto, .cita-item-dia.Ruta-12 .indicador-encuesta-punto { border-color: #7E3290; }
+        .cita-item.Ruta-13 .indicador-encuesta-punto, .cita-bloque.Ruta-13 .indicador-encuesta-punto, .cita-item-dia.Ruta-13 .indicador-encuesta-punto { border-color: #B89928; }
+        .cita-item.Ruta-14 .indicador-encuesta-punto, .cita-bloque.Ruta-14 .indicador-encuesta-punto, .cita-item-dia.Ruta-14 .indicador-encuesta-punto { border-color: #C55A20; }
+        .cita-item.Ruta-15 .indicador-encuesta-punto, .cita-bloque.Ruta-15 .indicador-encuesta-punto, .cita-item-dia.Ruta-15 .indicador-encuesta-punto { border-color: #3B8BC4; }
+        .cita-item.Ruta-16 .indicador-encuesta-punto, .cita-bloque.Ruta-16 .indicador-encuesta-punto, .cita-item-dia.Ruta-16 .indicador-encuesta-punto { border-color: #A1564C; }
+        .cita-item.Ruta-17 .indicador-encuesta-punto, .cita-bloque.Ruta-17 .indicador-encuesta-punto, .cita-item-dia.Ruta-17 .indicador-encuesta-punto { border-color: #4A5662; }
+        .cita-item.Ruta-18 .indicador-encuesta-punto, .cita-bloque.Ruta-18 .indicador-encuesta-punto, .cita-item-dia.Ruta-18 .indicador-encuesta-punto { border-color: #2A3890; }
+        .cita-item.Ruta-19 .indicador-encuesta-punto, .cita-bloque.Ruta-19 .indicador-encuesta-punto, .cita-item-dia.Ruta-19 .indicador-encuesta-punto { border-color: #25633A; }
+        .cita-item.Ruta-20 .indicador-encuesta-punto, .cita-bloque.Ruta-20 .indicador-encuesta-punto, .cita-item-dia.Ruta-20 .indicador-encuesta-punto { border-color: #840000; }
+        .cita-item.Sin-asignar .indicador-encuesta-punto, .cita-bloque.Sin-asignar .indicador-encuesta-punto, .cita-item-dia.Sin-asignar .indicador-encuesta-punto { border-color: #424242; }
 
         .cita-item:hover {
             transform: scale(1.05);
