@@ -244,7 +244,7 @@
         .cita-item {
             background: var(--primary-gradient);
             color: var(--eco-black);
-            padding: 4px 8px;
+            padding: 4px 6px;
             border-radius: 8px;
             border: 2px solid;
             font-size: 0.75rem;
@@ -254,17 +254,19 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            position: relative; /* Para posicionar el punto indicador */
+            position: relative;
+            box-sizing: border-box;
+            max-width: 100%;
         }
         
-        /* Punto indicador de estado de encuesta: centrado verticalmente en el contenedor */
+        /* Punto indicador de encuesta: absoluto, centrado vertical, no empuja el layout */
         .indicador-encuesta-punto {
             position: absolute;
             top: 50%;
-            right: -6px;
-            width: 12px;
-            height: 12px;
-            margin-top: -6px;
+            right: 12px;
+            width: 10px;
+            height: 10px;
+            transform: translateY(-50%);
             border-radius: 50%;
             z-index: 10;
         }
@@ -308,76 +310,73 @@
         .cita-item.Ruta-20 { background: #A50000; border-color: #840000; color: #fff; font-weight: 600; }
         .cita-item.Sin-asignar { background: #B0BEC5; border-color: #9E9E9E; color: #000; font-weight: 600; }
 
-        /* --- Pills/badges unificados: misma altura, padding, line-height y border-radius (4px) --- */
-        /* Nivel 1: vendedor (único bold), mismo tamaño que el resto */
+        /* --- Pills/badges compactos: menos altura, sin desborde --- */
         .vendedor-badge {
             display: inline-flex;
             align-items: center;
-            min-height: 1.25em;
-            padding: 2px 5px;
+            min-height: 1.1em;
+            padding: 1px 4px;
             border-radius: 4px;
-            font-size: 0.55rem;
-            line-height: 1.2;
+            font-size: 0.5rem;
+            line-height: 1.1;
             background: #000;
             color: #fff;
             font-weight: 700;
             white-space: nowrap;
             box-sizing: border-box;
-        }
-        /* Nivel 2 y 3: gris oscuro, sin bold */
-        .cita-hora-texto, .cita-monto-texto, .cita-cliente-texto, .cita-ubicacion-texto {
-            background: #455a64;
-            color: #fff;
-            font-weight: 400;
-        }
-        .cita-monto-cero, .cita-ubicacion-pendiente {
-            background: #c62828;
-            color: #fff;
-            font-weight: 400;
+            max-width: fit-content;
         }
         .cita-hora-texto, .cita-monto-texto, .cita-monto-cero, .cita-cliente-texto, .cita-ubicacion-texto, .cita-ubicacion-pendiente {
             display: inline-flex;
             align-items: center;
-            min-height: 1.25em;
-            padding: 2px 5px;
+            min-height: 1.1em;
+            padding: 1px 4px;
             border-radius: 4px;
-            font-size: 0.55rem;
-            line-height: 1.2;
+            font-size: 0.5rem;
+            line-height: 1.1;
             white-space: nowrap;
             box-sizing: border-box;
+            max-width: fit-content;
         }
+        .cita-hora-texto, .cita-monto-texto, .cita-cliente-texto, .cita-ubicacion-texto { background: #455a64; color: #fff; font-weight: 400; }
+        .cita-monto-cero, .cita-ubicacion-pendiente { background: #c62828; color: #fff; font-weight: 400; }
         .cita-cliente-texto, .cita-ubicacion-texto { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Contenedor 3 líneas: alineación izquierda, grid claro */
+        /* Contenedor 3 líneas: compacto, gap 6px, sin desborde */
         .cita-tres-lineas {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 0;
-            line-height: 1.2;
+            gap: 6px;
+            line-height: 1.1;
             margin: 0;
             padding: 0;
-            font-size: 0.55rem;
+            font-size: 0.5rem;
+            box-sizing: border-box;
+            max-width: 100%;
         }
-        .cita-tres-lineas > * { margin: 0; padding: 0; line-height: 1.2; font-size: 0.55rem; }
-        .cita-tres-lineas > *:last-child { margin-top: -0.08em; }
+        .cita-tres-lineas > * { margin: 0; padding: 0; line-height: 1.1; font-size: 0.5rem; }
 
-        /* Línea 1: badges superiores con flex + gap uniforme */
+        /* Línea 1: flex + gap, wrap si no cabe */
         .cita-linea-badges {
             display: flex;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
+            max-width: 100%;
+            box-sizing: border-box;
         }
-        .cita-linea-principal { white-space: nowrap; line-height: 1.2; font-size: 0.55rem; }
+        .cita-linea-principal { white-space: nowrap; line-height: 1.1; font-size: 0.5rem; }
         .cita-linea-recursos {
             margin: 0;
             padding: 0;
-            line-height: 1.2;
-            font-size: 0.55rem;
+            line-height: 1.1;
+            font-size: 0.5rem;
             min-height: 0;
             display: flex;
             align-items: center;
+            max-width: 100%;
+            min-width: 0;
         }
 
         .filters-section {
@@ -944,13 +943,16 @@
             left: 2px;
             right: 2px;
             border-radius: 4px;
-            padding: 4px;
+            padding: 4px 6px;
             cursor: move;
             transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             border: 2px solid;
-            z-index: 2; /* Por encima de los marcadores de hora */
+            z-index: 2;
             user-select: none;
+            box-sizing: border-box;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .cita-bloque:hover {
@@ -993,10 +995,10 @@
 
         .cita-hora-cronograma {
             font-weight: 400;
-            font-size: 0.55rem;
+            font-size: 0.5rem;
             color: #ffffff;
             margin: 0;
-            line-height: 1.2;
+            line-height: 1.1;
             white-space: nowrap;
         }
 
@@ -1149,11 +1151,14 @@
         }
 
         .cita-item-dia {
-            padding: 15px 20px;
+            padding: 8px 12px;
             border-bottom: 1px solid #f8f9fa;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+            box-sizing: border-box;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .cita-item-dia:hover {
@@ -1168,10 +1173,10 @@
         .cita-hora {
             font-weight: 400;
             color: #667eea;
-            font-size: 0.55rem;
+            font-size: 0.5rem;
             margin: 0;
             white-space: nowrap;
-            line-height: 1.2;
+            line-height: 1.1;
         }
 
         .cita-cliente {
