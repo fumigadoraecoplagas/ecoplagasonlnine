@@ -279,6 +279,9 @@
                                         <div class="col-md-6">
                                             <p><strong>Fecha Envío:</strong> <span id="fechaEnvio">-</span></p>
                                             <p><strong>ID Encuesta:</strong> <span id="idEncuesta">-</span></p>
+                                            <div id="wrapEliminarEncuesta" class="mt-3" style="display: none;">
+                                                <button type="button" id="btnEliminarResultadoEncuesta" class="btn btn-sm btn-danger"><i class="fas fa-trash-alt me-1"></i>Eliminar resultado</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -372,7 +375,7 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-        import { getFirestore, collection, getDocs, query, orderBy, where, Timestamp, doc, getDoc, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, query, orderBy, where, Timestamp, doc, getDoc, deleteDoc, limit } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
         import { auth } from './auth-secure.js';
         
         const firebaseConfig = {
@@ -446,7 +449,7 @@
             actualizarBotonesNavegacion();
             if (todasLasCitas.length > 0) {
                 procesarEncuestasPorTecnico(encuestasIdMap);
-                renderizarResultadosPorTecnico();
+                renderizarVistaTecnicos();
             }
         }
         
@@ -1465,6 +1468,10 @@
             document.getElementById('fechaEnvio').textContent = fechaEnvio;
             document.getElementById('idEncuesta').textContent = encuesta.id_encuesta || encuesta.cita_id || encuesta.id || 'N/A';
             
+            const wrapEliminar = document.getElementById('wrapEliminarEncuesta');
+            const currentUsername = (auth.currentUser && auth.currentUser.email) ? auth.currentUser.email.replace(/^rh\+/, '').replace(/@.*$/, '').trim().toLowerCase() : '';
+            wrapEliminar.style.display = (currentUsername === 'pablo.paniagua') ? 'block' : 'none';
+            
             // Obtener y mostrar técnicos
             document.getElementById('tecnicosEncuesta').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
             const tecnicos = await obtenerTecnicosDeEncuesta(encuesta);
@@ -1628,6 +1635,33 @@
         document.getElementById('btnSiguiente').addEventListener('click', () => {
             if (encuestaSeleccionadaIndex < encuestasFiltradas.length - 1) {
                 seleccionarEncuesta(encuestaSeleccionadaIndex + 1);
+            }
+        });
+        
+        document.getElementById('btnEliminarResultadoEncuesta').addEventListener('click', async () => {
+            if (encuestaSeleccionadaIndex < 0 || encuestaSeleccionadaIndex >= encuestasFiltradas.length) return;
+            const encuesta = encuestasFiltradas[encuestaSeleccionadaIndex];
+            if (!confirm('¿Eliminar este resultado de encuesta? Esta acción no se puede deshacer.')) return;
+            try {
+                if (encuesta._origen === 'primaria') {
+                    await deleteDoc(doc(db, 'encuestas_citas', encuesta.cita_id));
+                } else {
+                    await deleteDoc(doc(db, 'encuestas', encuesta.id));
+                }
+                todasLasEncuestas = todasLasEncuestas.filter(e => 
+                    (e._origen === 'primaria' ? e.cita_id !== encuesta.cita_id : e.id !== encuesta.id)
+                );
+                aplicarFiltroFecha();
+                if (encuestasFiltradas.length === 0) {
+                    document.getElementById('detalleEncuesta').style.display = 'none';
+                    document.getElementById('sinSeleccion').style.display = 'block';
+                } else {
+                    const nuevoIndice = Math.min(encuestaSeleccionadaIndex, encuestasFiltradas.length - 1);
+                    if (nuevoIndice >= 0) seleccionarEncuesta(nuevoIndice);
+                }
+            } catch (err) {
+                console.error('Error eliminando encuesta:', err);
+                alert('No se pudo eliminar. Compruebe que tiene permiso (solo pablo.paniagua puede eliminar resultados).');
             }
         });
         

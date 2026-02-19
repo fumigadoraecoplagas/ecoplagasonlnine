@@ -526,8 +526,11 @@ service cloud.firestore {
       // LECTURA: Solo usuarios autenticados (empleados pueden ver resultados)
       allow read: if isSecureSystem();
       
-      // ELIMINACIÓN: Solo usuarios autenticados
-      allow delete: if isSecureSystem();
+      // ELIMINACIÓN: Solo pablo.paniagua puede eliminar resultados de encuestas
+      allow delete: if isSecureSystem() && 
+        (getAuthenticatedUsername() == 'pablo.paniagua' || 
+         request.auth.token.email == 'rh+pablo.paniagua@ecoplagascr.com' ||
+         request.auth.token.email == 'pablo.paniagua@ecoplagascr.com');
     }
     
     // ============================================
@@ -538,7 +541,10 @@ service cloud.firestore {
       allow read: if isSecureSystem();
       allow create: if isSecureSystem();
       allow update: if request.resource.data.cita_id == citaId;
-      allow delete: if isSecureSystem();
+      allow delete: if isSecureSystem() && 
+        (getAuthenticatedUsername() == 'pablo.paniagua' || 
+         request.auth.token.email == 'rh+pablo.paniagua@ecoplagascr.com' ||
+         request.auth.token.email == 'pablo.paniagua@ecoplagascr.com');
     }
     
     // ============================================
