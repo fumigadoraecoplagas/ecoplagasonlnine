@@ -339,12 +339,12 @@
         .cita-monto-cero, .cita-ubicacion-pendiente { background: #c62828; color: #fff; font-weight: 400; }
         .cita-cliente-texto, .cita-ubicacion-texto { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Contenedor 3 líneas: columna, gap uniforme 6px, sin márgenes ni overflow que corte */
+        /* Contenedor 3 líneas: columna, gap mínimo entre filas */
         .cita-tres-lineas {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 6px;
+            gap: 2px;
             line-height: 1;
             margin: 0;
             padding: 0;
