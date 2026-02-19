@@ -306,8 +306,6 @@
         .cita-item.Ruta-19 { background: #2E7D4A; border-color: #25633A; color: #fff; font-weight: 600; }
         .cita-item.Ruta-20 { background: #A50000; border-color: #840000; color: #fff; font-weight: 600; }
         .cita-item.Sin-asignar { background: #B0BEC5; border-color: #9E9E9E; color: #000; font-weight: 600; }
-        .cita-item.monto-cero { border: 3px solid #ff1744 !important; box-shadow: 0 0 0 2px #ff1744; outline: 3px solid #ff1744; outline-offset: 1px; }
-        .cita-item-dia.monto-cero { border: 3px solid #ff1744 !important; box-shadow: 0 0 0 2px #ff1744; outline: 3px solid #ff1744; outline-offset: 1px; }
 
         /* Nombre del vendedor en recuadro negro para destacar en las citas (compacto) */
         .vendedor-badge {
@@ -335,6 +333,18 @@
         .cita-monto-texto {
             display: inline-block;
             background: #1b5e20;
+            color: #fff;
+            padding: 0 3px;
+            border-radius: 3px;
+            font-size: 0.55rem;
+            font-weight: 700;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        /* Precio 0 o nulo: recuadro rojo con "Precio 0" */
+        .cita-monto-cero {
+            display: inline-block;
+            background: #c62828;
             color: #fff;
             padding: 0 3px;
             border-radius: 3px;
@@ -1015,7 +1025,6 @@
         .cita-bloque.Ruta-19 { border-color: #25633A; background: #2E7D4A; color: #fff; font-weight: 600; }
         .cita-bloque.Ruta-20 { border-color: #840000; background: #A50000; color: #fff; font-weight: 600; }
         .cita-bloque.Sin-asignar { border-color: #424242; background: #616161; color: #fff; font-weight: 600; }
-        .cita-bloque.monto-cero { border: 3px solid #ff1744 !important; box-shadow: 0 0 0 2px #ff1744; outline: 3px solid #ff1744; outline-offset: 1px; }
 
         .cita-hora-cronograma {
             font-weight: 600;
@@ -12766,8 +12775,10 @@
                                         // Obtener hora
                                         const horaMostrar = horaInicio;
                                         
-                                        // Obtener precio
-                                        const precioMostrar = window.obtenerMonto && window.obtenerMonto(cita) ? window.formatearMontoVenta(window.obtenerMonto(cita)) : '';
+                                        // Obtener precio: si 0 o nulo, recuadro rojo "Precio 0"; si no, recuadro verde
+                                        const montoValDia = window.obtenerMonto ? window.obtenerMonto(cita) : null;
+                                        const esPrecioCeroDia = montoValDia == null || montoValDia === '' || Number(montoValDia) === 0;
+                                        const precioMostrar = esPrecioCeroDia ? '' : (window.formatearMontoVenta ? window.formatearMontoVenta(montoValDia) : String(montoValDia));
                                         
                                         // Obtener ubicación (Provincia, Cantón, Distrito en ese orden)
                                         const ubicacionPartes = [];
@@ -12789,11 +12800,12 @@
                                         }
                                         const ubicacionTexto = ubicacionPartes.length > 0 ? ubicacionPartes.join(', ') : '';
                                         
-                                        // Construir línea principal: Vendedor (badge) + Hora (gris) + Precio (verde)
+                                        // Construir línea principal: Vendedor (badge) + Hora (gris) + Precio (verde o rojo "Precio 0")
                                         const infoPrincipal = [];
                                         infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
                                         if (horaMostrar) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
-                                        if (precioMostrar) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
+                                        if (esPrecioCeroDia) infoPrincipal.push('<span class="cita-monto-cero">Precio 0</span>');
+                                        else if (precioMostrar) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                                         const textoPrincipal = infoPrincipal.join(' ');
                                         
                                         // Línea 2: cliente en recuadro | Línea 3: Provincia, Cantón, Distrito o "Dirección pendiente" en rojo
@@ -14430,8 +14442,10 @@
                 // Obtener hora
                 const horaMostrar = `${horaFormateada}:${minutoFormateado} ${ampm}`;
                 
-                // Obtener precio
-                const precioMostrar = window.obtenerMonto && window.obtenerMonto(cita) ? window.formatearMontoVenta(window.obtenerMonto(cita)) : '';
+                // Obtener precio: si 0 o nulo, recuadro rojo "Precio 0"; si no, recuadro verde
+                const montoValCron = window.obtenerMonto ? window.obtenerMonto(cita) : null;
+                const esPrecioCeroCron = montoValCron == null || montoValCron === '' || Number(montoValCron) === 0;
+                const precioMostrar = esPrecioCeroCron ? '' : (window.formatearMontoVenta ? window.formatearMontoVenta(montoValCron) : String(montoValCron));
                 
                 // Obtener ubicación (Provincia, Cantón, Distrito en ese orden)
                 const ubicacionPartes = [];
@@ -14453,11 +14467,12 @@
                 }
                 const ubicacionTexto = ubicacionPartes.length > 0 ? ubicacionPartes.join(', ') : '';
                 
-                // Construir línea principal: Vendedor (badge) + Hora (gris) + Precio (verde)
+                // Construir línea principal: Vendedor (badge) + Hora (gris) + Precio (verde o rojo "Precio 0")
                 const infoPrincipal = [];
                 infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
                 if (horaMostrar) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
-                if (precioMostrar) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
+                if (esPrecioCeroCron) infoPrincipal.push('<span class="cita-monto-cero">Precio 0</span>');
+                else if (precioMostrar) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                 const textoPrincipal = infoPrincipal.join(' ');
                 
                 // Línea 2: cliente en recuadro | Línea 3: Provincia, Cantón, Distrito o "Dirección pendiente" en rojo
@@ -14645,15 +14660,15 @@
                     // Obtener ganancia neta (en lugar del monto de venta)
                     const gananciaNeta = window.obtenerGananciaNeta ? window.obtenerGananciaNeta(cita) : 0;
                     console.log('🔍 [CALENDARIO] Ganancia neta calculada:', gananciaNeta, 'para cita:', cita.id);
-                    // Mostrar la ganancia neta siempre que sea un número válido (incluso si es 0)
+                    // Mostrar la ganancia neta: si 0 o no válido, recuadro rojo "Precio 0"; si no, recuadro verde
+                    const esPrecioCeroVista = gananciaNeta == null || gananciaNeta === undefined || isNaN(gananciaNeta) || Number(gananciaNeta) === 0;
                     let precioMostrarVista = '';
-                    if (gananciaNeta !== null && gananciaNeta !== undefined && !isNaN(gananciaNeta)) {
-                        // Formatear manualmente para asegurar que se muestre
+                    if (!esPrecioCeroVista) {
                         const numeroFormateado = Math.abs(gananciaNeta).toLocaleString('es-CR');
                         precioMostrarVista = `₡${numeroFormateado}`;
                         console.log('🔍 [CALENDARIO] Precio formateado:', precioMostrarVista);
                     } else {
-                        console.log('🔍 [CALENDARIO] Ganancia neta no es un número válido (valor:', gananciaNeta, ', tipo:', typeof gananciaNeta, ')');
+                        console.log('🔍 [CALENDARIO] Ganancia neta 0 o no válida (valor:', gananciaNeta, ')');
                     }
                     
                     // Obtener ubicación (Provincia, Cantón, Distrito en ese orden)
@@ -14676,11 +14691,12 @@
                     }
                     const ubicacionTextoVista = ubicacionPartesVista.length > 0 ? ubicacionPartesVista.join(', ') : '';
                     
-                    // Construir línea principal: Vendedor (badge) + Hora (gris) + Precio (verde)
+                    // Construir línea principal: Vendedor (badge) + Hora (gris) + Precio (verde o rojo "Precio 0")
                     const infoPrincipal = [];
                     infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
                     if (horaMostrarVista) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrarVista).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
-                    if (precioMostrarVista) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrarVista).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
+                    if (esPrecioCeroVista) infoPrincipal.push('<span class="cita-monto-cero">Precio 0</span>');
+                    else if (precioMostrarVista) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrarVista).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                     const textoPrincipal = infoPrincipal.join(' ');
                     
                     // Línea 2: cliente en recuadro | Línea 3: Provincia, Cantón, Distrito o "Dirección pendiente" en rojo
