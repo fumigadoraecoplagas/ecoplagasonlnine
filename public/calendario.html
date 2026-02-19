@@ -307,7 +307,19 @@
         .cita-item.Ruta-20 { background: #A50000; border-color: #840000; color: #fff; font-weight: 600; }
         .cita-item.Sin-asignar { background: #B0BEC5; border-color: #9E9E9E; color: #000; font-weight: 600; }
 
-        /* Nombre del vendedor en recuadro negro para destacar en las citas (compacto) */
+        /* Tamaño y interlineado uniforme para las 3 líneas */
+        .cita-tres-lineas {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            line-height: 1.2;
+            margin: 0;
+            padding: 0;
+            font-size: 0.55rem;
+        }
+        .cita-tres-lineas > * { margin: 0; padding: 0; line-height: 1.2; font-size: 0.55rem; }
+
+        /* Nombre del vendedor: único en bold */
         .vendedor-badge {
             display: inline-block;
             background: #000;
@@ -316,10 +328,10 @@
             border-radius: 3px;
             font-size: 0.55rem;
             font-weight: 700;
-            line-height: 1;
+            line-height: 1.2;
             white-space: nowrap;
         }
-        /* Hora: gris oscuro, texto blanco */
+        /* Hora: gris oscuro, sin bold */
         .cita-hora-texto {
             display: inline-block;
             background: #455a64;
@@ -327,11 +339,11 @@
             padding: 0 3px;
             border-radius: 3px;
             font-size: 0.55rem;
-            font-weight: 600;
-            line-height: 1;
+            font-weight: 400;
+            line-height: 1.2;
             white-space: nowrap;
         }
-        /* Monto (plata) normal: gris oscuro, texto blanco; solo Precio 0 es rojo */
+        /* Monto normal: gris oscuro, sin bold */
         .cita-monto-texto {
             display: inline-block;
             background: #455a64;
@@ -339,11 +351,11 @@
             padding: 0 3px;
             border-radius: 3px;
             font-size: 0.55rem;
-            font-weight: 700;
-            line-height: 1;
+            font-weight: 400;
+            line-height: 1.2;
             white-space: nowrap;
         }
-        /* Precio 0 o nulo: recuadro rojo con "Precio 0" */
+        /* Precio 0: rojo, sin bold */
         .cita-monto-cero {
             display: inline-block;
             background: #c62828;
@@ -351,30 +363,20 @@
             padding: 0 3px;
             border-radius: 3px;
             font-size: 0.55rem;
-            font-weight: 700;
-            line-height: 1;
+            font-weight: 400;
+            line-height: 1.2;
             white-space: nowrap;
         }
-        .cita-linea-principal { white-space: nowrap; }
-        /* Contenedor de las 3 líneas: sin espacio entre ellas */
-        .cita-tres-lineas {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            line-height: 1;
-            margin: 0;
-            padding: 0;
-        }
-        .cita-tres-lineas > * { margin: 0; padding: 0; }
-        /* Cada línea de recuadros: interlineado mínimo para caber en franja de 1h */
+        .cita-linea-principal { white-space: nowrap; line-height: 1.2; font-size: 0.55rem; }
+        /* Cada línea de recuadros: mismo font-size e interlineado */
         .cita-linea-recursos {
             margin: 0;
             padding: 0;
-            line-height: 1;
-            font-size: 0.5rem;
+            line-height: 1.2;
+            font-size: 0.55rem;
             min-height: 0;
         }
-        /* Segunda línea: nombre del cliente, gris oscuro, texto blanco */
+        /* Cliente: gris oscuro, sin bold */
         .cita-cliente-texto {
             display: inline-block;
             background: #455a64;
@@ -382,38 +384,38 @@
             padding: 0 3px;
             border-radius: 3px;
             font-size: 0.55rem;
-            font-weight: 600;
-            line-height: 1;
+            font-weight: 400;
+            line-height: 1.2;
             white-space: nowrap;
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        /* Tercera línea: Provincia, Cantón, Distrito en recuadro compacto (gris oscuro) */
+        /* Provincia, Cantón, Distrito: gris oscuro, sin bold */
         .cita-ubicacion-texto {
             display: inline-block;
             background: #455a64;
             color: #fff;
             padding: 0 3px;
             border-radius: 3px;
-            font-size: 0.5rem;
-            font-weight: 500;
-            line-height: 1;
+            font-size: 0.55rem;
+            font-weight: 400;
+            line-height: 1.2;
             white-space: nowrap;
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        /* Sin dirección: recuadro rojo con "Dirección pendiente" */
+        /* Dirección pendiente: rojo, sin bold */
         .cita-ubicacion-pendiente {
             display: inline-block;
             background: #c62828;
             color: #fff;
             padding: 0 3px;
             border-radius: 3px;
-            font-size: 0.5rem;
-            font-weight: 600;
-            line-height: 1;
+            font-size: 0.55rem;
+            font-weight: 400;
+            line-height: 1.2;
             white-space: nowrap;
         }
 
@@ -1029,11 +1031,11 @@
         .cita-bloque.Sin-asignar { border-color: #424242; background: #616161; color: #fff; font-weight: 600; }
 
         .cita-hora-cronograma {
-            font-weight: 600;
-            font-size: 0.5rem;
+            font-weight: 400;
+            font-size: 0.55rem;
             color: #ffffff;
             margin: 0;
-            line-height: 1;
+            line-height: 1.2;
             white-space: nowrap;
         }
 
@@ -1203,13 +1205,12 @@
         }
 
         .cita-hora {
-            font-weight: 700;
+            font-weight: 400;
             color: #667eea;
             font-size: 0.55rem;
-            margin-bottom: 0;
-            margin-top: 0;
+            margin: 0;
             white-space: nowrap;
-            line-height: 1;
+            line-height: 1.2;
         }
 
         .cita-cliente {
