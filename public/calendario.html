@@ -257,13 +257,14 @@
             position: relative; /* Para posicionar el punto indicador */
         }
         
-        /* Punto indicador de estado de encuesta: centro del círculo en el vértice */
+        /* Punto indicador de estado de encuesta: centrado verticalmente en el contenedor */
         .indicador-encuesta-punto {
             position: absolute;
-            top: -6px;
+            top: 50%;
             right: -6px;
             width: 12px;
             height: 12px;
+            margin-top: -6px;
             border-radius: 50%;
             z-index: 10;
         }
@@ -307,10 +308,51 @@
         .cita-item.Ruta-20 { background: #A50000; border-color: #840000; color: #fff; font-weight: 600; }
         .cita-item.Sin-asignar { background: #B0BEC5; border-color: #9E9E9E; color: #000; font-weight: 600; }
 
-        /* Tamaño y interlineado uniforme para las 3 líneas */
+        /* --- Pills/badges unificados: misma altura, padding, line-height y border-radius (4px) --- */
+        /* Nivel 1: vendedor (único bold), mismo tamaño que el resto */
+        .vendedor-badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 1.25em;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.55rem;
+            line-height: 1.2;
+            background: #000;
+            color: #fff;
+            font-weight: 700;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        /* Nivel 2 y 3: gris oscuro, sin bold */
+        .cita-hora-texto, .cita-monto-texto, .cita-cliente-texto, .cita-ubicacion-texto {
+            background: #455a64;
+            color: #fff;
+            font-weight: 400;
+        }
+        .cita-monto-cero, .cita-ubicacion-pendiente {
+            background: #c62828;
+            color: #fff;
+            font-weight: 400;
+        }
+        .cita-hora-texto, .cita-monto-texto, .cita-monto-cero, .cita-cliente-texto, .cita-ubicacion-texto, .cita-ubicacion-pendiente {
+            display: inline-flex;
+            align-items: center;
+            min-height: 1.25em;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.55rem;
+            line-height: 1.2;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        .cita-cliente-texto, .cita-ubicacion-texto { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Contenedor 3 líneas: alineación izquierda, grid claro */
         .cita-tres-lineas {
             display: flex;
             flex-direction: column;
+            align-items: flex-start;
             gap: 0;
             line-height: 1.2;
             margin: 0;
@@ -318,107 +360,24 @@
             font-size: 0.55rem;
         }
         .cita-tres-lineas > * { margin: 0; padding: 0; line-height: 1.2; font-size: 0.55rem; }
-        /* Acercar la línea de dirección al nombre del cliente */
         .cita-tres-lineas > *:last-child { margin-top: -0.08em; }
 
-        /* Nombre del vendedor: único en bold */
-        .vendedor-badge {
-            display: inline-block;
-            background: #000;
-            color: #fff;
-            padding: 0 3px;
-            border-radius: 3px;
-            font-size: 0.55rem;
-            font-weight: 700;
-            line-height: 1.2;
-            white-space: nowrap;
-        }
-        /* Hora: gris oscuro, sin bold */
-        .cita-hora-texto {
-            display: inline-block;
-            background: #455a64;
-            color: #fff;
-            padding: 0 3px;
-            border-radius: 3px;
-            font-size: 0.55rem;
-            font-weight: 400;
-            line-height: 1.2;
-            white-space: nowrap;
-        }
-        /* Monto normal: gris oscuro, sin bold */
-        .cita-monto-texto {
-            display: inline-block;
-            background: #455a64;
-            color: #fff;
-            padding: 0 3px;
-            border-radius: 3px;
-            font-size: 0.55rem;
-            font-weight: 400;
-            line-height: 1.2;
-            white-space: nowrap;
-        }
-        /* Precio 0: rojo, sin bold */
-        .cita-monto-cero {
-            display: inline-block;
-            background: #c62828;
-            color: #fff;
-            padding: 0 3px;
-            border-radius: 3px;
-            font-size: 0.55rem;
-            font-weight: 400;
-            line-height: 1.2;
-            white-space: nowrap;
+        /* Línea 1: badges superiores con flex + gap uniforme */
+        .cita-linea-badges {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 5px;
         }
         .cita-linea-principal { white-space: nowrap; line-height: 1.2; font-size: 0.55rem; }
-        /* Cada línea de recuadros: mismo font-size e interlineado */
         .cita-linea-recursos {
             margin: 0;
             padding: 0;
             line-height: 1.2;
             font-size: 0.55rem;
             min-height: 0;
-        }
-        /* Cliente: gris oscuro, sin bold */
-        .cita-cliente-texto {
-            display: inline-block;
-            background: #455a64;
-            color: #fff;
-            padding: 0 3px;
-            border-radius: 3px;
-            font-size: 0.55rem;
-            font-weight: 400;
-            line-height: 1.2;
-            white-space: nowrap;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        /* Provincia, Cantón, Distrito: gris oscuro, sin bold */
-        .cita-ubicacion-texto {
-            display: inline-block;
-            background: #455a64;
-            color: #fff;
-            padding: 0 3px;
-            border-radius: 3px;
-            font-size: 0.55rem;
-            font-weight: 400;
-            line-height: 1.2;
-            white-space: nowrap;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        /* Dirección pendiente: rojo, sin bold */
-        .cita-ubicacion-pendiente {
-            display: inline-block;
-            background: #c62828;
-            color: #fff;
-            padding: 0 3px;
-            border-radius: 3px;
-            font-size: 0.55rem;
-            font-weight: 400;
-            line-height: 1.2;
-            white-space: nowrap;
+            display: flex;
+            align-items: center;
         }
 
         .filters-section {
@@ -12811,7 +12770,7 @@
                                         if (horaMostrar) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                                         if (esPrecioCeroDia) infoPrincipal.push('<span class="cita-monto-cero">Precio 0</span>');
                                         else if (precioMostrar) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
-                                        const textoPrincipal = infoPrincipal.join(' ');
+                                        const textoPrincipal = infoPrincipal.join('');
                                         
                                         // Línea 2: cliente en recuadro | Línea 3: Provincia, Cantón, Distrito o "Dirección pendiente" en rojo
                                         const clienteEscapado = (clienteNombre && clienteNombre !== 'Sin nombre') ? String(clienteNombre).replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
@@ -12824,7 +12783,7 @@
                                             ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                                             <div class="cita-duracion">${obtenerDuracion(cita)}min</div>
                                             <div class="cita-tres-lineas">
-                                                <div class="cita-hora">${textoPrincipal}</div>
+                                                <div class="cita-hora cita-linea-badges">${textoPrincipal}</div>
                                                 ${clienteEscapado ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapado}</span></div>` : ''}
                                                 ${lineaUbicacion}
                                             </div>
@@ -14478,7 +14437,7 @@
                 if (horaMostrar) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                 if (esPrecioCeroCron) infoPrincipal.push('<span class="cita-monto-cero">Precio 0</span>');
                 else if (precioMostrar) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
-                const textoPrincipal = infoPrincipal.join(' ');
+                const textoPrincipal = infoPrincipal.join('');
                 
                 // Línea 2: cliente en recuadro | Línea 3: Provincia, Cantón, Distrito o "Dirección pendiente" en rojo
                 const clienteEscapado = (clienteNombre && clienteNombre !== 'Sin nombre') ? String(clienteNombre).replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
@@ -14491,7 +14450,7 @@
                     ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                     <div class="cita-estado-cronograma ${(window.estadoDisplayCita && window.estadoDisplayCita(cita)) ? window.estadoDisplayCita(cita).clase : 'agendada'}"></div>
                     <div class="cita-tres-lineas">
-                        <div class="cita-hora-cronograma">${textoPrincipal}</div>
+                        <div class="cita-hora-cronograma cita-linea-badges">${textoPrincipal}</div>
                         ${clienteEscapado ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapado}</span></div>` : ''}
                         ${lineaUbicacion}
                     </div>
@@ -14702,7 +14661,7 @@
                     if (horaMostrarVista) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrarVista).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                     if (esPrecioCeroVista) infoPrincipal.push('<span class="cita-monto-cero">Precio 0</span>');
                     else if (precioMostrarVista) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrarVista).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
-                    const textoPrincipal = infoPrincipal.join(' ');
+                    const textoPrincipal = infoPrincipal.join('');
                     
                     // Línea 2: cliente en recuadro | Línea 3: Provincia, Cantón, Distrito o "Dirección pendiente" en rojo
                     const clienteEscapadoVista = (clienteNombre && clienteNombre !== 'Sin nombre') ? String(clienteNombre).replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
@@ -14714,7 +14673,7 @@
                     citaElement.innerHTML = `
                         ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                         <div class="cita-tres-lineas">
-                            <span class="cita-linea-principal">${textoPrincipal}</span>
+                            <div class="cita-linea-principal cita-linea-badges">${textoPrincipal}</div>
                             ${clienteEscapadoVista ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapadoVista}</span></div>` : ''}
                             ${lineaUbicacionVista}
                         </div>
