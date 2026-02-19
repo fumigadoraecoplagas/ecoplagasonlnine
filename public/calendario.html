@@ -1573,6 +1573,7 @@
                                     <span style="display: flex; align-items: center; gap: 6px;">
                                         <span id="dayBarsResumen">Ventas: 0  Meta: 0  % de avance: 0%</span>
                                         <button type="button" id="btnCopiarVentasMes" title="Copiar fecha,ventas del mes al portapapeles" style="padding: 2px 6px; font-size: 0.65rem; border: 1px solid #ccc; border-radius: 4px; background: #f8f9fa; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-copy"></i> Copiar</button>
+                                        <button type="button" id="btnDescargarCSVMes" title="Descargar CSV del mes actual con datos de Firebase (mismo formato que agenda ventas)" style="padding: 2px 6px; font-size: 0.65rem; border: 1px solid #ccc; border-radius: 4px; background: #f8f9fa; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-file-csv"></i> Descargar CSV</button>
                                     </span>
                                     <label style="font-weight: 600; font-size: 0.65rem; display: inline-flex; align-items: center; gap: 4px;">Meta mes (M): <input type="number" id="inputMetaMesM" min="0" step="0.1" value="0" placeholder="1.7/día" style="width: 52px; padding: 2px 4px; font-size: 0.65rem; border: 1px solid #ccc; border-radius: 4px;"></label>
                                 </div>
@@ -4497,6 +4498,15 @@
                     }
                 });
             }
+            const btnDescargarCSVMes = document.getElementById('btnDescargarCSVMes');
+            if (btnDescargarCSVMes && !btnDescargarCSVMes._csvListener) {
+                btnDescargarCSVMes._csvListener = true;
+                btnDescargarCSVMes.addEventListener('click', function() {
+                    if (typeof window.descargarCSVAgendaMesFirebase === 'function') {
+                        window.descargarCSVAgendaMesFirebase(fecha);
+                    }
+                });
+            }
             if (inputMetaMesM) {
                 inputMetaMesM.value = (totalMetaMes / 1000000).toFixed(1);
                 if (!inputMetaMesM._metaListener) {
@@ -7026,6 +7036,67 @@
         
         window.obtenerDireccion = function(cita) {
             return window.obtenerCampoCita(cita, 'direccion', '');
+        };
+        
+        // Descargar CSV del mes (mismo formato que "Descargar agenda para ventas Ecoplagas Online") usando datos de Firebase
+        window.descargarCSVAgendaMesFirebase = function(fechaMes) {
+            const citas = window.todasLasCitas || [];
+            const fecha = fechaMes || window.diaSeleccionado || new Date();
+            const year = fecha.getFullYear();
+            const month = fecha.getMonth();
+            const obtenerInicio = window.obtenerInicio;
+            const formatearFecha = window.formatearFecha;
+            const citasDelMes = citas.filter(cita => {
+                const inicio = obtenerInicio && obtenerInicio(cita);
+                if (!inicio) return false;
+                const d = formatearFecha && formatearFecha(inicio);
+                if (!d) return false;
+                return d.getFullYear() === year && d.getMonth() === month;
+            });
+            citasDelMes.sort((a, b) => {
+                const msA = (a.inicio_gmt6 && (a.inicio_gmt6.toMillis ? a.inicio_gmt6.toMillis() : (a.inicio_gmt6.seconds * 1000))) || 0;
+                const msB = (b.inicio_gmt6 && (b.inicio_gmt6.toMillis ? b.inicio_gmt6.toMillis() : (b.inicio_gmt6.seconds * 1000))) || 0;
+                return msA - msB;
+            });
+            function formatoInicioGMT6(cita) {
+                const ts = cita.inicio_gmt6;
+                const ms = ts && (ts.toMillis ? ts.toMillis() : (ts.seconds * 1000)) || 0;
+                const d = new Date(ms - 6 * 60 * 60 * 1000);
+                const pad = n => String(n).padStart(2, '0');
+                return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()) + 'T' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds()) + '-06:00';
+            }
+            function escaparCSV(val) {
+                const s = val == null ? '' : String(val);
+                if (/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+                return s;
+            }
+            const header = 'telefono,inicio_gmt6,duracion_minutos,vehiculo,cliente_nombre,estado,monto,ruta,iniciales,vendedores,observaciones,Dia';
+            const lineas = [header];
+            citasDelMes.forEach(cita => {
+                const telefono = (cita.telefono || '').toString().trim();
+                const inicio_gmt6 = formatoInicioGMT6(cita);
+                const duracion_minutos = cita.duracion_minutos ?? 60;
+                const vehiculo = window.obtenerCampoCita(cita, 'vehiculo', '') || '';
+                const cliente_nombre = window.obtenerCampoCita(cita, 'cliente_nombre', '') || '';
+                const estado = window.obtenerCampoCita(cita, 'estado', 'agendada') || 'agendada';
+                const monto = window.obtenerMonto ? window.obtenerMonto(cita) : (window.obtenerCampoCita(cita, 'monto', 0) || 0);
+                let ruta = window.obtenerRuta ? window.obtenerRuta(cita) : (window.obtenerCampoCita(cita, 'ruta', '') || '');
+                if (typeof ruta === 'string' && /^\d+$/.test(ruta)) { /* ya es número */ } else if (typeof ruta === 'string') ruta = ruta.replace(/\D/g, '') || ruta; else ruta = ruta != null ? String(ruta) : '';
+                const iniciales = window.obtenerCampoCita(cita, 'iniciales', '') || '';
+                let vendedores = window.obtenerVendedores ? window.obtenerVendedores(cita) : [];
+                if (!Array.isArray(vendedores)) vendedores = vendedores ? [vendedores] : [];
+                const vendedoresStr = vendedores.map(v => (v && String(v).trim()) || '').filter(Boolean).join(', ');
+                const observaciones = window.obtenerCampoCita(cita, 'observaciones', '') || '';
+                const diaStr = inicio_gmt6.slice(0, 10);
+                lineas.push([telefono, inicio_gmt6, duracion_minutos, escaparCSV(vehiculo), escaparCSV(cliente_nombre), estado, monto, ruta, escaparCSV(iniciales), escaparCSV(vendedoresStr), escaparCSV(observaciones), diaStr].join(','));
+            });
+            const csv = lineas.join('\r\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'agenda_ventas_firebase_' + year + '-' + String(month + 1).padStart(2, '0') + '.csv';
+            link.click();
+            URL.revokeObjectURL(link.href);
         };
         
         // Función helper para obtener coordenadas de una cita
