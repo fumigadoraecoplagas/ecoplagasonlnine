@@ -1957,7 +1957,7 @@
                                 
                                 <!-- Vendedores -->
                                 <div class="col-12 col-md" style="flex: 1 1 0; min-width: 200px;">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Vendedores</label>
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Vendedores *</label>
                                     <div class="dropdown-container" style="position: relative;">
                                         <input type="text" id="editVendedorSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar vendedor" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
                                         <div class="dropdown-menu" id="editVendedoresDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
@@ -2392,7 +2392,7 @@
                                 
                                 <!-- Vendedores -->
                                 <div class="col-12 col-md" style="flex: 1 1 0; min-width: 200px;">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Vendedores</label>
+                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Vendedores *</label>
                                     <div class="dropdown-container" style="position: relative;">
                                         <input type="text" id="newVendedorSearch" class="form-control dropdown-toggle" placeholder="Buscar o seleccionar vendedor" autocomplete="off" style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; background-color: #ffffff; border-radius: 8px; color: #000000;">
                                         <div class="dropdown-menu" id="newVendedoresDropdownMenu" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000; max-height: 300px; overflow-y: auto; background: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); margin-top: 0.25rem;">
@@ -14789,6 +14789,11 @@
                     alert('Por favor completa todos los campos indispensables: Teléfono, Fecha y Hora de Inicio, Duración y Ruta.');
                     return;
                 }
+
+                if (!vendedoresSeleccionados.length) {
+                    alert('Debe seleccionar al menos un vendedor para guardar la cita.');
+                    return;
+                }
                 
                 // Validar comentarios de servicios (ahora opcionales, siempre pasa)
                 if (!window.validarComentariosServicios('edit')) {
@@ -15209,6 +15214,11 @@
 
                 if (!clientPhone || !startTime || !duration || !ruta) {
                     alert('Por favor completa todos los campos indispensables: Teléfono, Fecha y Hora de Inicio, Duración y Ruta.');
+                    return;
+                }
+
+                if (!vendedoresSeleccionados.length) {
+                    alert('Debe seleccionar al menos un vendedor para crear la cita.');
                     return;
                 }
                 
