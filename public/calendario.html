@@ -258,42 +258,53 @@
             max-width: 100%;
         }
         
-        /* Contenedor de los dos indicadores (encuesta + método de pago): centrado vertical, borde derecho */
+        /* Contenedor de los tres indicadores (confirmación + encuesta + arqueo): centrado vertical, borde derecho */
         .cita-indicadores-derecha {
             position: absolute;
             top: 50%;
-            right: -5px;
+            right: -9px; /* centro del círculo (18px/2) sobre el borde derecho */
             transform: translateY(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
+            gap: 0;
             z-index: 10;
         }
-        /* Punto encuesta: borde del color de la cita (versión oscura) */
-        .indicador-encuesta-punto {
-            width: 10px;
-            height: 10px;
+        /* Puntos con ícono dentro: mayor radio para mostrar check, corazón, dólar */
+        .indicador-confirmada-punto,
+        .indicador-encuesta-punto,
+        .indicador-pago-punto {
+            width: 18px;
+            height: 18px;
             flex-shrink: 0;
             border-radius: 50%;
             box-sizing: border-box;
             border: 2px solid rgba(0,0,0,0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        
+        .indicador-confirmada-punto .indicador-icono,
+        .indicador-encuesta-punto .indicador-icono,
+        .indicador-pago-punto .indicador-icono {
+            color: rgba(255,255,255,0.95);
+            font-size: 9px;
+            line-height: 1;
+        }
+        /* Confirmación: gris = fuera de ventana, rojo = pendiente, verde = confirmada */
+        .indicador-confirmada-punto.gris { background-color: #9e9e9e; }
+        .indicador-confirmada-punto.no-confirmada { background-color: #f44336; }
+        .indicador-confirmada-punto.confirmada { background-color: #4caf50; }
+
+        /* Encuesta: gris = cita no ha pasado, luego rojo/amarillo/verde/azul según estado */
+        .indicador-encuesta-punto.gris { background-color: #9e9e9e; }
         .indicador-encuesta-punto.rojo { background-color: #f44336; }
         .indicador-encuesta-punto.amarillo { background-color: #ffc107; }
         .indicador-encuesta-punto.verde { background-color: #4caf50; }
         .indicador-encuesta-punto.azul { background-color: #2196f3; }
 
-        /* Punto método de pago: abajo del de encuesta; rojo = no indicado, verde = indicado */
-        .indicador-pago-punto {
-            width: 10px;
-            height: 10px;
-            flex-shrink: 0;
-            border-radius: 50%;
-            box-sizing: border-box;
-            border: 2px solid rgba(0,0,0,0.35);
-        }
+        /* Arqueo de pagos: gris = cita no ha pasado, rojo = pendiente, verde = indicado */
+        .indicador-pago-punto.pago-gris { background-color: #9e9e9e; }
         .indicador-pago-punto.pago-pendiente { background-color: #f44336; }
         .indicador-pago-punto.pago-indicado { background-color: #4caf50; }
 
@@ -342,6 +353,29 @@
         .cita-item.Ruta-19 .indicador-pago-punto, .cita-bloque.Ruta-19 .indicador-pago-punto, .cita-item-dia.Ruta-19 .indicador-pago-punto { border-color: #25633A; }
         .cita-item.Ruta-20 .indicador-pago-punto, .cita-bloque.Ruta-20 .indicador-pago-punto, .cita-item-dia.Ruta-20 .indicador-pago-punto { border-color: #840000; }
         .cita-item.Sin-asignar .indicador-pago-punto, .cita-bloque.Sin-asignar .indicador-pago-punto, .cita-item-dia.Sin-asignar .indicador-pago-punto { border-color: #424242; }
+
+        /* Borde del punto confirmada = color de la ruta */
+        .cita-item.Ruta-1 .indicador-confirmada-punto, .cita-bloque.Ruta-1 .indicador-confirmada-punto, .cita-item-dia.Ruta-1 .indicador-confirmada-punto { border-color: #258A59; }
+        .cita-item.Ruta-2 .indicador-confirmada-punto, .cita-bloque.Ruta-2 .indicador-confirmada-punto, .cita-item-dia.Ruta-2 .indicador-confirmada-punto { border-color: #7E3290; }
+        .cita-item.Ruta-3 .indicador-confirmada-punto, .cita-bloque.Ruta-3 .indicador-confirmada-punto, .cita-item-dia.Ruta-3 .indicador-confirmada-punto { border-color: #B89928; }
+        .cita-item.Ruta-4 .indicador-confirmada-punto, .cita-bloque.Ruta-4 .indicador-confirmada-punto, .cita-item-dia.Ruta-4 .indicador-confirmada-punto { border-color: #C55A20; }
+        .cita-item.Ruta-5 .indicador-confirmada-punto, .cita-bloque.Ruta-5 .indicador-confirmada-punto, .cita-item-dia.Ruta-5 .indicador-confirmada-punto { border-color: #3B8BC4; }
+        .cita-item.Ruta-6 .indicador-confirmada-punto, .cita-bloque.Ruta-6 .indicador-confirmada-punto, .cita-item-dia.Ruta-6 .indicador-confirmada-punto { border-color: #A1564C; }
+        .cita-item.Ruta-7 .indicador-confirmada-punto, .cita-bloque.Ruta-7 .indicador-confirmada-punto, .cita-item-dia.Ruta-7 .indicador-confirmada-punto { border-color: #4A5662; }
+        .cita-item.Ruta-8 .indicador-confirmada-punto, .cita-bloque.Ruta-8 .indicador-confirmada-punto, .cita-item-dia.Ruta-8 .indicador-confirmada-punto { border-color: #2A3890; }
+        .cita-item.Ruta-9 .indicador-confirmada-punto, .cita-bloque.Ruta-9 .indicador-confirmada-punto, .cita-item-dia.Ruta-9 .indicador-confirmada-punto { border-color: #25633A; }
+        .cita-item.Ruta-10 .indicador-confirmada-punto, .cita-bloque.Ruta-10 .indicador-confirmada-punto, .cita-item-dia.Ruta-10 .indicador-confirmada-punto { border-color: #840000; }
+        .cita-item.Ruta-11 .indicador-confirmada-punto, .cita-bloque.Ruta-11 .indicador-confirmada-punto, .cita-item-dia.Ruta-11 .indicador-confirmada-punto { border-color: #258A59; }
+        .cita-item.Ruta-12 .indicador-confirmada-punto, .cita-bloque.Ruta-12 .indicador-confirmada-punto, .cita-item-dia.Ruta-12 .indicador-confirmada-punto { border-color: #7E3290; }
+        .cita-item.Ruta-13 .indicador-confirmada-punto, .cita-bloque.Ruta-13 .indicador-confirmada-punto, .cita-item-dia.Ruta-13 .indicador-confirmada-punto { border-color: #B89928; }
+        .cita-item.Ruta-14 .indicador-confirmada-punto, .cita-bloque.Ruta-14 .indicador-confirmada-punto, .cita-item-dia.Ruta-14 .indicador-confirmada-punto { border-color: #C55A20; }
+        .cita-item.Ruta-15 .indicador-confirmada-punto, .cita-bloque.Ruta-15 .indicador-confirmada-punto, .cita-item-dia.Ruta-15 .indicador-confirmada-punto { border-color: #3B8BC4; }
+        .cita-item.Ruta-16 .indicador-confirmada-punto, .cita-bloque.Ruta-16 .indicador-confirmada-punto, .cita-item-dia.Ruta-16 .indicador-confirmada-punto { border-color: #A1564C; }
+        .cita-item.Ruta-17 .indicador-confirmada-punto, .cita-bloque.Ruta-17 .indicador-confirmada-punto, .cita-item-dia.Ruta-17 .indicador-confirmada-punto { border-color: #4A5662; }
+        .cita-item.Ruta-18 .indicador-confirmada-punto, .cita-bloque.Ruta-18 .indicador-confirmada-punto, .cita-item-dia.Ruta-18 .indicador-confirmada-punto { border-color: #2A3890; }
+        .cita-item.Ruta-19 .indicador-confirmada-punto, .cita-bloque.Ruta-19 .indicador-confirmada-punto, .cita-item-dia.Ruta-19 .indicador-confirmada-punto { border-color: #25633A; }
+        .cita-item.Ruta-20 .indicador-confirmada-punto, .cita-bloque.Ruta-20 .indicador-confirmada-punto, .cita-item-dia.Ruta-20 .indicador-confirmada-punto { border-color: #840000; }
+        .cita-item.Sin-asignar .indicador-confirmada-punto, .cita-bloque.Sin-asignar .indicador-confirmada-punto, .cita-item-dia.Sin-asignar .indicador-confirmada-punto { border-color: #424242; }
 
         .cita-item:hover {
             transform: scale(1.05);
@@ -1957,6 +1991,9 @@
                         <button type="button" id="btnEnviarEncuesta" title="Generar link de encuesta post-servicio" style="background: #fbdc02; color: #000; border: none; border-radius: 8px; padding: 0.4rem 0.65rem; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                             <i class="fas fa-clipboard-check me-1"></i>Encuesta
                         </button>
+                        <button type="button" id="btnVerHistorial" title="Ver historial de ediciones" style="background: #6c757d; color: white; border: none; border-radius: 8px; padding: 0.4rem 0.65rem; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                            <i class="fas fa-history me-1"></i>Ver historial
+                        </button>
                         <button type="button" id="btnDeleteCita" title="Eliminar cita" style="background: #ea0e2a; color: white; border: none; border-radius: 8px; padding: 0.4rem 0.65rem; font-weight: 600; font-size: 0.85rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                             <i class="fas fa-trash me-1"></i>Eliminar
                         </button>
@@ -1986,7 +2023,10 @@
                                 
                                 <!-- Sucursal -->
                                 <div class="col-12 col-md" style="flex: 0 0 auto; max-width: 200px;">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Sucursal <span style="color: #ea0e2a;">*</span></label>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label mb-0" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Sucursal <span style="color: #ea0e2a;">*</span></label>
+                                        <button type="button" id="btnEditarSucursalEdit" class="btn btn-sm p-0" style="display: none; color: #6c757d; font-size: 0.85rem;" title="Editar datos de la sucursal" aria-label="Editar sucursal"><i class="fas fa-pen"></i></button>
+                                    </div>
                                     <div class="input-group">
                                         <select id="editSucursal" class="form-select" required style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px 0 0 8px; color: #000000;">
                                             <option value="">Cargando...</option>
@@ -2375,6 +2415,87 @@
         </div>
     </div>
 
+    <!-- Modal Historial de ediciones de la cita -->
+    <div class="modal fade" id="modalHistorialEdiciones" tabindex="-1" aria-labelledby="modalHistorialLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title" id="modalHistorialLabel"><i class="fas fa-history me-2"></i>Historial de ediciones</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="historialSinRegistros" class="p-4 text-muted text-center" style="display: none;">No hay registros de edición para esta cita.</div>
+                    <div id="historialContenedorTabla" class="table-responsive" style="display: none;">
+                        <table class="table table-sm table-striped mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Fecha y hora</th>
+                                    <th>Usuario</th>
+                                    <th>Campo</th>
+                                    <th>Valor anterior</th>
+                                    <th>Valor nuevo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historialCuerpoTabla"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar datos de la sucursal (sin cambiar ID) -->
+    <div class="modal fade" id="modalEditarSucursal" tabindex="-1" aria-labelledby="modalEditarSucursalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title" id="modalEditarSucursalLabel"><i class="fas fa-building me-2"></i>Editar sucursal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-2">El ID de la sucursal no se puede cambiar. Solo puede editar los datos de ubicación y nombre.</p>
+                    <div class="mb-2">
+                        <label class="form-label mb-0">Nombre de la sucursal</label>
+                        <input type="text" id="sucursalModalNombre" class="form-control" placeholder="Ej: Hogar principal">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label mb-0">Coordenadas (lat, lng)</label>
+                        <input type="text" id="sucursalModalCoordenadas" class="form-control" placeholder="9.936672, -84.144741">
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-4">
+                            <label class="form-label mb-0">Provincia</label>
+                            <select id="sucursalModalProvincia" class="form-select form-select-sm"><option value="">Provincia...</option></select>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label mb-0">Cantón</label>
+                            <select id="sucursalModalCanton" class="form-select form-select-sm" disabled><option value="">Cantón...</option></select>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label mb-0">Distrito</label>
+                            <select id="sucursalModalDistrito" class="form-select form-select-sm" disabled><option value="">Distrito...</option></select>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label mb-0">Dirección / Link (Waze/Google)</label>
+                        <input type="text" id="sucursalModalDireccion" class="form-control" placeholder="Link o dirección">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label mb-0">Otras señas</label>
+                        <input type="text" id="sucursalModalOtrasSenas" class="form-control" placeholder="Ej: 200mts norte del super">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnGuardarSucursalModal"><i class="fas fa-save me-1"></i>Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ========== MODAL: NUEVA CITA ========== -->
     <!-- data-section="modal-nueva-cita" -->
     <div class="modal fade" id="nuevaCitaModal" data-section="modal-nueva-cita" tabindex="-1">
@@ -2421,7 +2542,10 @@
                                 
                                 <!-- Sucursal -->
                                 <div class="col-12 col-md" style="flex: 0 0 auto; max-width: 200px;">
-                                    <label class="form-label mb-1" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Sucursal <span style="color: #ea0e2a;">*</span></label>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label mb-0" style="font-size: 0.9rem; font-weight: 600; color: #000000; font-family: 'Inter', sans-serif;">Sucursal <span style="color: #ea0e2a;">*</span></label>
+                                        <button type="button" id="btnEditarSucursalNew" class="btn btn-sm p-0" style="display: none; color: #6c757d; font-size: 0.85rem;" title="Editar datos de la sucursal" aria-label="Editar sucursal"><i class="fas fa-pen"></i></button>
+                                    </div>
                                     <div class="input-group">
                                         <select id="newSucursal" class="form-select" required style="border: 1px solid #e0e0e0; font-size: 1rem; font-weight: 400; font-family: 'Inter', sans-serif; padding: 0.75rem; height: auto; background-color: #ffffff; border-radius: 8px 0 0 8px; color: #000000;">
                                             <option value="">Ingrese teléfono primero</option>
@@ -3656,6 +3780,7 @@
                     }
                 }
             }
+            if (window.actualizarVisibilidadBotonEditarSucursal) window.actualizarVisibilidadBotonEditarSucursal(true);
             
             const montoVenta = window.obtenerMonto(cita) || 0;
             const montoVentaFormateado = window.formatearMontoVenta(montoVenta);
@@ -6982,6 +7107,17 @@
             const d = window.obtenerCampoCita(cita, 'confirmada24_48', null);
             if (!d || typeof d !== 'object') return { confirmada: false, timestamp: null };
             return { confirmada: !!d.confirmada, timestamp: d.timestamp || null };
+        };
+
+        /** Para indicadores: ventana de confirmación (48h antes o después) y si la cita ya pasó. */
+        window.indicadoresVentanasCita = function(cita) {
+            const inicio = window.obtenerInicio ? window.obtenerInicio(cita) : null;
+            const inicioCitaMs = inicio && (typeof inicio.toMillis === 'function' ? inicio.toMillis() : (inicio.seconds != null ? inicio.seconds * 1000 : null));
+            const nowMs = Date.now();
+            const MS_48H = 48 * 60 * 60 * 1000;
+            const dentroVentanaConfirmacion = inicioCitaMs != null && (nowMs >= inicioCitaMs - MS_48H);
+            const citaYaPasada = inicioCitaMs != null && nowMs >= inicioCitaMs;
+            return { inicioCitaMs, nowMs, dentroVentanaConfirmacion, citaYaPasada };
         };
 
         /** Horas hasta el inicio de la cita (puede ser negativo si ya pasó). Acepta Firestore Timestamp o Date. */
@@ -12841,13 +12977,21 @@
                                         
                                         const metodoPagoVal = (window.obtenerCampoCita(cita, 'metodoPago', '') || '').trim();
                                         const pagoIndicado = metodoPagoVal !== '' && metodoPagoVal.toLowerCase() !== 'seleccionar método de pago';
-                                        const clasePago = pagoIndicado ? 'pago-indicado' : 'pago-pendiente';
-                                        const tituloPago = pagoIndicado ? 'Método de pago indicado' : 'Seleccionar método de pago';
+                                        const ventanasDia = window.indicadoresVentanasCita ? window.indicadoresVentanasCita(cita) : { dentroVentanaConfirmacion: true, citaYaPasada: true };
+                                        const confirmada24_48Dia = window.obtenerConfirmada24_48 ? window.obtenerConfirmada24_48(cita) : { confirmada: false };
+                                        const confirmadaCitaDia = !!confirmada24_48Dia.confirmada;
+                                        const claseConfirmadaDia = !ventanasDia.dentroVentanaConfirmacion ? 'gris' : (confirmadaCitaDia ? 'confirmada' : 'no-confirmada');
+                                        const tituloConfirmadaDia = !ventanasDia.dentroVentanaConfirmacion ? 'Fuera de ventana de confirmación' : (confirmadaCitaDia ? 'Cita confirmada' : 'Cita no confirmada');
+                                        const colorPuntoEncuestaDia = !ventanasDia.citaYaPasada ? 'gris' : colorPuntoEncuesta;
+                                        const tituloEncuestaDia = !ventanasDia.citaYaPasada ? 'Encuesta después del servicio' : (estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta');
+                                        const clasePagoDia = !ventanasDia.citaYaPasada ? 'pago-gris' : (pagoIndicado ? 'pago-indicado' : 'pago-pendiente');
+                                        const tituloPagoDia = !ventanasDia.citaYaPasada ? 'Arqueo después del servicio' : (pagoIndicado ? 'Método de pago indicado' : 'Seleccionar método de pago');
                                         
                                         citaElement.innerHTML = `
                                             <div class="cita-indicadores-derecha">
-                                                ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
-                                                <div class="indicador-pago-punto ${clasePago}" title="${tituloPago}"></div>
+                                                <div class="indicador-confirmada-punto ${claseConfirmadaDia}" title="${tituloConfirmadaDia}"><i class="fas fa-check indicador-icono"></i></div>
+                                                <div class="indicador-encuesta-punto ${colorPuntoEncuestaDia}" title="${tituloEncuestaDia}"><i class="fas fa-heart indicador-icono"></i></div>
+                                                <div class="indicador-pago-punto ${clasePagoDia}" title="${tituloPagoDia}"><i class="fas fa-dollar-sign indicador-icono"></i></div>
                                             </div>
                                             <div class="cita-duracion">${obtenerDuracion(cita)}min</div>
                                             <div class="cita-tres-lineas">
@@ -14516,13 +14660,21 @@
                 
                 const metodoPagoCron = (window.obtenerCampoCita(cita, 'metodoPago', '') || '').trim();
                 const pagoIndicadoCron = metodoPagoCron !== '' && metodoPagoCron.toLowerCase() !== 'seleccionar método de pago';
-                const clasePagoCron = pagoIndicadoCron ? 'pago-indicado' : 'pago-pendiente';
-                const tituloPagoCron = pagoIndicadoCron ? 'Método de pago indicado' : 'Seleccionar método de pago';
+                const ventanasCron = window.indicadoresVentanasCita ? window.indicadoresVentanasCita(cita) : { dentroVentanaConfirmacion: true, citaYaPasada: true };
+                const confirmada24_48Cron = window.obtenerConfirmada24_48 ? window.obtenerConfirmada24_48(cita) : { confirmada: false };
+                const confirmadaCitaCron = !!confirmada24_48Cron.confirmada;
+                const claseConfirmadaCron = !ventanasCron.dentroVentanaConfirmacion ? 'gris' : (confirmadaCitaCron ? 'confirmada' : 'no-confirmada');
+                const tituloConfirmadaCron = !ventanasCron.dentroVentanaConfirmacion ? 'Fuera de ventana de confirmación' : (confirmadaCitaCron ? 'Cita confirmada' : 'Cita no confirmada');
+                const colorPuntoEncuestaCron = !ventanasCron.citaYaPasada ? 'gris' : (colorPuntoEncuesta || 'gris');
+                const tituloEncuestaCron = !ventanasCron.citaYaPasada ? 'Encuesta después del servicio' : (estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta');
+                const clasePagoCron = !ventanasCron.citaYaPasada ? 'pago-gris' : (pagoIndicadoCron ? 'pago-indicado' : 'pago-pendiente');
+                const tituloPagoCron = !ventanasCron.citaYaPasada ? 'Arqueo después del servicio' : (pagoIndicadoCron ? 'Método de pago indicado' : 'Seleccionar método de pago');
                 
                 citaBloque.innerHTML = `
                     <div class="cita-indicadores-derecha">
-                        ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
-                        <div class="indicador-pago-punto ${clasePagoCron}" title="${tituloPagoCron}"></div>
+                        <div class="indicador-confirmada-punto ${claseConfirmadaCron}" title="${tituloConfirmadaCron}"><i class="fas fa-check indicador-icono"></i></div>
+                        <div class="indicador-encuesta-punto ${colorPuntoEncuestaCron}" title="${tituloEncuestaCron}"><i class="fas fa-heart indicador-icono"></i></div>
+                        <div class="indicador-pago-punto ${clasePagoCron}" title="${tituloPagoCron}"><i class="fas fa-dollar-sign indicador-icono"></i></div>
                     </div>
                     <div class="cita-estado-cronograma ${(window.estadoDisplayCita && window.estadoDisplayCita(cita)) ? window.estadoDisplayCita(cita).clase : 'agendada'}"></div>
                     <div class="cita-tres-lineas">
@@ -14748,13 +14900,21 @@
                     
                     const metodoPagoVista = (window.obtenerCampoCita(cita, 'metodoPago', '') || '').trim();
                     const pagoIndicadoVista = metodoPagoVista !== '' && metodoPagoVista.toLowerCase() !== 'seleccionar método de pago';
-                    const clasePagoVista = pagoIndicadoVista ? 'pago-indicado' : 'pago-pendiente';
-                    const tituloPagoVista = pagoIndicadoVista ? 'Método de pago indicado' : 'Seleccionar método de pago';
+                    const ventanasVista = window.indicadoresVentanasCita ? window.indicadoresVentanasCita(cita) : { dentroVentanaConfirmacion: true, citaYaPasada: true };
+                    const confirmada24_48Vista = window.obtenerConfirmada24_48 ? window.obtenerConfirmada24_48(cita) : { confirmada: false };
+                    const confirmadaCitaVista = !!confirmada24_48Vista.confirmada;
+                    const claseConfirmadaVista = !ventanasVista.dentroVentanaConfirmacion ? 'gris' : (confirmadaCitaVista ? 'confirmada' : 'no-confirmada');
+                    const tituloConfirmadaVista = !ventanasVista.dentroVentanaConfirmacion ? 'Fuera de ventana de confirmación' : (confirmadaCitaVista ? 'Cita confirmada' : 'Cita no confirmada');
+                    const colorPuntoEncuestaVista = !ventanasVista.citaYaPasada ? 'gris' : (colorPuntoEncuesta || 'gris');
+                    const tituloEncuestaVista = !ventanasVista.citaYaPasada ? 'Encuesta después del servicio' : (estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta');
+                    const clasePagoVista = !ventanasVista.citaYaPasada ? 'pago-gris' : (pagoIndicadoVista ? 'pago-indicado' : 'pago-pendiente');
+                    const tituloPagoVista = !ventanasVista.citaYaPasada ? 'Arqueo después del servicio' : (pagoIndicadoVista ? 'Método de pago indicado' : 'Seleccionar método de pago');
                     
                     citaElement.innerHTML = `
                         <div class="cita-indicadores-derecha">
-                            ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
-                            <div class="indicador-pago-punto ${clasePagoVista}" title="${tituloPagoVista}"></div>
+                            <div class="indicador-confirmada-punto ${claseConfirmadaVista}" title="${tituloConfirmadaVista}"><i class="fas fa-check indicador-icono"></i></div>
+                            <div class="indicador-encuesta-punto ${colorPuntoEncuestaVista}" title="${tituloEncuestaVista}"><i class="fas fa-heart indicador-icono"></i></div>
+                            <div class="indicador-pago-punto ${clasePagoVista}" title="${tituloPagoVista}"><i class="fas fa-dollar-sign indicador-icono"></i></div>
                         </div>
                         <div class="cita-tres-lineas">
                             <div class="cita-linea-principal cita-linea-badges">${textoPrincipal}</div>
@@ -14961,6 +15121,78 @@
         // Función para obtener el emoji del turno
         function obtenerEmojiTurno(turno) {
             return turno === 'Turno 1' ? '☀️' : '🌙';
+        }
+
+        /**
+         * Construye entradas de historial de edición comparando cita anterior con datos nuevos.
+         * @param {Object} citaAnterior - Cita antes de editar (selectedCita)
+         * @param {Object} datosNuevos - Objeto con telefono, inicio_gmt6, duracion_minutos, metadata
+         * @returns {Array<{usuario, timestamp, campo, valorAnterior, valorNuevo}>}
+         */
+        function buildHistorialEdicion(citaAnterior, datosNuevos) {
+            const usuario = (window.firebaseAuth && window.firebaseAuth.currentUser)
+                ? (window.firebaseAuth.currentUser.email || window.firebaseAuth.currentUser.uid || 'Anónimo')
+                : 'Anónimo';
+            const timestamp = new Date().toLocaleString('es-CR', { dateStyle: 'short', timeStyle: 'medium' });
+            const entradas = [];
+
+            // JSON con claves ordenadas para que {a:1,b:2} y {b:2,a:1} se consideren iguales
+            function jsonOrdenado(v) {
+                if (v == null) return null;
+                if (Array.isArray(v)) return v.map(jsonOrdenado);
+                if (typeof v === 'object' && v && typeof v.toMillis === 'function') return v.toMillis();
+                if (typeof v === 'object' && v && v.constructor === Object) {
+                    const o = {};
+                    Object.keys(v).sort().forEach(k => { o[k] = jsonOrdenado(v[k]); });
+                    return o;
+                }
+                return v;
+            }
+            function valorParaComparar(v) {
+                if (v == null) return '';
+                if (typeof v === 'object' && v && typeof v.toMillis === 'function') return v.toMillis();
+                if (typeof v === 'object') return JSON.stringify(jsonOrdenado(v));
+                return String(v);
+            }
+            function valorParaMostrar(v, maxLen) {
+                if (v == null) return '';
+                const s = typeof v === 'object' ? JSON.stringify(v) : String(v);
+                return maxLen && s.length > maxLen ? s.substring(0, maxLen) + '…' : s;
+            }
+
+            // Campos de nivel raíz
+            if (datosNuevos.telefono !== undefined && valorParaComparar(citaAnterior.telefono) !== valorParaComparar(datosNuevos.telefono)) {
+                entradas.push({ usuario, timestamp, campo: 'telefono', valorAnterior: valorParaMostrar(citaAnterior.telefono, 80), valorNuevo: valorParaMostrar(datosNuevos.telefono, 80) });
+            }
+            if (datosNuevos.inicio_gmt6 !== undefined) {
+                const ant = citaAnterior.inicio_gmt6 ? (citaAnterior.inicio_gmt6.toMillis ? citaAnterior.inicio_gmt6.toMillis() : citaAnterior.inicio_gmt6) : '';
+                const nuevo = datosNuevos.inicio_gmt6 && datosNuevos.inicio_gmt6.toMillis ? datosNuevos.inicio_gmt6.toMillis() : datosNuevos.inicio_gmt6;
+                if (String(ant) !== String(nuevo)) {
+                    entradas.push({ usuario, timestamp, campo: 'inicio_gmt6', valorAnterior: valorParaMostrar(citaAnterior.inicio_gmt6, 80), valorNuevo: valorParaMostrar(datosNuevos.inicio_gmt6, 80) });
+                }
+            }
+            if (datosNuevos.duracion_minutos !== undefined && valorParaComparar(citaAnterior.duracion_minutos) !== valorParaComparar(datosNuevos.duracion_minutos)) {
+                entradas.push({ usuario, timestamp, campo: 'duracion_minutos', valorAnterior: valorParaMostrar(citaAnterior.duracion_minutos, 80), valorNuevo: valorParaMostrar(datosNuevos.duracion_minutos, 80) });
+            }
+
+            const metaAnt = citaAnterior.metadata || {};
+            const metaNuevo = datosNuevos.metadata || {};
+            const keysMeta = new Set([...Object.keys(metaAnt), ...Object.keys(metaNuevo)]);
+            keysMeta.forEach(campo => {
+                if (campo === 'historial') return;
+                const va = metaAnt[campo];
+                const vn = metaNuevo[campo];
+                if (valorParaComparar(va) === valorParaComparar(vn)) return;
+                entradas.push({
+                    usuario,
+                    timestamp,
+                    campo: 'metadata.' + campo,
+                    valorAnterior: valorParaMostrar(va, 80),
+                    valorNuevo: valorParaMostrar(vn, 80)
+                });
+            });
+
+            return entradas;
         }
 
         // Función para guardar cita editada
@@ -15302,6 +15534,12 @@
                     },
                     fecha_actualizacion: serverTimestamp()
                 };
+
+                // Historial de ediciones: comparar con cita anterior y añadir entradas
+                const historialEntradas = buildHistorialEdicion(selectedCita, datosActualizacion);
+                if (historialEntradas.length > 0) {
+                    datosActualizacion.metadata.historial = [...(selectedCita.metadata?.historial || []), ...historialEntradas];
+                }
                 
                 // Limpiar valores undefined que Firestore no acepta
                 const limpiarUndefined = (obj) => {
@@ -15999,6 +16237,40 @@
             e.preventDefault();
             await manejarJustificarSinEncuesta();
         });
+
+        // Ver historial de ediciones de la cita
+        document.getElementById('btnVerHistorial').addEventListener('click', () => {
+            const cita = window.selectedCita;
+            const historial = (cita && cita.metadata && Array.isArray(cita.metadata.historial)) ? cita.metadata.historial : [];
+            const sinReg = document.getElementById('historialSinRegistros');
+            const contenedor = document.getElementById('historialContenedorTabla');
+            const tbody = document.getElementById('historialCuerpoTabla');
+            if (!historial.length) {
+                sinReg.style.display = 'block';
+                contenedor.style.display = 'none';
+            } else {
+                sinReg.style.display = 'none';
+                contenedor.style.display = 'block';
+                const ordenado = historial.slice().reverse();
+                tbody.innerHTML = ordenado.map(h => `
+                    <tr>
+                        <td class="text-nowrap">${escapeHtml(h.timestamp || '')}</td>
+                        <td>${escapeHtml(h.usuario || '')}</td>
+                        <td><code class="small">${escapeHtml(h.campo || '')}</code></td>
+                        <td class="small text-break" style="max-width: 180px;">${escapeHtml(h.valorAnterior || '')}</td>
+                        <td class="small text-break" style="max-width: 180px;">${escapeHtml(h.valorNuevo || '')}</td>
+                    </tr>
+                `).join('');
+            }
+            const modalHistorial = new bootstrap.Modal(document.getElementById('modalHistorialEdiciones'));
+            modalHistorial.show();
+        });
+        function escapeHtml(s) {
+            if (s == null) return '';
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
 
         // Event listener para guardar justificación
         document.getElementById('btnGuardarJustificacion').addEventListener('click', async (e) => {
@@ -19529,24 +19801,11 @@
                     if (sucursalSelectId && telefonoNormalizado) {
                         await window.cargarSucursalesEnSelect(sucursalSelectId, telefonoNormalizado);
                         
-                        // Si hay solo una sucursal, pre-seleccionarla
+                        // Si hay solo una sucursal, pre-seleccionarla y disparar change para llenar todo y mostrar botón editar
                         const select = document.getElementById(sucursalSelectId);
                         if (select && select.options.length === 2) { // 1 sucursal + opción "nueva"
                             select.value = select.options[0].value;
-                            // Pre-llenar datos de la sucursal
-                            const sucursales = await window.cargarSucursalesCliente(telefonoNormalizado);
-                            if (sucursales.length === 1) {
-                                const sucursal = sucursales[0];
-                                if (nombreSucursalId) {
-                                    const nombreField = document.getElementById(nombreSucursalId);
-                                    if (nombreField) nombreField.value = sucursal.nombre;
-                                }
-                                // Pre-llenar coordenadas y ubicación si existen
-                                if (sucursal.coordenadas) {
-                                    const coordsField = document.getElementById(sucursalSelectId.replace('Sucursal', 'Coordenadas'));
-                                    if (coordsField) coordsField.value = `${sucursal.coordenadas.lat}, ${sucursal.coordenadas.lng}`;
-                                }
-                            }
+                            select.dispatchEvent(new Event('change'));
                         }
                     }
                 } else {
@@ -19676,17 +19935,172 @@
                 }
             }
             
+            function actualizarVisibilidadBotonEditarSucursal(esEdit) {
+                const select = esEdit ? editSucursal : newSucursal;
+                const btn = document.getElementById(esEdit ? 'btnEditarSucursalEdit' : 'btnEditarSucursalNew');
+                if (!select || !btn) return;
+                const v = select.value;
+                const tieneSucursalSeleccionada = v !== '' && v !== 'nueva' && !isNaN(parseInt(v, 10));
+                btn.style.display = tieneSucursalSeleccionada ? 'inline-block' : 'none';
+            }
+            
             if (editSucursal) {
                 editSucursal.addEventListener('change', async function() {
                     await manejarCambioSucursal(this, editNombreSucursal, btnNuevaSucursalEdit, true);
+                    actualizarVisibilidadBotonEditarSucursal(true);
                 });
             }
             
             if (newSucursal) {
                 newSucursal.addEventListener('change', async function() {
                     await manejarCambioSucursal(this, newNombreSucursal, btnNuevaSucursalNew, false);
+                    actualizarVisibilidadBotonEditarSucursal(false);
                 });
             }
+            
+            window.actualizarVisibilidadBotonEditarSucursal = actualizarVisibilidadBotonEditarSucursal;
+            
+            // Abrir modal editar sucursal (solo cuando hay sucursal seleccionada)
+            async function abrirModalEditarSucursal(esEdit) {
+                const select = esEdit ? editSucursal : newSucursal;
+                const telefonoInput = document.getElementById(esEdit ? 'editClientPhone' : 'newClientPhone');
+                const telefono = telefonoInput?.value?.trim();
+                const val = select?.value;
+                if (!telefono || val === '' || val === 'nueva' || isNaN(parseInt(val, 10))) return;
+                const telefonoNormalizado = window.normalizarTelefono(telefono);
+                if (!telefonoNormalizado) return;
+                const sucursalIndice = parseInt(val, 10);
+                const sucursal = await window.obtenerSucursalPorIndice(telefonoNormalizado, sucursalIndice);
+                if (!sucursal) return;
+                const modal = document.getElementById('modalEditarSucursal');
+                modal.dataset.telefono = telefonoNormalizado;
+                modal.dataset.sucursalIndice = String(sucursalIndice);
+                modal.dataset.esEdit = esEdit ? '1' : '0';
+                document.getElementById('sucursalModalNombre').value = sucursal.nombre || '';
+                document.getElementById('sucursalModalCoordenadas').value = sucursal.coordenadas ? `${sucursal.coordenadas.lat}, ${sucursal.coordenadas.lng}` : '';
+                document.getElementById('sucursalModalDireccion').value = sucursal.direccion || '';
+                document.getElementById('sucursalModalOtrasSenas').value = sucursal.otras_senas || sucursal.otrasSenas || '';
+                const sp = document.getElementById('sucursalModalProvincia');
+                const sc = document.getElementById('sucursalModalCanton');
+                const sd = document.getElementById('sucursalModalDistrito');
+                if (window.ubicacionesCR && sp) {
+                    sp.innerHTML = '<option value="">Seleccionar provincia...</option>';
+                    Object.values(window.ubicacionesCR).forEach(prov => {
+                        const o = document.createElement('option');
+                        o.value = prov.id;
+                        o.textContent = prov.nombre;
+                        sp.appendChild(o);
+                    });
+                    sp.value = sucursal.provinciaId || '';
+                    sp.disabled = false;
+                    sc.innerHTML = '<option value="">Cantón...</option>';
+                    sc.disabled = true;
+                    sd.innerHTML = '<option value="">Distrito...</option>';
+                    sd.disabled = true;
+                    if (sucursal.provinciaId) {
+                        const prov = window.ubicacionesCR[sucursal.provinciaId];
+                        if (prov && prov.cantones) {
+                            sc.innerHTML = '<option value="">Seleccionar cantón...</option>';
+                            Object.values(prov.cantones).forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nombre; sc.appendChild(o); });
+                            sc.disabled = false;
+                            sc.value = sucursal.cantonId || '';
+                        }
+                        if (sucursal.cantonId && prov && prov.cantones && prov.cantones[sucursal.cantonId]) {
+                            const canton = prov.cantones[sucursal.cantonId];
+                            if (canton.distritos) {
+                                sd.innerHTML = '<option value="">Seleccionar distrito...</option>';
+                                Object.values(canton.distritos).forEach(d => { const o = document.createElement('option'); o.value = d.id; o.textContent = d.nombre; sd.appendChild(o); });
+                                sd.disabled = false;
+                                sd.value = sucursal.distritoId || '';
+                            }
+                        }
+                    }
+                }
+                bootstrap.Modal.getOrCreateInstance(modal).show();
+            }
+            
+            (function initModalSucursalProvinciaCanton() {
+                const sp = document.getElementById('sucursalModalProvincia');
+                const sc = document.getElementById('sucursalModalCanton');
+                const sd = document.getElementById('sucursalModalDistrito');
+                if (!sp || !sc || !sd) return;
+                sp.addEventListener('change', function() {
+                    const pid = this.value;
+                    sc.innerHTML = '<option value="">Cantón...</option>';
+                    sd.innerHTML = '<option value="">Distrito...</option>';
+                    sd.disabled = true;
+                    if (!pid || !window.ubicacionesCR || !window.ubicacionesCR[pid]) { sc.disabled = true; return; }
+                    const prov = window.ubicacionesCR[pid];
+                    if (prov.cantones) {
+                        sc.innerHTML = '<option value="">Seleccionar cantón...</option>';
+                        Object.values(prov.cantones).forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nombre; sc.appendChild(o); });
+                        sc.disabled = false;
+                    }
+                });
+                sc.addEventListener('change', function() {
+                    const pid = sp.value;
+                    const cid = this.value;
+                    sd.innerHTML = '<option value="">Distrito...</option>';
+                    if (!pid || !cid || !window.ubicacionesCR || !window.ubicacionesCR[pid]) { sd.disabled = true; return; }
+                    const canton = window.ubicacionesCR[pid].cantones && window.ubicacionesCR[pid].cantones[cid] ? window.ubicacionesCR[pid].cantones[cid] : null;
+                    if (canton && canton.distritos) {
+                        sd.innerHTML = '<option value="">Seleccionar distrito...</option>';
+                        Object.values(canton.distritos).forEach(d => { const o = document.createElement('option'); o.value = d.id; o.textContent = d.nombre; sd.appendChild(o); });
+                        sd.disabled = false;
+                    }
+                });
+            })();
+            
+            document.getElementById('btnEditarSucursalEdit').addEventListener('click', () => abrirModalEditarSucursal(true));
+            document.getElementById('btnEditarSucursalNew').addEventListener('click', () => abrirModalEditarSucursal(false));
+            
+            document.getElementById('btnGuardarSucursalModal').addEventListener('click', async function() {
+                const modal = document.getElementById('modalEditarSucursal');
+                const telefono = modal.dataset.telefono;
+                const sucursalIndice = parseInt(modal.dataset.sucursalIndice, 10);
+                const esEdit = modal.dataset.esEdit === '1';
+                if (!telefono || isNaN(sucursalIndice)) return;
+                const nombre = document.getElementById('sucursalModalNombre').value.trim() || 'Hogar principal';
+                const coordsTexto = document.getElementById('sucursalModalCoordenadas').value.trim();
+                const provinciaId = document.getElementById('sucursalModalProvincia').value || '';
+                const cantonId = document.getElementById('sucursalModalCanton').value || '';
+                const distritoId = document.getElementById('sucursalModalDistrito').value || '';
+                const direccion = document.getElementById('sucursalModalDireccion').value.trim() || '';
+                const otras_senas = document.getElementById('sucursalModalOtrasSenas').value.trim() || '';
+                let coordenadas = null;
+                if (coordsTexto) {
+                    const parsed = window.limpiarYExtraerCoordenadas ? window.limpiarYExtraerCoordenadas(coordsTexto) : null;
+                    if (parsed && !isNaN(parsed.lat) && !isNaN(parsed.lng)) {
+                        if (window.validarCoordenadasCostaRica && !window.validarCoordenadasCostaRica(parsed.lat, parsed.lng)) {
+                            alert('Las coordenadas deben estar dentro de Costa Rica.');
+                            return;
+                        }
+                        coordenadas = { lat: parsed.lat, lng: parsed.lng, texto: coordsTexto };
+                    } else if (coordsTexto.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/)) {
+                        const m = coordsTexto.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);
+                        coordenadas = { lat: parseFloat(m[1]), lng: parseFloat(m[2]), texto: coordsTexto };
+                    }
+                }
+                const datos = {
+                    nombre: nombre,
+                    provinciaId: provinciaId,
+                    cantonId: cantonId,
+                    distritoId: distritoId,
+                    direccion: direccion,
+                    otras_senas: otras_senas
+                };
+                if (coordenadas) datos.coordenadas = coordenadas;
+                else datos.coordenadas = null;
+                try {
+                    await window.actualizarSucursal(telefono, sucursalIndice, datos);
+                    bootstrap.Modal.getInstance(modal).hide();
+                    const select = esEdit ? editSucursal : newSucursal;
+                    if (select) await manejarCambioSucursal(select, esEdit ? editNombreSucursal : newNombreSucursal, esEdit ? btnNuevaSucursalEdit : btnNuevaSucursalNew, esEdit);
+                } catch (e) {
+                    console.error('Error guardando sucursal:', e);
+                    alert('Error al guardar la sucursal: ' + (e.message || e));
+                }
+            });
             
             if (btnNuevaSucursalEdit) {
                 btnNuevaSucursalEdit.addEventListener('click', function() {
