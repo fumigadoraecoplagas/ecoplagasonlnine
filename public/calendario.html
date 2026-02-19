@@ -742,25 +742,67 @@
             background: rgba(76, 175, 80, 0.2);
         }
 
+        /* Card de ruta: grid de filas fijas para que nada se sobreponga */
         .vehiculo-header-cronograma {
-            padding: 4px 4px;
+            padding: 0;
             color: var(--eco-black);
             font-weight: 700;
             font-size: 0.8rem;
             text-align: center;
-            position: relative; /* Cambiar de sticky a relative para que el timeline empiece después */
+            position: relative;
             top: 0;
             z-index: 10;
-            min-height: 230px; /* Altura fija: 120px (header info) + 110px (técnicos/vehículos) = ~230px */
-            height: auto; /* Altura automática basada en contenido */
-            max-height: 230px; /* Altura máxima fija */
+            /* Altura exacta de las 7 filas (35+22+22+48+28+78+22=265) para no dejar espacio vacío bajo la fila hora */
+            height: 265px;
+            min-height: 265px;
+            max-height: 265px;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 35px 22px 22px 48px 28px 78px 22px; /* 7 filas; técnicos 50% más alto (78px) para ~3 filas de nombres */
+            overflow: hidden;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Cada fila usa todo el ancho de la celda */
+        .ruta-row {
             display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
             align-items: center;
-            overflow: hidden; /* Evitar desbordamiento sobre el timeline */
-            flex-shrink: 0; /* No reducir tamaño */
-            box-sizing: border-box; /* Incluir padding y border en el cálculo de altura */
+            justify-content: center;
+            min-height: 0;
+            overflow: hidden;
+            width: 100%;
+            min-width: 0;
+            padding: 0 4px;
+            box-sizing: border-box;
+        }
+        .ruta-row-numero  { grid-row: 1; width: 100%; }
+        .ruta-row-citas   { grid-row: 2; width: 100%; }
+        .ruta-row-monto   { grid-row: 3; width: 100%; }
+        .ruta-row-botones { grid-row: 4; width: 100%; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; flex-wrap: nowrap; }
+        .ruta-row-vehiculos { grid-row: 5; width: 100%; justify-content: stretch; padding: 0 4px; box-sizing: border-box; }
+        .ruta-row-tecnicos  { grid-row: 6; width: 100%; align-items: stretch; overflow-y: auto; overflow-x: hidden; justify-content: stretch; padding: 0 4px; box-sizing: border-box; }
+        .ruta-row-hora      { grid-row: 7; width: 100%; justify-content: center; padding: 0 4px; box-sizing: border-box; }
+        
+        .ruta-row-botones .btn-slot-icon {
+            width: 26px;
+            min-width: 26px;
+            height: 22px;
+            padding: 2px;
+        }
+        .ruta-row-botones .btn-slot-placeholder {
+            width: 26px;
+            min-width: 26px;
+            height: 22px;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        /* Citas y monto: el contenido usa todo el ancho de la celda (texto centrado) */
+        .ruta-row-citas > *,
+        .ruta-row-monto > * {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
         }
         
         .ruta-nombre-header {
@@ -780,6 +822,11 @@
             hyphens: auto;
         }
         
+        .ruta-citas-badge,
+        .ruta-monto-badge {
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
         .ruta-monto-badge {
             display: inline-flex;
             align-items: center;
@@ -795,40 +842,18 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
-        .ruta-contenido-blanco {
-            background: linear-gradient(to bottom, rgba(33, 150, 243, 0.05) 0%, rgba(33, 150, 243, 0.05) 28px, rgba(255, 152, 0, 0.05) 31px, rgba(255, 152, 0, 0.05) 100%);
-            border-left: 3px solid #2196F3;
-            padding: 4px;
-            flex: 0 0 auto; /* Altura automática para ajustarse al contenido */
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            overflow: hidden; /* Evitar desbordamiento */
-            min-height: 81px; /* Altura mínima: 28px (vehículos) + 50px (técnicos) + 3px (gap) = 81px */
-            position: relative;
-        }
-        
-        /* Asegurar que el borde izquierdo naranja también se vea desde el inicio de técnicos */
-        .ruta-contenido-blanco::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 31px; /* Inicio después de vehículos (28px) + gap (3px) */
-            bottom: 0;
-            width: 3px;
-            background: #FF9800;
-            z-index: 1;
-        }
+        /* Filas de asignaciones: fondo blanco, borde sólido */
+        .ruta-row-vehiculos { background: #ffffff; border: 2px solid #2196F3; }
+        .ruta-row-tecnicos  { background: #ffffff; border: 2px solid #FF9800; }
+        .ruta-row-hora      { background: #ffffff; border: 2px solid #2196F3; }
+        .ruta-row-hora .btn-editar-hora-ruta { flex-shrink: 0; margin-left: 4px; }
+        .ruta-row-hora .btn-editar-hora-ruta:hover { color: #0D47A1; }
         
         .ruta-info-row {
             font-size: clamp(0.5rem, 1vw, 0.55rem);
             text-align: center;
             padding: 1px 4px;
-            border-top: 1px solid rgba(0,0,0,0.1);
-            margin-top: 0;
-            min-height: 28px; /* Altura mínima fija siempre visible */
-            height: 28px; /* Altura fija para mantener consistencia */
-            max-height: 28px; /* Altura máxima para evitar desbordamiento */
+            margin: 0;
             word-wrap: break-word;
             overflow-wrap: break-word;
             hyphens: auto;
@@ -837,60 +862,53 @@
             display: flex;
             flex-wrap: wrap;
             gap: 3px;
-            align-items: center; /* Centrar verticalmente cuando está vacío */
+            align-items: center;
             justify-content: center;
-            overflow: hidden; /* Evitar desbordamiento */
             position: relative;
-            flex: 0 0 28px; /* Altura fija de 28px para vehículos, técnicos tienen flex auto */
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Fila vehículos: ocupa todo el ancho de la celda */
+        .ruta-row-vehiculos.ruta-info-row {
+            min-height: 0;
+            height: 100%;
+            max-height: 28px;
+            overflow: hidden;
+            flex: 1 1 100%;
+            min-width: 0;
         }
         
         .ruta-info-row[data-tipo-fila="vehiculo"] {
-            background: rgba(33, 150, 243, 0.05);
-            border-left: 3px solid #2196F3;
+            background: #ffffff !important;
         }
         
-        /* Cuando está vacío, hacer más visible el área de drop para vehículos */
         .ruta-info-row[data-tipo-fila="vehiculo"].drop-zone-empty {
-            background: rgba(33, 150, 243, 0.15) !important;
-            border: 2px dashed rgba(33, 150, 243, 0.5);
-            border-left: 3px solid #2196F3;
+            border: 2px solid #2196F3;
+        }
+        
+        /* Celda técnicos: ocupa todo el ancho de la fila */
+        .ruta-row-tecnicos .ruta-cell-tecnicos {
+            min-height: 100%;
+            width: 100%;
+            min-width: 0;
+            flex: 1 1 100%;
+            overflow: visible;
+            box-sizing: border-box;
         }
         
         .ruta-info-row[data-tipo-fila="tecnico"] {
-            background: rgba(255, 152, 0, 0.05);
-            border-left: 3px solid #FF9800;
-            min-height: 50px !important; /* Altura suficiente para múltiples técnicos */
-            height: auto !important; /* Altura automática para que crezca con el contenido */
-            max-height: none !important; /* Sin límite máximo para permitir múltiples filas */
-            flex: 0 0 auto !important; /* Flex automático para ajustarse al contenido */
+            background: transparent;
+            min-height: 78px;
+            height: auto;
+            max-height: none;
         }
         
-        /* Cuando está vacío, hacer más visible el área de drop para técnicos */
         .ruta-info-row[data-tipo-fila="tecnico"].drop-zone-empty {
-            background: rgba(255, 152, 0, 0.15) !important;
-            border: 2px dashed rgba(255, 152, 0, 0.5);
-            border-left: 3px solid #FF9800;
+            background: #ffffff !important;
+            border: 2px solid transparent;
         }
         
-        .ruta-info-row[data-tipo-fila="vehiculo"]::before {
-            content: "🚗";
-            position: absolute;
-            top: 2px;
-            left: 4px;
-            font-size: 0.75rem;
-            z-index: 1;
-            pointer-events: none;
-        }
-        
-        .ruta-info-row[data-tipo-fila="tecnico"]::before {
-            content: "👤";
-            position: absolute;
-            top: 2px;
-            left: 4px;
-            font-size: 0.75rem;
-            z-index: 1;
-            pointer-events: none;
-        }
         
         /* Asegurar que todas las filas de info tengan la misma altura */
         .vehiculos-cronograma {
@@ -1060,6 +1078,82 @@
             background-color: rgba(76, 175, 80, 0.1);
             border: 2px dashed rgba(76, 175, 80, 0.5);
         }
+        
+        /* Línea de hora de convocatoria en el timeline (arrastrable) - color por ruta */
+        .linea-convocatoria {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 4px;
+            z-index: 10;
+            cursor: ns-resize;
+            pointer-events: auto;
+        }
+        .linea-convocatoria:hover { height: 5px; opacity: 1; }
+        .linea-convocatoria.dragging { opacity: 0.9; }
+        .linea-convocatoria-label {
+            position: absolute;
+            left: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            pointer-events: none;
+        }
+        .linea-convocatoria-caja {
+            border: 2px solid;
+            border-radius: 2px;
+            padding: 0 4px;
+            white-space: nowrap;
+            color: #fff;
+        }
+        .linea-convocatoria.Ruta-1 { background: #258A59; }
+        .linea-convocatoria.Ruta-1 .linea-convocatoria-caja { background: #2EAA6F; border-color: #1B5E3A; }
+        .linea-convocatoria.Ruta-2 { background: #7E3290; }
+        .linea-convocatoria.Ruta-2 .linea-convocatoria-caja { background: #9B3DAB; border-color: #5E2470; }
+        .linea-convocatoria.Ruta-3 { background: #B89928; }
+        .linea-convocatoria.Ruta-3 .linea-convocatoria-caja { background: #E8C040; border-color: #8B7319; }
+        .linea-convocatoria.Ruta-4 { background: #C55A20; }
+        .linea-convocatoria.Ruta-4 .linea-convocatoria-caja { background: #E87030; border-color: #8B3E16; }
+        .linea-convocatoria.Ruta-5 { background: #3B8BC4; }
+        .linea-convocatoria.Ruta-5 .linea-convocatoria-caja { background: #4A9FD4; border-color: #2A6390; }
+        .linea-convocatoria.Ruta-6 { background: #A1564C; }
+        .linea-convocatoria.Ruta-6 .linea-convocatoria-caja { background: #C96B5F; border-color: #6B382F; }
+        .linea-convocatoria.Ruta-7 { background: #4A5662; }
+        .linea-convocatoria.Ruta-7 .linea-convocatoria-caja { background: #5C6B7A; border-color: #2F3740; }
+        .linea-convocatoria.Ruta-8 { background: #2A3890; }
+        .linea-convocatoria.Ruta-8 .linea-convocatoria-caja { background: #3547A0; border-color: #1E2866; }
+        .linea-convocatoria.Ruta-9 { background: #25633A; }
+        .linea-convocatoria.Ruta-9 .linea-convocatoria-caja { background: #2E7D4A; border-color: #184726; }
+        .linea-convocatoria.Ruta-10 { background: #840000; }
+        .linea-convocatoria.Ruta-10 .linea-convocatoria-caja { background: #A50000; border-color: #5C0000; }
+        .linea-convocatoria.Ruta-11 { background: #258A59; }
+        .linea-convocatoria.Ruta-11 .linea-convocatoria-caja { background: #2EAA6F; border-color: #1B5E3A; }
+        .linea-convocatoria.Ruta-12 { background: #7E3290; }
+        .linea-convocatoria.Ruta-12 .linea-convocatoria-caja { background: #9B3DAB; border-color: #5E2470; }
+        .linea-convocatoria.Ruta-13 { background: #B89928; }
+        .linea-convocatoria.Ruta-13 .linea-convocatoria-caja { background: #E8C040; border-color: #8B7319; }
+        .linea-convocatoria.Ruta-14 { background: #C55A20; }
+        .linea-convocatoria.Ruta-14 .linea-convocatoria-caja { background: #E87030; border-color: #8B3E16; }
+        .linea-convocatoria.Ruta-15 { background: #3B8BC4; }
+        .linea-convocatoria.Ruta-15 .linea-convocatoria-caja { background: #4A9FD4; border-color: #2A6390; }
+        .linea-convocatoria.Ruta-16 { background: #A1564C; }
+        .linea-convocatoria.Ruta-16 .linea-convocatoria-caja { background: #C96B5F; border-color: #6B382F; }
+        .linea-convocatoria.Ruta-17 { background: #4A5662; }
+        .linea-convocatoria.Ruta-17 .linea-convocatoria-caja { background: #5C6B7A; border-color: #2F3740; }
+        .linea-convocatoria.Ruta-18 { background: #2A3890; }
+        .linea-convocatoria.Ruta-18 .linea-convocatoria-caja { background: #3547A0; border-color: #1E2866; }
+        .linea-convocatoria.Ruta-19 { background: #25633A; }
+        .linea-convocatoria.Ruta-19 .linea-convocatoria-caja { background: #2E7D4A; border-color: #184726; }
+        .linea-convocatoria.Ruta-20 { background: #840000; }
+        .linea-convocatoria.Ruta-20 .linea-convocatoria-caja { background: #A50000; border-color: #5C0000; }
+        /* Sin citas: línea y cajitas grises, muy discretas */
+        .linea-convocatoria.sin-citas { background: #c8c8c8 !important; opacity: 0.5; }
+        .linea-convocatoria.sin-citas .linea-convocatoria-caja { background: #e5e5e5 !important; border-color: #b0b0b0 !important; color: #777 !important; }
+        .linea-convocatoria.sin-citas:hover { opacity: 0.65; }
 
         .cita-bloque.Ruta-1 { border-color: #258A59; background: #2EAA6F; color: #fff; font-weight: 600; }
         .cita-bloque.Ruta-2 { border-color: #7E3290; background: #9B3DAB; color: #fff; font-weight: 600; }
@@ -2964,6 +3058,14 @@
                     </div>
                     
                     <hr>
+                    
+                    <div class="mb-4 p-3 rounded border border-primary border-2" id="wrapRuteadorHoraConvocatoria" style="background-color: #e8f4fd;">
+                        <label class="form-label fw-bold mb-2 text-primary">
+                            <i class="fas fa-clock me-2"></i>Hora de convocatoria
+                        </label>
+                        <input type="time" id="ruteadorHoraConvocatoria" class="form-control form-control-lg" style="min-height: 48px; font-size: 1.25rem; max-width: 180px;">
+                        <small class="text-muted d-block mt-1">Hora a la que deben presentarse los técnicos ese día para esta ruta</small>
+                    </div>
                     
                     <div class="mb-4">
                         <label class="form-label fw-bold mb-2">
@@ -9651,7 +9753,8 @@
             fecha: null,
             ruta: null,
             tecnicos: [],
-            vehiculos: []
+            vehiculos: [],
+            horaConvocatoria: null
         };
         
         // Lista de vehículos disponibles
@@ -9712,18 +9815,21 @@
                         });
                     }
                     
+                    const horaConvocatoria = data.horaConvocatoria != null ? data.horaConvocatoria : (data.hora_convocatoria != null ? data.hora_convocatoria : null);
                     return {
                         fecha: data.fecha || fecha,
                         ruta: data.ruta || ruta,
                         tecnicos: tecnicosNormalizados,
-                        vehiculos: vehiculosNormalizados
+                        vehiculos: vehiculosNormalizados,
+                        horaConvocatoria: horaConvocatoria
                     };
                 } else {
                     return {
                         fecha: fecha,
                         ruta: ruta,
                         tecnicos: [],
-                        vehiculos: []
+                        vehiculos: [],
+                        horaConvocatoria: null
                     };
                 }
             } catch (error) {
@@ -9732,7 +9838,8 @@
                     fecha: fecha,
                     ruta: ruta,
                     tecnicos: [],
-                    vehiculos: []
+                    vehiculos: [],
+                    horaConvocatoria: null
                 };
             }
         }
@@ -9793,6 +9900,23 @@
             }
         }
         
+        // Asegurar que el bloque "Hora de convocatoria" exista en el modal (por si el HTML viene de caché sin él)
+        function asegurarBloqueHoraConvocatoriaEnModal() {
+            let wrap = document.getElementById('wrapRuteadorHoraConvocatoria');
+            if (wrap) return;
+            const tecnicosContainer = document.getElementById('ruteadorTecnicosContainer');
+            const modalBody = document.querySelector('#modalRuteador .modal-body');
+            if (!modalBody || !tecnicosContainer) return;
+            wrap = document.createElement('div');
+            wrap.id = 'wrapRuteadorHoraConvocatoria';
+            wrap.className = 'mb-4 p-3 rounded border border-primary border-2';
+            wrap.style.backgroundColor = '#e8f4fd';
+            wrap.innerHTML = '<label class="form-label fw-bold mb-2 text-primary"><i class="fas fa-clock me-2"></i>Hora de convocatoria</label>' +
+                '<input type="time" id="ruteadorHoraConvocatoria" class="form-control form-control-lg" style="min-height: 48px; font-size: 1.25rem; max-width: 180px;">' +
+                '<small class="text-muted d-block mt-1">Hora a la que deben presentarse los técnicos ese día para esta ruta</small>';
+            modalBody.insertBefore(wrap, tecnicosContainer.parentElement);
+        }
+        
         // Función para editar ruteador
         window.editarRuteador = async function(ruta, fecha) {
             try {
@@ -9809,9 +9933,15 @@
                 const datosRuteador = await cargarRuteador(fecha, ruta);
                 window.ruteadorActual.tecnicos = datosRuteador.tecnicos || [];
                 window.ruteadorActual.vehiculos = datosRuteador.vehiculos || [];
+                window.ruteadorActual.horaConvocatoria = datosRuteador.horaConvocatoria != null ? datosRuteador.horaConvocatoria : null;
+                
+                // Asegurar que el bloque Hora de convocatoria exista (incluso con HTML en caché)
+                asegurarBloqueHoraConvocatoriaEnModal();
                 
                 // Actualizar modal
                 document.getElementById('ruteadorRutaNombre').textContent = ruta;
+                const inputHora = document.getElementById('ruteadorHoraConvocatoria');
+                if (inputHora) inputHora.value = window.ruteadorActual.horaConvocatoria || '';
                 document.getElementById('ruteadorFechaNombre').textContent = new Date(fecha).toLocaleDateString('es-CR', {
                     weekday: 'long',
                     year: 'numeric',
@@ -10045,6 +10175,9 @@
                 const vehiculosCheckboxes = document.querySelectorAll('#ruteadorVehiculosContainer input[type="checkbox"]:checked');
                 const vehiculosSeleccionados = Array.from(vehiculosCheckboxes).map(cb => cb.value);
                 
+                const inputHoraConvocatoria = document.getElementById('ruteadorHoraConvocatoria');
+                const horaConvocatoria = (inputHoraConvocatoria && inputHoraConvocatoria.value && inputHoraConvocatoria.value.trim()) ? inputHoraConvocatoria.value.trim() : null;
+                
                 // Validar duplicados
                 const errores = await validarDuplicadosRuteador(
                     window.ruteadorActual.fecha,
@@ -10068,13 +10201,15 @@
                 const ruteadorId = generarIdRuteador(window.ruteadorActual.fecha, window.ruteadorActual.ruta);
                 const ruteadorRef = doc(window.db, 'ruteador', ruteadorId);
                 
-                await setDoc(ruteadorRef, {
+                const payload = {
                     fecha: window.ruteadorActual.fecha,
                     ruta: window.ruteadorActual.ruta,
                     tecnicos: tecnicosSeleccionados,
                     vehiculos: vehiculosSeleccionados,
+                    horaConvocatoria: horaConvocatoria,
                     fecha_actualizacion: serverTimestamp()
-                }, { merge: true });
+                };
+                await setDoc(ruteadorRef, payload, { merge: true });
                 
                 // Cerrar modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('modalRuteador'));
@@ -10095,6 +10230,24 @@
             } catch (error) {
                 console.error('Error guardando ruteador:', error);
                 alert('Error al guardar: ' + error.message);
+            }
+        };
+        
+        // Actualizar solo la hora de convocatoria (desde arrastre de la línea en el timeline)
+        window.actualizarHoraConvocatoriaSolo = async function(ruta, fecha, horaStr) {
+            if (!ruta || !fecha) return;
+            try {
+                const ruteadorId = generarIdRuteador(fecha, ruta);
+                const ruteadorRef = doc(window.db, 'ruteador', ruteadorId);
+                await setDoc(ruteadorRef, {
+                    fecha: fecha,
+                    ruta: ruta,
+                    horaConvocatoria: horaStr || null,
+                    fecha_actualizacion: serverTimestamp()
+                }, { merge: true });
+                if (typeof generarCronograma === 'function') await generarCronograma();
+            } catch (err) {
+                console.error('Error actualizando hora convocatoria:', err);
             }
         };
         
@@ -13579,6 +13732,10 @@
                 
                 // Event listener para mousedown
                 timeline.addEventListener('mousedown', (e) => {
+                    // No iniciar si se hace click en la línea de convocatoria (solo mover hora de convocatoria)
+                    if (e.target.closest('.linea-convocatoria')) {
+                        return;
+                    }
                     // Solo iniciar si no se hace click en una cita existente
                     if (e.target.closest('.cita-bloque')) {
                         return;
@@ -13949,17 +14106,9 @@
                 styleElement.id = 'estilos-filas-rutas';
                 document.head.appendChild(styleElement);
             }
+            /* Alturas ya fijas por grid; este bloque se mantiene por si se necesita override */
             styleElement.textContent = `
-                .ruta-info-row:nth-of-type(1) { 
-                    min-height: ${alturaFijaVehiculos}px !important; 
-                    height: ${alturaFijaVehiculos}px !important; 
-                    max-height: ${alturaFijaVehiculos}px !important; 
-                }
-                .ruta-info-row:nth-of-type(2) { 
-                    min-height: ${alturaMinimaTecnicos}px !important; 
-                    height: auto !important; 
-                    max-height: none !important; 
-                }
+                .vehiculo-header-cronograma { grid-template-rows: 35px 22px 22px 48px ${alturaFijaVehiculos}px 78px 22px; }
             `;
 
             // Función auxiliar para generar HTML de una columna de ruta
@@ -14061,114 +14210,83 @@
                     tamanoFuente = '0.7rem';
                 }
                 
+                // Formatear hora de convocatoria para mostrar en la columna (ej: "06:30" -> "6:30 AM")
+                const horaConvRaw = datosRuteador.horaConvocatoria != null && String(datosRuteador.horaConvocatoria).trim() !== '' ? String(datosRuteador.horaConvocatoria).trim() : null;
+                let horaConvocatoriaTexto = '';
+                if (horaConvRaw) {
+                    const partes = horaConvRaw.split(':');
+                    const hr = parseInt(partes[0], 10);
+                    const min = partes[1] ? parseInt(partes[1], 10) : 0;
+                    if (hr >= 12) {
+                        horaConvocatoriaTexto = (hr === 12 ? 12 : hr - 12) + ':' + String(min).padStart(2, '0') + ' PM';
+                    } else {
+                        horaConvocatoriaTexto = (hr === 0 ? 12 : hr) + ':' + String(min).padStart(2, '0') + ' AM';
+                    }
+                }
+                
+                // Contenido slots siempre presentes; placeholders cuando no hay dato
+                const textoCitasSlot = totalCitas === 0 ? '0 citas' : (totalCitas === 1 ? '1 cita' : totalCitas + ' citas');
+                const mostrarBtnRuta = citasConUbicacion.length > 0;
+                const mostrarBtnTecnicos = ruta !== 'Sin asignar';
+                const mostrarBtnMigrar = citas.length > 0 && ruta !== 'Sin asignar';
+                const htmlBtnRuta = mostrarBtnRuta ? `<button class="btn-slot btn-slot-icon" onclick="window.mostrarRutaVehiculo('${ruta.replace(/'/g, "\\'")}', '${claveCompleta}')" style="background: ${ruta === 'Sin asignar' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.3)'}; border: 1px solid ${ruta === 'Sin asignar' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.5)'}; color: ${ruta === 'Sin asignar' ? '#000' : 'white'}; padding: 2px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 26px; height: 22px; flex-shrink: 0;" title="Ver Ruta (${citasConUbicacion.length} citas)"><i class="fas fa-map-marked-alt" style="font-size: 0.7rem;"></i></button>` : '<span class="btn-slot-placeholder" aria-hidden="true"></span>';
+                const htmlBtnTecnicos = mostrarBtnTecnicos ? `<button class="btn-slot btn-slot-icon" onclick="if(window.editarRuteador){ window.editarRuteador('${ruta.replace(/'/g, "\\'")}', '${fechaFormateadaParaRuta || ''}'); }" style="background: rgba(76,175,80,0.95); border: 1px solid rgba(255,255,255,0.5); color: #fff; padding: 2px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 26px; height: 22px; flex-shrink: 0;" title="Asignar Técnicos, Vehículos y Hora de convocatoria"><i class="fas fa-users-cog" style="font-size: 0.7rem;"></i></button>` : '<span class="btn-slot-placeholder" aria-hidden="true"></span>';
+                const htmlBtnMigrar = mostrarBtnMigrar ? `<button class="btn-slot btn-slot-icon" onclick="window.abrirModalMigrarRuta('${ruta.replace(/'/g, "\\'")}', '${fechaFormateadaParaRuta}')" style="background: rgba(255,193,7,0.9); border: 1px solid rgba(255,255,255,0.5); color: #000; padding: 2px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 26px; height: 22px; flex-shrink: 0;" title="Migrar citas"><i class="fas fa-exchange-alt" style="font-size: 0.7rem;"></i></button>` : '<span class="btn-slot-placeholder" aria-hidden="true"></span>';
+                
+                const htmlVehiculos = datosRuteador.vehiculos.length > 0 
+                    ? datosRuteador.vehiculos.filter(v => v && String(v).trim() !== '').map(v => {
+                        const vehiculoEscapado = String(v).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                        const rutaEscapada = ruta.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        return `<span class="ruta-badge-item ruta-badge-vehiculo" draggable="true" data-tipo="vehiculo" data-vehiculo="${vehiculoEscapado}" data-ruta="${rutaEscapada}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}">${v}</span>`;
+                    }).join('')
+                    : '<span style="color: #2196F3; font-size: 0.6rem; font-style: italic; opacity: 0.8;">Arrastre vehículos aquí</span>';
+                
+                const htmlTecnicos = datosRuteador.tecnicos.length > 0 
+                    ? datosRuteador.tecnicos.filter(tecnicoId => tecnicoId && String(tecnicoId).trim() !== '').map(tecnicoId => {
+                        const empleado = window.empleados?.find(e => (e.username && e.username === tecnicoId) || (e.id && e.id === tecnicoId) || (e.username && e.id === tecnicoId) || (e.id && e.username === tecnicoId));
+                        let usernameFinal = empleado ? (empleado.username || empleado.id) : tecnicoId;
+                        if (!usernameFinal || String(usernameFinal).trim() === '') return null;
+                        usernameFinal = String(usernameFinal).trim();
+                        let nombre = String(tecnicoId);
+                        if (empleado) {
+                            const pr = empleado.primerNombre || '', ap = empleado.primerApellido || '';
+                            const iniAp = ap ? ap.charAt(0).toUpperCase() + '.' : '';
+                            nombre = `${pr} ${iniAp}`.trim() || nombre;
+                        }
+                        const usernameEscapado = String(usernameFinal).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                        const nombreEscapado = String(nombre).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                        const rutaEscapada = ruta.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                        return `<span class="ruta-badge-item ruta-badge-tecnico" draggable="true" data-tipo="tecnico" data-username="${usernameEscapado}" data-nombre="${nombreEscapado}" data-ruta="${rutaEscapada}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}">${nombre}</span>`;
+                    }).filter(b => b !== null).join('')
+                    : '<span style="color: #FF9800; font-size: 0.6rem; font-style: italic; opacity: 0.8;">Arrastre técnicos aquí</span>';
+                
                 return `
                     <div class="vehiculo-columna-cronograma" style="background: ${colorFondo};">
                         <div class="vehiculo-header-cronograma ${ruta.replace(' ', '-')}" style="${colorHeader}">
-                            <div class="ruta-nombre-header" 
-                                 style="${ruta === 'Sin asignar' ? 'cursor: default;' : ''}">
-                                <!-- Línea 1: Número de ruta -->
-                                <div style="display: flex; align-items: center; justify-content: center; height: 32px; margin-bottom: 3px; position: relative; flex-shrink: 0;">
-                                    ${ruta === 'Sin asignar' ? 
-                                        `<span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: white; border: 2.5px solid #000; font-size: 0.75rem; font-weight: 800; color: #000; position: relative; ${!tieneCitas ? 'opacity: 0.5; background: #bdbdbd !important; border: 2.5px solid #9e9e9e !important;' : ''}">S/A${!tieneCitas ? '<i class="fas fa-moon" style="position: absolute; top: 2px; right: 2px; font-size: 0.45rem; color: #757575; background: white; border-radius: 50%; padding: 1px; border: 1px solid #9e9e9e;"></i>' : ''}</span>` : 
-                                        `<span style="display: inline-flex; align-items: center; justify-content: center; min-width: ${tamanoCirculo}; ${(ruta === 'Ruta 19' || ruta === 'Ruta 20') ? 'width: auto; padding: 0 6px; border-radius: 16px;' : 'width: ' + tamanoCirculo + '; height: ' + tamanoCirculo + '; border-radius: 50%;'} background: white; border: 2.5px solid #000; font-size: ${tamanoFuente}; font-weight: 800; color: #000; ${estiloCirculoDeshabilitado}">${textoCirculo}</span>${simboloDormida}`
-                                    }
+                            <div class="ruta-row ruta-row-numero ruta-nombre-header" style="${ruta === 'Sin asignar' ? 'cursor: default;' : ''}">
+                                ${ruta === 'Sin asignar' ? 
+                                    `<span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: white; border: 2.5px solid #000; font-size: 0.75rem; font-weight: 800; color: #000; ${!tieneCitas ? 'opacity: 0.5; background: #bdbdbd !important; border: 2.5px solid #9e9e9e !important;' : ''}">S/A${!tieneCitas ? '<i class="fas fa-moon" style="position: absolute; top: 2px; right: 2px; font-size: 0.45rem; color: #757575;"></i>' : ''}</span>` : 
+                                    `<span style="display: inline-flex; align-items: center; justify-content: center; min-width: ${tamanoCirculo}; ${(ruta === 'Ruta 19' || ruta === 'Ruta 20') ? 'width: auto; padding: 0 6px; border-radius: 16px;' : 'width: ' + tamanoCirculo + '; height: ' + tamanoCirculo + '; border-radius: 50%;'} background: white; border: 2.5px solid #000; font-size: ${tamanoFuente}; font-weight: 800; color: #000; ${estiloCirculoDeshabilitado}">${textoCirculo}</span>${simboloDormida}`
+                                }
                             </div>
-                                
-                                <!-- Línea 2: Cantidad de citas y Facturación -->
-                                <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 4px; flex-shrink: 0;">
-                                    ${totalCitas > 0 ? `
-                                        <div style="display: flex; align-items: center; gap: 4px; font-size: clamp(0.6rem, 1vw, 0.7rem); font-weight: 600; background: rgba(255,255,255,0.25); padding: 2px 6px; border-radius: 4px; white-space: nowrap;">
-                                            <i class="fas fa-calendar-check" style="font-size: 0.7rem;"></i>
-                                            <span><strong>${totalCitas}</strong> ${totalCitas === 1 ? 'cita' : 'citas'}</span>
-                                        </div>
-                                    ` : ''}
-                                    <div style="display: flex; justify-content: center; align-items: center; height: 22px; flex-shrink: 0;">
-                                        <span class="ruta-monto-badge" style="background: #ffffff; color: #000000; border: 1px solid rgba(0,0,0,0.2); display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
-                                            ${iconoBadge}${montoFormateado !== '₡0m' ? montoFormateado : '₡0'}
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <!-- Línea 3: Botones (todos del mismo tamaño y estilo) -->
-                                <div style="display: flex; justify-content: center; align-items: flex-start; gap: 3px; min-height: 48px; height: auto; flex-shrink: 0; flex-wrap: wrap; padding-top: 2px;">
-                                    ${citasConUbicacion.length > 0 ? `
-                                    <button onclick="window.mostrarRutaVehiculo('${ruta.replace(/'/g, "\\'")}', '${claveCompleta}')" 
-                                            style="background: ${ruta === 'Sin asignar' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.3)'}; border: 1px solid ${ruta === 'Sin asignar' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.5)'}; color: ${ruta === 'Sin asignar' ? '#000000' : 'white'}; padding: 3px 6px; border-radius: 4px; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 22px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; white-space: nowrap;" 
-                                            onmouseover="this.style.background='${ruta === 'Sin asignar' ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.4)'}'; this.style.transform='scale(1.05)'" 
-                                            onmouseout="this.style.background='${ruta === 'Sin asignar' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.3)'}'; this.style.transform='scale(1)'"
-                                            title="Ver Ruta (${citasConUbicacion.length} citas)">
-                                        <i class="fas fa-map-marked-alt" style="font-size: 0.65rem; margin-right: 2px;"></i>Ruta
-                                    </button>
-                                    ` : ''}
-                                    ${citas.length > 0 && ruta !== 'Sin asignar' ? `
-                                    <button onclick="window.abrirModalMigrarRuta('${ruta.replace(/'/g, "\\'")}', '${fechaFormateadaParaRuta}')" 
-                                            style="background: rgba(255,193,7,0.9); border: 1px solid rgba(255,255,255,0.5); color: #000; padding: 3px 6px; border-radius: 4px; font-size: 0.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; min-width: 45px; height: 22px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-weight: 600; white-space: nowrap;" 
-                                            onmouseover="this.style.background='rgba(255,193,7,1)'; this.style.transform='scale(1.05)'" 
-                                            onmouseout="this.style.background='rgba(255,193,7,0.9)'; this.style.transform='scale(1)'"
-                                            title="Migrar citas de esta ruta">
-                                        <i class="fas fa-exchange-alt" style="font-size: 0.65rem; margin-right: 2px;"></i>Migrar
-                                    </button>
-                                    ` : ''}
-                                </div>
+                            <div class="ruta-row ruta-row-citas">
+                                <span class="ruta-citas-badge" style="font-size: clamp(0.6rem, 1vw, 0.7rem); font-weight: 600; background: #ffffff; color: #000000; padding: 2px 6px; border-radius: 4px; white-space: nowrap;"><i class="fas fa-calendar-check" style="font-size: 0.65rem;"></i> ${textoCitasSlot}</span>
                             </div>
-                            <div class="ruta-contenido-blanco" style="${colorContenido}">
-                                <div class="ruta-info-row ${datosRuteador.vehiculos.length === 0 ? 'drop-zone-empty' : ''}" data-tipo-fila="vehiculo" data-ruta="${ruta.replace(/'/g, "\\'")}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}" title="Arrastre vehículos aquí" style="${colorInfoRow}">
-                                    ${datosRuteador.vehiculos.length > 0 
-                                        ? datosRuteador.vehiculos.filter(v => v && String(v).trim() !== '').map(v => {
-                                            const vehiculoEscapado = String(v).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                                            const rutaEscapada = ruta.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                            return `<span class="ruta-badge-item ruta-badge-vehiculo" draggable="true" data-tipo="vehiculo" data-vehiculo="${vehiculoEscapado}" data-ruta="${rutaEscapada}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}">${v}</span>`;
-                                        }).join('')
-                                        : '<span style="color: #2196F3; font-size: 0.6rem; font-style: italic; opacity: 0.8; font-weight: 500;">Arrastre vehículos aquí</span>'
-                                    }
+                            <div class="ruta-row ruta-row-monto">
+                                <span class="ruta-monto-badge" style="background: #ffffff; color: #000000; border: 1px solid rgba(0,0,0,0.2); padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">${iconoBadge}${montoFormateado !== '₡0m' ? montoFormateado : '₡0'}</span>
                             </div>
-                                <div class="ruta-info-row ${datosRuteador.tecnicos.length === 0 ? 'drop-zone-empty' : ''}" data-tipo-fila="tecnico" data-ruta="${ruta.replace(/'/g, "\\'")}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}" title="Arrastre técnicos aquí" style="${colorInfoRow}">
-                                    ${datosRuteador.tecnicos.length > 0 
-                                        ? datosRuteador.tecnicos.filter(tecnicoId => tecnicoId && String(tecnicoId).trim() !== '').map(tecnicoId => {
-                                            // Buscar empleado por username o id (puede estar guardado como cualquiera de los dos)
-                                            const empleado = window.empleados?.find(e => 
-                                                (e.username && e.username === tecnicoId) || 
-                                                (e.id && e.id === tecnicoId) ||
-                                                (e.username && e.id === tecnicoId) ||
-                                                (e.id && e.username === tecnicoId)
-                                            );
-                                            
-                                            // Usar el username del empleado si existe, sino usar el ID guardado
-                                            let usernameFinal = empleado ? (empleado.username || empleado.id) : tecnicoId;
-                                            
-                                            // Validar que usernameFinal no esté vacío
-                                            if (!usernameFinal || String(usernameFinal).trim() === '') {
-                                                console.error('[RENDER] ❌ Técnico sin username válido al crear badge', {
-                                                    tecnicoId: tecnicoId,
-                                                    empleado: empleado ? { id: empleado.id, nombre: `${empleado.primerNombre} ${empleado.primerApellido}`.trim() } : 'no encontrado',
-                                                    problema: 'No se puede crear badge sin username válido'
-                                                });
-                                                return null; // Retornar null para filtrarlo después
-                                            }
-                                            
-                                            usernameFinal = String(usernameFinal).trim();
-                                            
-                                            let nombre = String(tecnicoId);
-                                            if (empleado) {
-                                                const primerNombre = empleado.primerNombre || '';
-                                                const primerApellido = empleado.primerApellido || '';
-                                                const inicialApellido = primerApellido ? primerApellido.charAt(0).toUpperCase() + '.' : '';
-                                                nombre = `${primerNombre} ${inicialApellido}`.trim() || nombre;
-                                            }
-                                            // Escapar comillas y caracteres especiales para HTML
-                                            const usernameEscapado = String(usernameFinal).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                                            const nombreEscapado = String(nombre).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                                            const rutaEscapada = ruta.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                                            return `<span class="ruta-badge-item ruta-badge-tecnico" draggable="true" data-tipo="tecnico" data-username="${usernameEscapado}" data-nombre="${nombreEscapado}" data-ruta="${rutaEscapada}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}">${nombre}</span>`;
-                                          }).filter(badge => badge !== null).join('')
-                                        : '<span style="color: #FF9800; font-size: 0.6rem; font-style: italic; opacity: 0.8; font-weight: 500;">Arrastre técnicos aquí</span>'
-                                    }
+                            <div class="ruta-row ruta-row-botones">
+                                ${htmlBtnRuta}
+                                ${htmlBtnTecnicos}
+                                ${htmlBtnMigrar}
                             </div>
+                            <div class="ruta-row ruta-row-vehiculos ruta-info-row ${datosRuteador.vehiculos.length === 0 ? 'drop-zone-empty' : ''}" data-tipo-fila="vehiculo" data-ruta="${ruta.replace(/'/g, "\\'")}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}" title="Arrastre vehículos aquí" style="${colorInfoRow}">${htmlVehiculos}</div>
+                            <div class="ruta-row ruta-row-tecnicos">
+                                <div class="ruta-info-row ruta-cell-tecnicos ${datosRuteador.tecnicos.length === 0 ? 'drop-zone-empty' : ''}" data-tipo-fila="tecnico" data-ruta="${ruta.replace(/'/g, "\\'")}" data-fecha-ruta="${fechaFormateadaParaRuta || ''}" title="Arrastre técnicos aquí" style="${colorInfoRow}">${htmlTecnicos}</div>
+                            </div>
+                            <div class="ruta-row ruta-row-hora ruta-hora-convocatoria" data-tipo-fila="hora-convocatoria" style="font-size: 0.55rem; color: #000000; font-weight: 600; ${colorInfoRow}">${horaConvocatoriaTexto ? `<i class="fas fa-clock" style="font-size: 0.6rem; color: #1565C0;"></i><span> ${horaConvocatoriaTexto}</span>` : '<span style="color: #9e9e9e; font-weight: 500; font-style: italic;">Sin hora</span>'}${ruta !== 'Sin asignar' ? ` <button type="button" class="btn-editar-hora-ruta" onclick="event.stopPropagation(); if(window.editarRuteador){ window.editarRuteador('${ruta.replace(/'/g, "\\'")}', '${fechaFormateadaParaRuta || ''}'); }" title="Editar hora de convocatoria" style="background: none; border: none; padding: 0 2px; cursor: pointer; color: #1565C0; font-size: 0.65rem;"><i class="fas fa-pencil-alt"></i></button>` : ''}</div>
                         </div>
-                        </div>
-                        <div class="citas-timeline" id="timeline-${(fechaFormateadaParaRuta || '').replace(/-/g, '')}-${ruta.replace(/ /g, '-')}" data-ruta="${ruta}" data-fecha="${fechaFormateadaParaRuta || ''}">
-                            ${generarCitasTimeline(citas, ruta)}
-                        </div>
+                        <div class="citas-timeline" id="timeline-${(fechaFormateadaParaRuta || '').replace(/-/g, '')}-${ruta.replace(/ /g, '-')}" data-ruta="${ruta}" data-fecha="${fechaFormateadaParaRuta || ''}">${generarCitasTimeline(citas, ruta, datosRuteador.horaConvocatoria || null, fechaFormateadaParaRuta || '')}</div>
                     </div>
                 `;
             };
@@ -14461,11 +14579,84 @@
                 inicializarDragAndDrop();
                 inicializarDragAndDropRecursos(fechaFormateada);
                 inicializarArrastreCrearCitas(fechaFormateada);
+                inicializarArrastreLineaConvocatoria();
             }, 100);
         }
+        
+        function inicializarArrastreLineaConvocatoria() {
+            const containers = document.querySelectorAll('.cronograma-container');
+            if (!containers.length) return;
+            let lineaEl = null;
+            let timelineEl = null;
+            let startY = 0;
+            let startTop = 0;
+            const TIMELINE_H = 960;
+            const onMove = (e) => {
+                if (!lineaEl || !timelineEl) return;
+                const rect = timelineEl.getBoundingClientRect();
+                const y = e.clientY - rect.top;
+                const top = Math.max(0, Math.min(TIMELINE_H - 4, startTop + (y - startY)));
+                lineaEl.style.top = top + 'px';
+            };
+            const onUp = async () => {
+                if (!lineaEl || !timelineEl) return;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                lineaEl.classList.remove('dragging');
+                const top = parseFloat(lineaEl.style.top) || 0;
+                const ruta = lineaEl.getAttribute('data-ruta');
+                const fecha = lineaEl.getAttribute('data-fecha');
+                const nuevaHora = typeof topToHoraConvocatoria === 'function' ? topToHoraConvocatoria(top) : null;
+                if (ruta && fecha && nuevaHora && window.actualizarHoraConvocatoriaSolo) {
+                    await window.actualizarHoraConvocatoriaSolo(ruta, fecha, nuevaHora);
+                }
+                lineaEl = null;
+                timelineEl = null;
+            };
+            const onMouseDown = (e) => {
+                const line = e.target.closest('.linea-convocatoria');
+                if (!line) return;
+                e.preventDefault();
+                e.stopPropagation();
+                lineaEl = line;
+                timelineEl = line.closest('.citas-timeline');
+                if (!timelineEl) return;
+                const rect = timelineEl.getBoundingClientRect();
+                startY = e.clientY - rect.top;
+                startTop = parseFloat(line.style.top) || 0;
+                line.classList.add('dragging');
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            };
+            containers.forEach(container => container.addEventListener('mousedown', onMouseDown));
+        }
 
+        // Convierte hora "HH:mm" a top en px (timeline: 5 AM = 0, 40px por hora)
+        function horaConvocatoriaToTop(horaStr) {
+            if (!horaStr || typeof horaStr !== 'string') return 0;
+            const parts = horaStr.trim().split(':');
+            const h = parseInt(parts[0], 10) || 0;
+            const m = parseInt(parts[1], 10) || 0;
+            const minutosDesde5AM = h >= 5 ? (h - 5) * 60 + m : (h + 19) * 60 + m;
+            return Math.max(0, Math.min(958, (minutosDesde5AM / 60) * 40));
+        }
+        // Convierte top en px a hora "HH:mm" (día laborable: 5 AM = 0px, 40px/hora)
+        function topToHoraConvocatoria(topPx) {
+            const minutosDesde5AM = (topPx / 40) * 60;
+            const totalMin = Math.max(0, Math.min(1439, Math.round(minutosDesde5AM / 15) * 15));
+            if (totalMin >= 1140) {
+                const minNext = totalMin - 1140;
+                const h = Math.floor(minNext / 60);
+                const m = minNext % 60;
+                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            }
+            const h = Math.floor(totalMin / 60) + 5;
+            const m = totalMin % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
+        
         // Función para generar timeline de citas
-        function generarCitasTimeline(citas, ruta) {
+        function generarCitasTimeline(citas, ruta, horaConvocatoria, fechaFormateada) {
             // Usar versión síncrona para renderizado rápido
             const obtenerClienteNombre = function(cita) {
                 if (!window.obtenerClienteNombreSync) {
@@ -14519,8 +14710,66 @@
                 }
             }
             
+            // Línea de hora de convocatoria (solo rutas asignadas, con hora definida o por defecto 6:00 para poder arrastrar)
+            if (ruta !== 'Sin asignar') {
+                const horaParaLinea = horaConvocatoria && String(horaConvocatoria).trim() !== '' ? String(horaConvocatoria).trim() : '06:00';
+                const topConvocatoria = horaConvocatoriaToTop(horaParaLinea);
+                const convocatoriaMinutosDesde5AM = (topConvocatoria / 40) * 60;
+                // Minutos desde 5 AM de la primera cita del día (para "Xh Ymin hasta 1ª cita")
+                let minutosPrimeraCitaDesde5AM = null;
+                if (citas.length > 0) {
+                    let minMin = Infinity;
+                    for (const c of citas) {
+                        const ts = obtenerInicio(c);
+                        if (!ts) continue;
+                        let h, m;
+                        if (ts.toDate) {
+                            const utc = ts.toDate();
+                            h = utc.getUTCHours() - 6;
+                            if (h < 0) h += 24; else if (h >= 24) h -= 24;
+                            m = utc.getUTCMinutes();
+                        } else {
+                            const fd = window.formatearFecha(ts);
+                            if (!fd) continue;
+                            h = fd.getHours();
+                            m = fd.getMinutes();
+                        }
+                        const minMed = h * 60 + m;
+                        const min5 = h < 5 ? minMed + 19 * 60 : minMed - 5 * 60;
+                        if (min5 < minMin) minMin = min5;
+                    }
+                    if (minMin !== Infinity) minutosPrimeraCitaDesde5AM = minMin;
+                }
+                let textoAntes = '—';
+                if (minutosPrimeraCitaDesde5AM != null) {
+                    const diff = minutosPrimeraCitaDesde5AM - convocatoriaMinutosDesde5AM;
+                    if (diff > 0) {
+                        const h = Math.floor(diff / 60);
+                        const min = Math.round(diff % 60);
+                        textoAntes = (h > 0 ? h + 'h ' : '') + (min > 0 ? min + 'min' : '').trim() || '0min';
+                    } else {
+                        textoAntes = 'Ya pasó';
+                    }
+                } else {
+                    textoAntes = 'Sin citas';
+                }
+                const fechaEscapada = (fechaFormateada || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const rutaEscapada = (ruta || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const claseRuta = (ruta || '').replace(/\s+/g, '-');
+                const sinCitas = citas.length === 0;
+                const partesHora = horaParaLinea.split(':');
+                const h = parseInt(partesHora[0], 10) || 0;
+                const m = parseInt(partesHora[1], 10) || 0;
+                const h12 = h === 0 ? 12 : (h > 12 ? h - 12 : h);
+                const ampm = h < 12 ? 'AM' : 'PM';
+                const horaDisplay = h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+                const horaEsc = horaDisplay.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const antesEsc = textoAntes.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const claseSinCitas = sinCitas ? ' sin-citas' : '';
+                timelineHTML += `<div class="linea-convocatoria ${claseRuta}${claseSinCitas}" data-ruta="${rutaEscapada}" data-fecha="${fechaEscapada}" style="top: ${topConvocatoria}px;" title="Hora de convocatoria. Arrastre para cambiar."><span class="linea-convocatoria-label"><span class="linea-convocatoria-caja">${horaEsc}</span><span class="linea-convocatoria-caja">${antesEsc}</span></span></div>`;
+            }
+            
             if (citas.length === 0) {
-                // Solo retornar las líneas divisorias, sin mensaje ni ícono
                 return timelineHTML;
             }
 
