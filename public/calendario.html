@@ -314,35 +314,36 @@
             display: inline-block;
             background: #000;
             color: #fff;
-            padding: 1px 5px;
-            border-radius: 4px;
-            font-size: 0.6rem;
+            padding: 0 3px;
+            border-radius: 3px;
+            font-size: 0.55rem;
             font-weight: 700;
-            line-height: 1.2;
+            line-height: 1.15;
             white-space: nowrap;
         }
         .cita-hora-texto {
             display: inline-block;
             background: #757575;
             color: #fff;
-            padding: 1px 5px;
-            border-radius: 4px;
-            font-size: 0.6rem;
+            padding: 0 3px;
+            border-radius: 3px;
+            font-size: 0.55rem;
             font-weight: 600;
-            line-height: 1.2;
+            line-height: 1.15;
             white-space: nowrap;
         }
         .cita-monto-texto {
             display: inline-block;
             background: #1b5e20;
             color: #fff;
-            padding: 1px 5px;
-            border-radius: 4px;
-            font-size: 0.6rem;
+            padding: 0 3px;
+            border-radius: 3px;
+            font-size: 0.55rem;
             font-weight: 700;
-            line-height: 1.2;
+            line-height: 1.15;
             white-space: nowrap;
         }
+        .cita-linea-principal { white-space: nowrap; }
 
         .filters-section {
             background: var(--light-gradient);
@@ -962,6 +963,7 @@
             color: #ffffff;
             margin-bottom: 2px;
             line-height: 1.2;
+            white-space: nowrap;
         }
 
         .cita-cliente-cronograma {
@@ -1134,6 +1136,7 @@
             color: #667eea;
             font-size: 0.9rem;
             margin-bottom: 5px;
+            white-space: nowrap;
         }
 
         .cita-cliente {
@@ -12729,7 +12732,7 @@
                                         infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
                                         if (horaMostrar) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                                         if (precioMostrar) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
-                                        const textoPrincipal = infoPrincipal.join(' • ');
+                                        const textoPrincipal = infoPrincipal.join(' ');
                                         
                                         // Construir línea inferior: Ubicación + Cliente
                                         const lineaInferior = [];
@@ -14388,7 +14391,7 @@
                 infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
                 if (horaMostrar) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                 if (precioMostrar) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
-                const textoPrincipal = infoPrincipal.join(' • ');
+                const textoPrincipal = infoPrincipal.join(' ');
                 
                 // Construir línea inferior: Ubicación + Cliente
                 const lineaInferior = [];
@@ -14608,7 +14611,7 @@
                     infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
                     if (horaMostrarVista) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrarVista).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                     if (precioMostrarVista) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrarVista).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
-                    const textoPrincipal = infoPrincipal.join(' • ');
+                    const textoPrincipal = infoPrincipal.join(' ');
                     
                     // Construir línea inferior: Ubicación + Cliente
                     const lineaInferiorVista = [];
@@ -14617,7 +14620,7 @@
                     
                     citaElement.innerHTML = `
                         ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
-                        <span>${textoPrincipal}</span>
+                        <span class="cita-linea-principal">${textoPrincipal}</span>
                         ${lineaInferiorVista.length > 0 ? `<div style="font-size: 0.65rem; line-height: 1.2; margin-top: 0.15rem; color: #ffffff; opacity: 0.9;">${lineaInferiorVista.join(' • ')}</div>` : ''}
                     `;
                     // GPS ahora se obtiene desde la sucursal, no desde la cita
