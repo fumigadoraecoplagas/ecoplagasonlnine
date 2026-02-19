@@ -15134,7 +15134,7 @@
                 const startTime = document.getElementById('newStartTime').value;
                 const duration = document.getElementById('newDuration').value;
                 const ruta = document.getElementById('newRuta').value;
-                const vendedoresSeleccionados = window.obtenerVendedoresSeleccionados ? window.obtenerVendedoresSeleccionados('newVendedoresContainer') : [];
+                const vendedoresSeleccionados = window.obtenerVendedoresSeleccionados ? window.obtenerVendedoresSeleccionados('newVendedoresSelected') : (window.vendedoresSeleccionadosNew || []);
 
                 if (!clientPhone || !startTime || !duration || !ruta) {
                     alert('Por favor completa todos los campos indispensables: Teléfono, Fecha y Hora de Inicio, Duración y Ruta.');
