@@ -309,6 +309,18 @@
         .cita-item.monto-cero { border: 3px solid #ff1744 !important; box-shadow: 0 0 0 2px #ff1744; outline: 3px solid #ff1744; outline-offset: 1px; }
         .cita-item-dia.monto-cero { border: 3px solid #ff1744 !important; box-shadow: 0 0 0 2px #ff1744; outline: 3px solid #ff1744; outline-offset: 1px; }
 
+        /* Nombre del vendedor en recuadro negro para destacar en las citas */
+        .vendedor-badge {
+            display: inline-block;
+            background: #000;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
         .filters-section {
             background: var(--light-gradient);
             padding: 20px 30px;
@@ -7033,6 +7045,23 @@
         window.obtenerVendedores = function(cita) {
             return window.obtenerCampoCita(cita, 'vendedores', []);
         };
+
+        /** Dado un username (ej. maria.gutierrez) devuelve el nombre para mostrar: primerNombre o nombre completo o el username */
+        window.obtenerNombreDisplayVendedor = function(username) {
+            if (!username || typeof username !== 'string') return 'Sin vendedor';
+            const emp = window.empleados && window.empleados.find(e => (e.username || e.id) === username);
+            if (!emp) return username;
+            const nombreCompleto = `${emp.primerNombre || ''} ${emp.primerApellido || ''}`.trim();
+            return emp.primerNombre || nombreCompleto || username;
+        };
+
+        /** Devuelve HTML del badge negro con el nombre del vendedor (o varios separados por coma) */
+        window.vendedorBadgeHtml = function(cita) {
+            const vendedores = window.obtenerVendedores ? window.obtenerVendedores(cita) : [];
+            const nombres = (Array.isArray(vendedores) ? vendedores : []).map(v => window.obtenerNombreDisplayVendedor(v && String(v).trim())).filter(Boolean);
+            const texto = nombres.length > 0 ? nombres.join(', ') : 'Sin vendedor';
+            return '<span class="vendedor-badge">' + texto.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
+        };
         
         window.obtenerDireccion = function(cita) {
             return window.obtenerCampoCita(cita, 'direccion', '');
@@ -12672,9 +12701,9 @@
                                         }
                                         const ubicacionTexto = ubicacionPartes.length > 0 ? ubicacionPartes.join(', ') : '';
                                         
-                                        // Construir línea principal: Vendedor + Hora + Precio
+                                        // Construir línea principal: Vendedor (badge) + Hora + Precio
                                         const infoPrincipal = [];
-                                        if (vendedorTexto) infoPrincipal.push(vendedorTexto);
+                                        infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
                                         if (horaMostrar) infoPrincipal.push(horaMostrar);
                                         if (precioMostrar) infoPrincipal.push(precioMostrar);
                                         const textoPrincipal = infoPrincipal.join(' • ');
@@ -14331,9 +14360,9 @@
                 }
                 const ubicacionTexto = ubicacionPartes.length > 0 ? ubicacionPartes.join(', ') : '';
                 
-                // Construir línea principal: Vendedor + Hora + Precio
+                // Construir línea principal: Vendedor (badge) + Hora + Precio
                 const infoPrincipal = [];
-                if (vendedorTexto) infoPrincipal.push(vendedorTexto);
+                infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
                 if (horaMostrar) infoPrincipal.push(horaMostrar);
                 if (precioMostrar) infoPrincipal.push(precioMostrar);
                 const textoPrincipal = infoPrincipal.join(' • ');
@@ -14551,9 +14580,9 @@
                     }
                     const ubicacionTextoVista = ubicacionPartesVista.length > 0 ? ubicacionPartesVista.join(', ') : '';
                     
-                    // Construir línea principal: Vendedor + Hora + Precio
+                    // Construir línea principal: Vendedor (badge) + Hora + Precio
                     const infoPrincipal = [];
-                    if (vendedorTexto) infoPrincipal.push(vendedorTexto);
+                    infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
                     if (horaMostrarVista) infoPrincipal.push(horaMostrarVista);
                     if (precioMostrarVista) infoPrincipal.push(precioMostrarVista);
                     const textoPrincipal = infoPrincipal.join(' • ');
@@ -14570,7 +14599,7 @@
                     `;
                     // GPS ahora se obtiene desde la sucursal, no desde la cita
                     const tieneSucursal = window.esSucursalIndiceValido(window.obtenerCampoCita(cita, 'sucursalIndice', null));
-                    const tituloVendedor = vendedorMostrarVista || 'Sin vendedor';
+                    const tituloVendedor = (window.obtenerNombreDisplayVendedor && window.obtenerNombreDisplayVendedor(vendedorMostrarVista)) || vendedorMostrarVista || 'Sin vendedor';
                     citaElement.title = `Vendedor: ${tituloVendedor}\n${vehiculo}\n${obtenerDescripcion(cita)}\nTurno: ${obtenerTurno(cita)}\nSucursal: ${tieneSucursal ? 'Sí' : 'No'}`;
                     
                     // Agregar click handler para abrir edición
