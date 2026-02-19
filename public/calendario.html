@@ -321,6 +321,8 @@
             line-height: 1.2;
             white-space: nowrap;
         }
+        .cita-hora-texto { color: #757575; font-weight: 600; }
+        .cita-monto-texto { color: #1b5e20; font-weight: 700; }
 
         .filters-section {
             background: var(--light-gradient);
@@ -12702,11 +12704,11 @@
                                         }
                                         const ubicacionTexto = ubicacionPartes.length > 0 ? ubicacionPartes.join(', ') : '';
                                         
-                                        // Construir línea principal: Vendedor (badge) + Hora + Precio
+                                        // Construir línea principal: Vendedor (badge) + Hora (gris) + Precio (verde)
                                         const infoPrincipal = [];
                                         infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
-                                        if (horaMostrar) infoPrincipal.push(horaMostrar);
-                                        if (precioMostrar) infoPrincipal.push(precioMostrar);
+                                        if (horaMostrar) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
+                                        if (precioMostrar) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                                         const textoPrincipal = infoPrincipal.join(' • ');
                                         
                                         // Construir línea inferior: Ubicación + Cliente
@@ -14361,11 +14363,11 @@
                 }
                 const ubicacionTexto = ubicacionPartes.length > 0 ? ubicacionPartes.join(', ') : '';
                 
-                // Construir línea principal: Vendedor (badge) + Hora + Precio
+                // Construir línea principal: Vendedor (badge) + Hora (gris) + Precio (verde)
                 const infoPrincipal = [];
                 infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
-                if (horaMostrar) infoPrincipal.push(horaMostrar);
-                if (precioMostrar) infoPrincipal.push(precioMostrar);
+                if (horaMostrar) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
+                if (precioMostrar) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrar).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                 const textoPrincipal = infoPrincipal.join(' • ');
                 
                 // Construir línea inferior: Ubicación + Cliente
@@ -14581,11 +14583,11 @@
                     }
                     const ubicacionTextoVista = ubicacionPartesVista.length > 0 ? ubicacionPartesVista.join(', ') : '';
                     
-                    // Construir línea principal: Vendedor (badge) + Hora + Precio
+                    // Construir línea principal: Vendedor (badge) + Hora (gris) + Precio (verde)
                     const infoPrincipal = [];
                     infoPrincipal.push(window.vendedorBadgeHtml ? window.vendedorBadgeHtml(cita) : vendedorTexto);
-                    if (horaMostrarVista) infoPrincipal.push(horaMostrarVista);
-                    if (precioMostrarVista) infoPrincipal.push(precioMostrarVista);
+                    if (horaMostrarVista) infoPrincipal.push('<span class="cita-hora-texto">' + String(horaMostrarVista).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
+                    if (precioMostrarVista) infoPrincipal.push('<span class="cita-monto-texto">' + String(precioMostrarVista).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>');
                     const textoPrincipal = infoPrincipal.join(' • ');
                     
                     // Construir línea inferior: Ubicación + Cliente
