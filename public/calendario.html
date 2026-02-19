@@ -344,8 +344,24 @@
             white-space: nowrap;
         }
         .cita-linea-principal { white-space: nowrap; }
+        /* Contenedor de las 3 líneas: sin espacio entre ellas */
+        .cita-tres-lineas {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            line-height: 1;
+            margin: 0;
+            padding: 0;
+        }
+        .cita-tres-lineas > * { margin: 0; padding: 0; }
         /* Cada línea de recuadros: interlineado mínimo para caber en franja de 1h */
-        .cita-linea-recursos { margin: 0; line-height: 1; }
+        .cita-linea-recursos {
+            margin: 0;
+            padding: 0;
+            line-height: 1;
+            font-size: 0.5rem;
+            min-height: 0;
+        }
         /* Segunda línea: nombre del cliente en recuadro compacto */
         .cita-cliente-texto {
             display: inline-block;
@@ -1005,7 +1021,7 @@
             font-weight: 600;
             font-size: 0.5rem;
             color: #ffffff;
-            margin-bottom: 0;
+            margin: 0;
             line-height: 1;
             white-space: nowrap;
         }
@@ -1178,8 +1194,9 @@
         .cita-hora {
             font-weight: 700;
             color: #667eea;
-            font-size: 0.9rem;
-            margin-bottom: 1px;
+            font-size: 0.55rem;
+            margin-bottom: 0;
+            margin-top: 0;
             white-space: nowrap;
             line-height: 1;
         }
@@ -12789,9 +12806,11 @@
                                         citaElement.innerHTML = `
                                             ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                                             <div class="cita-duracion">${obtenerDuracion(cita)}min</div>
-                                            <div class="cita-hora">${textoPrincipal}</div>
-                                            ${clienteEscapado ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapado}</span></div>` : ''}
-                                            ${lineaUbicacion}
+                                            <div class="cita-tres-lineas">
+                                                <div class="cita-hora">${textoPrincipal}</div>
+                                                ${clienteEscapado ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapado}</span></div>` : ''}
+                                                ${lineaUbicacion}
+                                            </div>
                                             <div class="cita-descripcion">${obtenerDescripcion(cita)}</div>
                                             <div class="mt-2">
                                                 <span class="cita-estado ${(window.estadoDisplayCita && window.estadoDisplayCita(cita)) ? window.estadoDisplayCita(cita).clase : 'agendada'}">${(window.estadoDisplayCita && window.estadoDisplayCita(cita)) ? window.estadoDisplayCita(cita).texto : 'Agendada'}</span>
@@ -14451,11 +14470,11 @@
                 citaBloque.innerHTML = `
                     ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                     <div class="cita-estado-cronograma ${(window.estadoDisplayCita && window.estadoDisplayCita(cita)) ? window.estadoDisplayCita(cita).clase : 'agendada'}"></div>
-                    <div class="cita-hora-cronograma">
-                        ${textoPrincipal}
+                    <div class="cita-tres-lineas">
+                        <div class="cita-hora-cronograma">${textoPrincipal}</div>
+                        ${clienteEscapado ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapado}</span></div>` : ''}
+                        ${lineaUbicacion}
                     </div>
-                    ${clienteEscapado ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapado}</span></div>` : ''}
-                    ${lineaUbicacion}
                 `;
                 
                 timelineHTML += citaBloque.outerHTML;
@@ -14673,9 +14692,11 @@
                     
                     citaElement.innerHTML = `
                         ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
-                        <span class="cita-linea-principal">${textoPrincipal}</span>
-                        ${clienteEscapadoVista ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapadoVista}</span></div>` : ''}
-                        ${lineaUbicacionVista}
+                        <div class="cita-tres-lineas">
+                            <span class="cita-linea-principal">${textoPrincipal}</span>
+                            ${clienteEscapadoVista ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapadoVista}</span></div>` : ''}
+                            ${lineaUbicacionVista}
+                        </div>
                     `;
                     // GPS ahora se obtiene desde la sucursal, no desde la cita
                     const tieneSucursal = window.esSucursalIndiceValido(window.obtenerCampoCita(cita, 'sucursalIndice', null));
