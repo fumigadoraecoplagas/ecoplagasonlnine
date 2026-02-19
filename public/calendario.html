@@ -11452,14 +11452,17 @@
             
             // Calcular monto de venta: Servicios + Productos (MECE)
             const montoVentaCalculado = totalServicios + totalProductos;
+            const countServicios = ((prefix === 'edit' ? window.serviciosSeleccionadosEdit : window.serviciosSeleccionadosNew) || []).length;
+            const countProductos = (productosSeleccionados || []).length;
             
             // Actualizar el campo de monto de venta
             const montoVentaInput = document.getElementById(prefix === 'edit' ? 'editMontoVenta' : 'newMontoVenta');
             if (montoVentaInput) {
-                // Si no hay desglose (suma 0) y el input ya tiene un monto > 0, no sobrescribir (preserva citas CSV o sin desglose)
-                if (montoVentaCalculado === 0) {
-                    const valorActual = parseFloat(window.extraerValorNumerico(montoVentaInput.value) || '0') || 0;
-                    if (valorActual > 0) return;
+                // Solo no actualizar cuando no hay ningún servicio ni producto (count 0) y ya hay un monto > 0 (citas CSV/sin desglose)
+                // Si hay al menos un servicio o producto, siempre actualizar (incluso si la suma es 0)
+                const valorActual = parseFloat(window.extraerValorNumerico(montoVentaInput.value) || '0') || 0;
+                if (countServicios === 0 && countProductos === 0 && montoVentaCalculado === 0 && valorActual > 0) {
+                    return;
                 }
                 const montoFormateado = window.formatearMontoVenta(montoVentaCalculado);
                 montoVentaInput.value = montoFormateado;
