@@ -258,17 +258,24 @@
             max-width: 100%;
         }
         
-        /* Punto indicador de encuesta: absoluto, centrado vertical, no empuja el layout */
-        /* Punto encuesta: sobre el borde derecho; borde del color de la cita (versión oscura) */
-        .indicador-encuesta-punto {
+        /* Contenedor de los dos indicadores (encuesta + método de pago): centrado vertical, borde derecho */
+        .cita-indicadores-derecha {
             position: absolute;
             top: 50%;
             right: -5px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            z-index: 10;
+        }
+        /* Punto encuesta: borde del color de la cita (versión oscura) */
+        .indicador-encuesta-punto {
             width: 10px;
             height: 10px;
-            transform: translateY(-50%);
+            flex-shrink: 0;
             border-radius: 50%;
-            z-index: 10;
             box-sizing: border-box;
             border: 2px solid rgba(0,0,0,0.35);
         }
@@ -277,6 +284,18 @@
         .indicador-encuesta-punto.amarillo { background-color: #ffc107; }
         .indicador-encuesta-punto.verde { background-color: #4caf50; }
         .indicador-encuesta-punto.azul { background-color: #2196f3; }
+
+        /* Punto método de pago: abajo del de encuesta; rojo = no indicado, verde = indicado */
+        .indicador-pago-punto {
+            width: 10px;
+            height: 10px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            box-sizing: border-box;
+            border: 2px solid rgba(0,0,0,0.35);
+        }
+        .indicador-pago-punto.pago-pendiente { background-color: #f44336; }
+        .indicador-pago-punto.pago-indicado { background-color: #4caf50; }
 
         /* Borde del punto = color de la cita en versión oscura (mismo border-color que la tarjeta) */
         .cita-item.Ruta-1 .indicador-encuesta-punto, .cita-bloque.Ruta-1 .indicador-encuesta-punto, .cita-item-dia.Ruta-1 .indicador-encuesta-punto { border-color: #258A59; }
@@ -300,6 +319,29 @@
         .cita-item.Ruta-19 .indicador-encuesta-punto, .cita-bloque.Ruta-19 .indicador-encuesta-punto, .cita-item-dia.Ruta-19 .indicador-encuesta-punto { border-color: #25633A; }
         .cita-item.Ruta-20 .indicador-encuesta-punto, .cita-bloque.Ruta-20 .indicador-encuesta-punto, .cita-item-dia.Ruta-20 .indicador-encuesta-punto { border-color: #840000; }
         .cita-item.Sin-asignar .indicador-encuesta-punto, .cita-bloque.Sin-asignar .indicador-encuesta-punto, .cita-item-dia.Sin-asignar .indicador-encuesta-punto { border-color: #424242; }
+
+        /* Borde del punto pago = color de la ruta (mismo que encuesta) */
+        .cita-item.Ruta-1 .indicador-pago-punto, .cita-bloque.Ruta-1 .indicador-pago-punto, .cita-item-dia.Ruta-1 .indicador-pago-punto { border-color: #258A59; }
+        .cita-item.Ruta-2 .indicador-pago-punto, .cita-bloque.Ruta-2 .indicador-pago-punto, .cita-item-dia.Ruta-2 .indicador-pago-punto { border-color: #7E3290; }
+        .cita-item.Ruta-3 .indicador-pago-punto, .cita-bloque.Ruta-3 .indicador-pago-punto, .cita-item-dia.Ruta-3 .indicador-pago-punto { border-color: #B89928; }
+        .cita-item.Ruta-4 .indicador-pago-punto, .cita-bloque.Ruta-4 .indicador-pago-punto, .cita-item-dia.Ruta-4 .indicador-pago-punto { border-color: #C55A20; }
+        .cita-item.Ruta-5 .indicador-pago-punto, .cita-bloque.Ruta-5 .indicador-pago-punto, .cita-item-dia.Ruta-5 .indicador-pago-punto { border-color: #3B8BC4; }
+        .cita-item.Ruta-6 .indicador-pago-punto, .cita-bloque.Ruta-6 .indicador-pago-punto, .cita-item-dia.Ruta-6 .indicador-pago-punto { border-color: #A1564C; }
+        .cita-item.Ruta-7 .indicador-pago-punto, .cita-bloque.Ruta-7 .indicador-pago-punto, .cita-item-dia.Ruta-7 .indicador-pago-punto { border-color: #4A5662; }
+        .cita-item.Ruta-8 .indicador-pago-punto, .cita-bloque.Ruta-8 .indicador-pago-punto, .cita-item-dia.Ruta-8 .indicador-pago-punto { border-color: #2A3890; }
+        .cita-item.Ruta-9 .indicador-pago-punto, .cita-bloque.Ruta-9 .indicador-pago-punto, .cita-item-dia.Ruta-9 .indicador-pago-punto { border-color: #25633A; }
+        .cita-item.Ruta-10 .indicador-pago-punto, .cita-bloque.Ruta-10 .indicador-pago-punto, .cita-item-dia.Ruta-10 .indicador-pago-punto { border-color: #840000; }
+        .cita-item.Ruta-11 .indicador-pago-punto, .cita-bloque.Ruta-11 .indicador-pago-punto, .cita-item-dia.Ruta-11 .indicador-pago-punto { border-color: #258A59; }
+        .cita-item.Ruta-12 .indicador-pago-punto, .cita-bloque.Ruta-12 .indicador-pago-punto, .cita-item-dia.Ruta-12 .indicador-pago-punto { border-color: #7E3290; }
+        .cita-item.Ruta-13 .indicador-pago-punto, .cita-bloque.Ruta-13 .indicador-pago-punto, .cita-item-dia.Ruta-13 .indicador-pago-punto { border-color: #B89928; }
+        .cita-item.Ruta-14 .indicador-pago-punto, .cita-bloque.Ruta-14 .indicador-pago-punto, .cita-item-dia.Ruta-14 .indicador-pago-punto { border-color: #C55A20; }
+        .cita-item.Ruta-15 .indicador-pago-punto, .cita-bloque.Ruta-15 .indicador-pago-punto, .cita-item-dia.Ruta-15 .indicador-pago-punto { border-color: #3B8BC4; }
+        .cita-item.Ruta-16 .indicador-pago-punto, .cita-bloque.Ruta-16 .indicador-pago-punto, .cita-item-dia.Ruta-16 .indicador-pago-punto { border-color: #A1564C; }
+        .cita-item.Ruta-17 .indicador-pago-punto, .cita-bloque.Ruta-17 .indicador-pago-punto, .cita-item-dia.Ruta-17 .indicador-pago-punto { border-color: #4A5662; }
+        .cita-item.Ruta-18 .indicador-pago-punto, .cita-bloque.Ruta-18 .indicador-pago-punto, .cita-item-dia.Ruta-18 .indicador-pago-punto { border-color: #2A3890; }
+        .cita-item.Ruta-19 .indicador-pago-punto, .cita-bloque.Ruta-19 .indicador-pago-punto, .cita-item-dia.Ruta-19 .indicador-pago-punto { border-color: #25633A; }
+        .cita-item.Ruta-20 .indicador-pago-punto, .cita-bloque.Ruta-20 .indicador-pago-punto, .cita-item-dia.Ruta-20 .indicador-pago-punto { border-color: #840000; }
+        .cita-item.Sin-asignar .indicador-pago-punto, .cita-bloque.Sin-asignar .indicador-pago-punto, .cita-item-dia.Sin-asignar .indicador-pago-punto { border-color: #424242; }
 
         .cita-item:hover {
             transform: scale(1.05);
@@ -12797,8 +12839,16 @@
                                             ? `<div class="cita-linea-recursos"><span class="cita-ubicacion-texto">${ubicacionEscapada}</span></div>`
                                             : `<div class="cita-linea-recursos"><span class="cita-ubicacion-pendiente">Dirección pendiente</span></div>`;
                                         
+                                        const metodoPagoVal = (window.obtenerCampoCita(cita, 'metodoPago', '') || '').trim();
+                                        const pagoIndicado = metodoPagoVal !== '' && metodoPagoVal.toLowerCase() !== 'seleccionar método de pago';
+                                        const clasePago = pagoIndicado ? 'pago-indicado' : 'pago-pendiente';
+                                        const tituloPago = pagoIndicado ? 'Método de pago indicado' : 'Seleccionar método de pago';
+                                        
                                         citaElement.innerHTML = `
-                                            ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
+                                            <div class="cita-indicadores-derecha">
+                                                ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
+                                                <div class="indicador-pago-punto ${clasePago}" title="${tituloPago}"></div>
+                                            </div>
                                             <div class="cita-duracion">${obtenerDuracion(cita)}min</div>
                                             <div class="cita-tres-lineas">
                                                 <div class="cita-hora cita-linea-badges">${textoPrincipal}</div>
@@ -14464,8 +14514,16 @@
                     ? `<div class="cita-linea-recursos"><span class="cita-ubicacion-texto">${ubicacionEscapada}</span></div>`
                     : `<div class="cita-linea-recursos"><span class="cita-ubicacion-pendiente">Dirección pendiente</span></div>`;
                 
+                const metodoPagoCron = (window.obtenerCampoCita(cita, 'metodoPago', '') || '').trim();
+                const pagoIndicadoCron = metodoPagoCron !== '' && metodoPagoCron.toLowerCase() !== 'seleccionar método de pago';
+                const clasePagoCron = pagoIndicadoCron ? 'pago-indicado' : 'pago-pendiente';
+                const tituloPagoCron = pagoIndicadoCron ? 'Método de pago indicado' : 'Seleccionar método de pago';
+                
                 citaBloque.innerHTML = `
-                    ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
+                    <div class="cita-indicadores-derecha">
+                        ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
+                        <div class="indicador-pago-punto ${clasePagoCron}" title="${tituloPagoCron}"></div>
+                    </div>
                     <div class="cita-estado-cronograma ${(window.estadoDisplayCita && window.estadoDisplayCita(cita)) ? window.estadoDisplayCita(cita).clase : 'agendada'}"></div>
                     <div class="cita-tres-lineas">
                         <div class="cita-hora-cronograma cita-linea-badges">${textoPrincipal}</div>
@@ -14688,8 +14746,16 @@
                         ? `<div class="cita-linea-recursos"><span class="cita-ubicacion-texto">${ubicacionEscapadaVista}</span></div>`
                         : `<div class="cita-linea-recursos"><span class="cita-ubicacion-pendiente">Dirección pendiente</span></div>`;
                     
+                    const metodoPagoVista = (window.obtenerCampoCita(cita, 'metodoPago', '') || '').trim();
+                    const pagoIndicadoVista = metodoPagoVista !== '' && metodoPagoVista.toLowerCase() !== 'seleccionar método de pago';
+                    const clasePagoVista = pagoIndicadoVista ? 'pago-indicado' : 'pago-pendiente';
+                    const tituloPagoVista = pagoIndicadoVista ? 'Método de pago indicado' : 'Seleccionar método de pago';
+                    
                     citaElement.innerHTML = `
-                        ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
+                        <div class="cita-indicadores-derecha">
+                            ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
+                            <div class="indicador-pago-punto ${clasePagoVista}" title="${tituloPagoVista}"></div>
+                        </div>
                         <div class="cita-tres-lineas">
                             <div class="cita-linea-principal cita-linea-badges">${textoPrincipal}</div>
                             ${clienteEscapadoVista ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapadoVista}</span></div>` : ''}
