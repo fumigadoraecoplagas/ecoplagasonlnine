@@ -318,7 +318,7 @@
             border-radius: 3px;
             font-size: 0.55rem;
             font-weight: 700;
-            line-height: 1.15;
+            line-height: 1;
             white-space: nowrap;
         }
         .cita-hora-texto {
@@ -329,7 +329,7 @@
             border-radius: 3px;
             font-size: 0.55rem;
             font-weight: 600;
-            line-height: 1.15;
+            line-height: 1;
             white-space: nowrap;
         }
         .cita-monto-texto {
@@ -340,10 +340,12 @@
             border-radius: 3px;
             font-size: 0.55rem;
             font-weight: 700;
-            line-height: 1.15;
+            line-height: 1;
             white-space: nowrap;
         }
         .cita-linea-principal { white-space: nowrap; }
+        /* Cada línea de recuadros: interlineado mínimo para caber en franja de 1h */
+        .cita-linea-recursos { margin: 0; line-height: 1; }
         /* Segunda línea: nombre del cliente en recuadro compacto */
         .cita-cliente-texto {
             display: inline-block;
@@ -353,7 +355,7 @@
             border-radius: 3px;
             font-size: 0.55rem;
             font-weight: 600;
-            line-height: 1.15;
+            line-height: 1;
             white-space: nowrap;
             max-width: 100%;
             overflow: hidden;
@@ -368,7 +370,7 @@
             border-radius: 3px;
             font-size: 0.5rem;
             font-weight: 500;
-            line-height: 1.15;
+            line-height: 1;
             white-space: nowrap;
             max-width: 100%;
             overflow: hidden;
@@ -991,8 +993,8 @@
             font-weight: 600;
             font-size: 0.5rem;
             color: #ffffff;
-            margin-bottom: 2px;
-            line-height: 1.2;
+            margin-bottom: 0;
+            line-height: 1;
             white-space: nowrap;
         }
 
@@ -1165,8 +1167,9 @@
             font-weight: 700;
             color: #667eea;
             font-size: 0.9rem;
-            margin-bottom: 5px;
+            margin-bottom: 1px;
             white-space: nowrap;
+            line-height: 1;
         }
 
         .cita-cliente {
@@ -12772,8 +12775,8 @@
                                             ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                                             <div class="cita-duracion">${obtenerDuracion(cita)}min</div>
                                             <div class="cita-hora">${textoPrincipal}</div>
-                                            ${clienteEscapado ? `<div style="margin-top: 0.1rem; line-height: 1.2;"><span class="cita-cliente-texto">${clienteEscapado}</span></div>` : ''}
-                                            ${ubicacionEscapada ? `<div style="margin-top: 0.08rem; line-height: 1.2;"><span class="cita-ubicacion-texto">${ubicacionEscapada}</span></div>` : ''}
+                                            ${clienteEscapado ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapado}</span></div>` : ''}
+                                            ${ubicacionEscapada ? `<div class="cita-linea-recursos"><span class="cita-ubicacion-texto">${ubicacionEscapada}</span></div>` : ''}
                                             <div class="cita-descripcion">${obtenerDescripcion(cita)}</div>
                                             <div class="mt-2">
                                                 <span class="cita-estado ${(window.estadoDisplayCita && window.estadoDisplayCita(cita)) ? window.estadoDisplayCita(cita).clase : 'agendada'}">${(window.estadoDisplayCita && window.estadoDisplayCita(cita)) ? window.estadoDisplayCita(cita).texto : 'Agendada'}</span>
@@ -14433,8 +14436,8 @@
                     <div class="cita-hora-cronograma">
                         ${textoPrincipal}
                     </div>
-                    ${clienteEscapado ? `<div style="margin-top: 0.08rem; line-height: 1.2;"><span class="cita-cliente-texto">${clienteEscapado}</span></div>` : ''}
-                    ${ubicacionEscapada ? `<div style="margin-top: 0.06rem; line-height: 1.2;"><span class="cita-ubicacion-texto">${ubicacionEscapada}</span></div>` : ''}
+                    ${clienteEscapado ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapado}</span></div>` : ''}
+                    ${ubicacionEscapada ? `<div class="cita-linea-recursos"><span class="cita-ubicacion-texto">${ubicacionEscapada}</span></div>` : ''}
                 `;
                 
                 timelineHTML += citaBloque.outerHTML;
@@ -14650,8 +14653,8 @@
                     citaElement.innerHTML = `
                         ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                         <span class="cita-linea-principal">${textoPrincipal}</span>
-                        ${clienteEscapadoVista ? `<div style="margin-top: 0.06rem; line-height: 1.2;"><span class="cita-cliente-texto">${clienteEscapadoVista}</span></div>` : ''}
-                        ${ubicacionEscapadaVista ? `<div style="margin-top: 0.04rem; line-height: 1.2;"><span class="cita-ubicacion-texto">${ubicacionEscapadaVista}</span></div>` : ''}
+                        ${clienteEscapadoVista ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapadoVista}</span></div>` : ''}
+                        ${ubicacionEscapadaVista ? `<div class="cita-linea-recursos"><span class="cita-ubicacion-texto">${ubicacionEscapadaVista}</span></div>` : ''}
                     `;
                     // GPS ahora se obtiene desde la sucursal, no desde la cita
                     const tieneSucursal = window.esSucursalIndiceValido(window.obtenerCampoCita(cita, 'sucursalIndice', null));
