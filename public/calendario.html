@@ -276,6 +276,7 @@
         .indicador-encuesta-punto.rojo { background-color: #f44336; }
         .indicador-encuesta-punto.amarillo { background-color: #ffc107; }
         .indicador-encuesta-punto.verde { background-color: #4caf50; }
+        .indicador-encuesta-punto.azul { background-color: #2196f3; }
 
         /* Borde del punto = color de la cita en versión oscura (mismo border-color que la tarjeta) */
         .cita-item.Ruta-1 .indicador-encuesta-punto, .cita-bloque.Ruta-1 .indicador-encuesta-punto, .cita-item-dia.Ruta-1 .indicador-encuesta-punto { border-color: #258A59; }
@@ -12740,11 +12741,11 @@
                                             indicadorEncuesta = '<i class="fas fa-heart" style="color: #4caf50; font-size: 14px; margin-left: 4px;" title="Cliente respondió la encuesta"></i>';
                                             colorPuntoEncuesta = 'verde';
                                         } else if (estadoEncuesta === 3) {
-                                            // Justificada sin encuesta - azul
+                                            // No requiere encuesta - azul
                                             const justificacion = obtenerJustificacion(cita);
-                                            const tituloJustificacion = justificacion ? `Justificada: ${justificacion.substring(0, 50)}${justificacion.length > 50 ? '...' : ''}` : 'Cita justificada sin encuesta';
+                                            const tituloJustificacion = justificacion ? `Justificada: ${justificacion.substring(0, 50)}${justificacion.length > 50 ? '...' : ''}` : 'No requiere encuesta';
                                             indicadorEncuesta = `<i class="fas fa-heart" style="color: #2196f3; font-size: 14px; margin-left: 4px;" title="${tituloJustificacion}"></i>`;
-                                            colorPuntoEncuesta = ''; // No mostrar punto para justificadas
+                                            colorPuntoEncuesta = 'azul';
                                         }
                                         
                                         // Obtener datos para mostrar en las citas (una sola forma de leer: obtenerCampoCita)
@@ -12797,7 +12798,7 @@
                                             : `<div class="cita-linea-recursos"><span class="cita-ubicacion-pendiente">Dirección pendiente</span></div>`;
                                         
                                         citaElement.innerHTML = `
-                                            ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
+                                            ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                                             <div class="cita-duracion">${obtenerDuracion(cita)}min</div>
                                             <div class="cita-tres-lineas">
                                                 <div class="cita-hora cita-linea-badges">${textoPrincipal}</div>
@@ -14407,11 +14408,11 @@
                     indicadorEncuesta = '<i class="fas fa-heart" style="color: #4caf50; font-size: 14px; margin-left: 4px;" title="Cliente respondió la encuesta"></i>';
                     colorPuntoEncuesta = 'verde';
                 } else if (estadoEncuesta === 3) {
-                    // Justificada sin encuesta - azul
+                    // No requiere encuesta - azul
                     const justificacion = obtenerJustificacion(cita);
-                    const tituloJustificacion = justificacion ? `Justificada: ${justificacion.substring(0, 50)}${justificacion.length > 50 ? '...' : ''}` : 'Cita justificada sin encuesta';
+                    const tituloJustificacion = justificacion ? `Justificada: ${justificacion.substring(0, 50)}${justificacion.length > 50 ? '...' : ''}` : 'No requiere encuesta';
                     indicadorEncuesta = `<i class="fas fa-heart" style="color: #2196f3; font-size: 14px; margin-left: 4px;" title="${tituloJustificacion}"></i>`;
-                    colorPuntoEncuesta = ''; // No mostrar punto para justificadas
+                    colorPuntoEncuesta = 'azul';
                 }
                 
                 // Obtener datos para mostrar en las citas (una sola forma de leer: obtenerCampoCita)
@@ -14464,7 +14465,7 @@
                     : `<div class="cita-linea-recursos"><span class="cita-ubicacion-pendiente">Dirección pendiente</span></div>`;
                 
                 citaBloque.innerHTML = `
-                    ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
+                    ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                     <div class="cita-estado-cronograma ${(window.estadoDisplayCita && window.estadoDisplayCita(cita)) ? window.estadoDisplayCita(cita).clase : 'agendada'}"></div>
                     <div class="cita-tres-lineas">
                         <div class="cita-hora-cronograma cita-linea-badges">${textoPrincipal}</div>
@@ -14621,11 +14622,11 @@
                         indicadorEncuesta = '<i class="fas fa-heart" style="color: #4caf50; font-size: 12px; margin-left: 4px;" title="Cliente respondió la encuesta"></i>';
                         colorPuntoEncuesta = 'verde';
                     } else if (estadoEncuesta === 3) {
-                        // Justificada sin encuesta - azul
+                        // No requiere encuesta - azul
                         const justificacion = obtenerJustificacion(cita);
-                        const tituloJustificacion = justificacion ? `Justificada: ${justificacion.substring(0, 50)}${justificacion.length > 50 ? '...' : ''}` : 'Cita justificada sin encuesta';
+                        const tituloJustificacion = justificacion ? `Justificada: ${justificacion.substring(0, 50)}${justificacion.length > 50 ? '...' : ''}` : 'No requiere encuesta';
                         indicadorEncuesta = `<i class="fas fa-heart" style="color: #2196f3; font-size: 12px; margin-left: 4px;" title="${tituloJustificacion}"></i>`;
-                        colorPuntoEncuesta = ''; // No mostrar punto para justificadas
+                        colorPuntoEncuesta = 'azul';
                     }
                     
                     // Obtener datos para mostrar en las citas (una sola forma de leer: obtenerCampoCita)
@@ -14688,7 +14689,7 @@
                         : `<div class="cita-linea-recursos"><span class="cita-ubicacion-pendiente">Dirección pendiente</span></div>`;
                     
                     citaElement.innerHTML = `
-                        ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
+                        ${colorPuntoEncuesta ? `<div class="indicador-encuesta-punto ${colorPuntoEncuesta}" title="${estadoEncuesta === 0 ? 'Encuesta no enviada' : estadoEncuesta === 1 ? 'Encuesta enviada, esperando respuesta' : estadoEncuesta === 3 ? 'No requiere encuesta' : 'Cliente respondió la encuesta'}"></div>` : ''}
                         <div class="cita-tres-lineas">
                             <div class="cita-linea-principal cita-linea-badges">${textoPrincipal}</div>
                             ${clienteEscapadoVista ? `<div class="cita-linea-recursos"><span class="cita-cliente-texto">${clienteEscapadoVista}</span></div>` : ''}
