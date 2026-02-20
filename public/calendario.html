@@ -1833,7 +1833,7 @@
                                 <div id="dayBarsResumenWrap" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 0.7rem; font-weight: 700; color: #1a1a1a; padding: 2px 2px 4px 2px; line-height: 1.2; border-bottom: 1px solid #e0e0e0; margin-bottom: 2px;">
                                     <span style="display: flex; align-items: center; gap: 6px;">
                                         <span id="dayBarsResumen">Ventas: 0  Meta: 0  % de avance: 0%</span>
-                                        <button type="button" id="btnCopiarVentasMes" title="Copiar fecha,ventas del mes al portapapeles" style="padding: 2px 6px; font-size: 0.65rem; border: 1px solid #ccc; border-radius: 4px; background: #f8f9fa; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-copy"></i> Copiar</button>
+                                        <button type="button" id="btnCopiarVentasMes" title="Copiar ventas por día (TSV) para pegar en Excel" style="padding: 2px 6px; font-size: 0.65rem; border: 1px solid #ccc; border-radius: 4px; background: #f8f9fa; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-copy"></i> Copiar</button>
                                         <button type="button" id="btnDescargarCSVMes" title="Descargar CSV del mes actual con datos de Firebase (mismo formato que agenda ventas)" style="padding: 2px 6px; font-size: 0.65rem; border: 1px solid #ccc; border-radius: 4px; background: #f8f9fa; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-file-csv"></i> Descargar CSV</button>
                                     </span>
                                     <label style="font-weight: 600; font-size: 0.65rem; display: inline-flex; align-items: center; gap: 4px;">Meta mes (M): <input type="number" id="inputMetaMesM" min="0" step="0.1" value="0" placeholder="1.7/día" style="width: 52px; padding: 2px 4px; font-size: 0.65rem; border: 1px solid #ccc; border-radius: 4px;"></label>
@@ -4874,11 +4874,12 @@
                 btnCopiarVentasMes.addEventListener('click', async function() {
                     const data = window.ventasPorDiaMes;
                     if (!data || !data.dias || !data.ventas) return;
-                    const lineas = ['fecha,ventas'];
+                    // TSV (tabulaciones) para pegar directo en Excel: cada columna se separa correctamente
+                    const lineas = ['fecha\tventas EO'];
                     data.dias.forEach((fechaDia, i) => {
                         const fechaStr = formatearFechaParaInput(fechaDia);
                         const ventasDia = Math.round(data.ventas[i] || 0);
-                        lineas.push(fechaStr + ', ' + ventasDia);
+                        lineas.push(fechaStr + '\t' + ventasDia);
                     });
                     const texto = lineas.join('\n');
                     try {
@@ -20816,11 +20817,20 @@
                 btnPreview.disabled = true;
                 btnPreview.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Buscando...';
                 
-                // Obtener el día seleccionado del calendario
-                const diaSeleccionado = window.diaSeleccionado || new Date();
-                const year = diaSeleccionado.getFullYear();
-                const month = diaSeleccionado.getMonth();
-                const day = diaSeleccionado.getDate();
+                // Usar la fecha del modal (día del cronograma desde el que se abrió Migrar), no window.diaSeleccionado
+                const fechaDiaStr = (document.getElementById('fechaDiaMigrar') && document.getElementById('fechaDiaMigrar').value) || '';
+                let year, month, day;
+                if (fechaDiaStr && /^\d{4}-\d{2}-\d{2}$/.test(fechaDiaStr)) {
+                    const [y, m, d] = fechaDiaStr.split('-').map(Number);
+                    year = y;
+                    month = m - 1;
+                    day = d;
+                } else {
+                    const fallback = window.diaSeleccionado || new Date();
+                    year = fallback.getFullYear();
+                    month = fallback.getMonth();
+                    day = fallback.getDate();
+                }
                 
                 // Calcular rango del día laborable (5am a 5am del siguiente día)
                 const fechaInicioDiaLaborable = new Date(year, month, day, 5, 0, 0);
@@ -20893,11 +20903,20 @@
                 btnConfirmar.disabled = true;
                 btnConfirmar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Migrando...';
                 
-                // Obtener el día seleccionado del calendario
-                const diaSeleccionado = window.diaSeleccionado || new Date();
-                const year = diaSeleccionado.getFullYear();
-                const month = diaSeleccionado.getMonth();
-                const day = diaSeleccionado.getDate();
+                // Usar la fecha del modal (día del cronograma desde el que se abrió Migrar), no window.diaSeleccionado
+                const fechaDiaStrConfirm = (document.getElementById('fechaDiaMigrar') && document.getElementById('fechaDiaMigrar').value) || '';
+                let year, month, day;
+                if (fechaDiaStrConfirm && /^\d{4}-\d{2}-\d{2}$/.test(fechaDiaStrConfirm)) {
+                    const [y, m, d] = fechaDiaStrConfirm.split('-').map(Number);
+                    year = y;
+                    month = m - 1;
+                    day = d;
+                } else {
+                    const fallback = window.diaSeleccionado || new Date();
+                    year = fallback.getFullYear();
+                    month = fallback.getMonth();
+                    day = fallback.getDate();
+                }
                 
                 // Calcular rango del día laborable (5am a 5am del siguiente día)
                 const fechaInicioDiaLaborable = new Date(year, month, day, 5, 0, 0);
