@@ -3845,21 +3845,9 @@
                 llenarProvinciasEdit();
             }
             
-            // Llenar el formulario con todos los datos
-            // Obtener nombre del cliente desde el documento del cliente (source of truth)
+            // Llenar el formulario con todos los datos (solo desde la cita; no consultar nombre ni dirección por teléfono)
             const telefonoCita = window.obtenerTelefono(cita);
-            let nombreCliente = 'Sin nombre';
-            if (telefonoCita) {
-                const cliente = await window.buscarCliente(telefonoCita);
-                if (cliente && cliente.nombre) {
-                    nombreCliente = cliente.nombre;
-                } else {
-                    // Fallback: usar nombre guardado en la cita (compatibilidad con datos antiguos)
-                    nombreCliente = window.obtenerClienteNombreSync(cita);
-                }
-            } else {
-                nombreCliente = window.obtenerClienteNombreSync(cita);
-            }
+            const nombreCliente = window.obtenerClienteNombreSync(cita) || window.obtenerCampoCita(cita, 'cliente_nombre', '') || 'Sin nombre';
             document.getElementById('editClientName').value = nombreCliente;
             
             // Teléfono: mostrar solo 8 dígitos (sin 506)
@@ -3879,35 +3867,22 @@
                 editWhatsApp.value = window.generarLinkWhatsApp(telefonoActual, 'Hola desde Ecoplagas');
             }
             
-            // Cargar sucursales del cliente
-            if (telefonoActual) {
-                const sucursalIndice = window.obtenerCampoCita(cita, 'sucursalIndice', null);
-                await window.cargarSucursalesEnSelect('editSucursal', telefonoActual, sucursalIndice);
-                
-                // Si hay sucursal seleccionada, pre-llenar datos
-                if (sucursalIndice) {
-                    const sucursal = await window.obtenerSucursalPorIndice(telefonoActual, sucursalIndice);
-                    if (sucursal) {
-                        // Pre-llenar nombre de sucursal si existe
-                        const editNombreSucursal = document.getElementById('editNombreSucursal');
-                        if (editNombreSucursal) {
-                            editNombreSucursal.value = sucursal.nombre;
-                        }
-                        // Pre-llenar coordenadas y ubicación
-                        if (window.sonCoordenadasValidas(sucursal?.coordenadas)) {
-                            const coordsTexto = `${sucursal.coordenadas.lat}, ${sucursal.coordenadas.lng}`;
-                            document.getElementById('editCoordenadas').value = coordsTexto;
-                            if (window.procesarCoordenadasEdit) {
-                                await window.procesarCoordenadasEdit(sucursal.coordenadas.lat, sucursal.coordenadas.lng);
-                            }
-                        }
-                        if (sucursal.provinciaId) document.getElementById('editProvincia').value = sucursal.provinciaId;
-                        if (sucursal.cantonId) document.getElementById('editCanton').value = sucursal.cantonId;
-                        if (sucursal.distritoId) document.getElementById('editDistrito').value = sucursal.distritoId;
-                        if (sucursal.direccion) document.getElementById('editDireccion').value = sucursal.direccion;
-                        if (sucursal.otras_senas || sucursal.otrasSenas) document.getElementById('editOtrasSenas').value = sucursal.otras_senas || sucursal.otrasSenas;
-                    }
+            // No cargar sucursales ni dirección por teléfono; mostrar solo la sucursal actual de la cita en el select
+            const sucursalIndiceCita = window.obtenerCampoCita(cita, 'sucursalIndice', null);
+            const editSucursalSelect = document.getElementById('editSucursal');
+            if (editSucursalSelect) {
+                editSucursalSelect.innerHTML = '';
+                if (window.esSucursalIndiceValido(sucursalIndiceCita)) {
+                    const opt = document.createElement('option');
+                    opt.value = sucursalIndiceCita;
+                    opt.textContent = 'Sucursal ' + String(sucursalIndiceCita).padStart(3, '0') + ' (datos de la cita)';
+                    editSucursalSelect.appendChild(opt);
                 }
+                const optNueva = document.createElement('option');
+                optNueva.value = 'nueva';
+                optNueva.textContent = '+ Crear nueva sucursal';
+                editSucursalSelect.appendChild(optNueva);
+                if (window.esSucursalIndiceValido(sucursalIndiceCita)) editSucursalSelect.value = sucursalIndiceCita;
             }
             if (window.actualizarVisibilidadBotonEditarSucursal) window.actualizarVisibilidadBotonEditarSucursal(true);
             
@@ -4200,30 +4175,10 @@
             const direccionLink = window.obtenerCampoCita(cita, 'direccion', '') || '';
             document.getElementById('editDireccion').value = direccionLink || '';
             
-            // Cargar coordenadas
-            // Primero intentar obtener desde sucursal, luego fallback para citas antiguas
+            // Cargar coordenadas solo desde la cita (no consultar sucursal por teléfono)
             let coordenadas = null;
-            const sucursalIndice = window.obtenerCampoCita(cita, 'sucursalIndice', null);
-            // Obtener teléfono desde la fuente de verdad (cita.telefono)
-            const clienteTelefono = window.obtenerTelefono(cita);
-            
-            // Si hay sucursal, obtener coordenadas desde la sucursal (source of truth)
-            if (window.esSucursalIndiceValido(sucursalIndice) && clienteTelefono) {
-                try {
-                    const sucursal = await window.obtenerSucursalPorIndice(clienteTelefono, sucursalIndice);
-                    if (window.sonCoordenadasValidas(sucursal?.coordenadas)) {
-                        coordenadas = sucursal.coordenadas;
-                    }
-                } catch (error) {
-                    console.warn('Error obteniendo coordenadas desde sucursal:', error);
-                }
-            }
-            
-            // Fallback para citas antiguas que aún tienen coordenadas en metadata (compatibilidad)
-            if (!coordenadas) {
-                const coords = window.obtenerCampoCita(cita, 'coordenadas', null);
-                if (window.sonCoordenadasValidas(coords)) coordenadas = coords;
-            }
+            const coords = window.obtenerCampoCita(cita, 'coordenadas', null);
+            if (window.sonCoordenadasValidas(coords)) coordenadas = coords;
             
             let lat = null;
             let lng = null;
@@ -20186,7 +20141,7 @@
             const editPhoneDisplay = document.getElementById('editPhoneDisplay');
             const newPhoneDisplay = document.getElementById('newPhoneDisplay');
             
-            // Función para manejar cambios en teléfono
+            // Función para manejar cambios en teléfono (solo formato y WhatsApp; no se consulta nombre ni dirección por teléfono)
             async function manejarCambioTelefono(input, display, sucursalSelectId, whatsappId, nombreSucursalId) {
                 const valor = input.value.trim();
                 
@@ -20207,16 +20162,10 @@
                         }
                     }
                     
-                    // Cargar sucursales
-                    if (sucursalSelectId && telefonoNormalizado) {
-                        await window.cargarSucursalesEnSelect(sucursalSelectId, telefonoNormalizado);
-                        
-                        // Si hay solo una sucursal, pre-seleccionarla y disparar change para llenar todo y mostrar botón editar
+                    // No cargar sucursales ni nombre/dirección por teléfono (evitar reemplazar datos por error)
+                    if (sucursalSelectId) {
                         const select = document.getElementById(sucursalSelectId);
-                        if (select && select.options.length === 2) { // 1 sucursal + opción "nueva"
-                            select.value = select.options[0].value;
-                            select.dispatchEvent(new Event('change'));
-                        }
+                        if (select) select.innerHTML = '<option value="">Seleccione o cree una sucursal</option><option value="nueva">+ Crear nueva sucursal</option>';
                     }
                 } else {
                     if (display) display.textContent = '';
