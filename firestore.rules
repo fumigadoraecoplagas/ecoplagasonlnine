@@ -40,28 +40,23 @@ service cloud.firestore {
     }
     
     // Función helper para validar actualizaciones parciales de empleado
-    // Permite actualizar campos individuales sin requerir todos los campos
+    // Permite actualizar campos individuales; campos no listados se permiten como están
     function isValidEmployeeUpdate() {
       let data = request.resource.data;
       
-      // Validar solo los campos que se están actualizando
-      // Si un campo no está en data, significa que no se está actualizando
       return (!('primerNombre' in data) || 
               (data.primerNombre is string && data.primerNombre.size() > 0 && data.primerNombre.size() <= 50)) &&
              (!('primerApellido' in data) || 
               (data.primerApellido is string && data.primerApellido.size() > 0 && data.primerApellido.size() <= 50)) &&
              (!('username' in data) || 
               (data.username is string && data.username.size() >= 3 && data.username.size() <= 30)) &&
-             (!('permisos' in data) || data.permisos is map) &&
-             // Validar fechaIngreso si se actualiza (puede ser null o string)
+             (!('permisos' in data) || data.permisos == null || data.permisos is map) &&
              (!('fechaIngreso' in data) || data.fechaIngreso == null || data.fechaIngreso is string) &&
-             // Validar diasVacacionesAntes2025 si se actualiza (puede ser null o number)
              (!('diasVacacionesAntes2025' in data) || data.diasVacacionesAntes2025 == null || data.diasVacacionesAntes2025 is number) &&
-             // Validar campos de Firebase Auth si se actualizan
-             (!('firebaseAuthUID' in data) || data.firebaseAuthUID is string) &&
-             (!('firebaseAuthEmail' in data) || data.firebaseAuthEmail is string) &&
+             (!('firebaseAuthUID' in data) || data.firebaseAuthUID == null || data.firebaseAuthUID is string) &&
+             (!('firebaseAuthEmail' in data) || data.firebaseAuthEmail == null || data.firebaseAuthEmail is string) &&
              (!('firebaseAuthMigrated' in data) || data.firebaseAuthMigrated is bool) &&
-             (!('firebaseAuthMigratedAt' in data) || data.firebaseAuthMigratedAt is string);
+             (!('firebaseAuthMigratedAt' in data) || data.firebaseAuthMigratedAt == null || data.firebaseAuthMigratedAt is string);
     }
     
     // Función helper para validar estructura de datos de cita
@@ -125,13 +120,28 @@ service cloud.firestore {
         : null;
     }
     
+    // Lookup por UID: permite encontrar el documento del empleado aunque su ID no sea username ni UID
+    // empleados_uid_lookup/{uid} contiene { empleadoId: "idDelDocumentoEnEmpleados" }
+    // Usamos exists() antes de get() para no fallar cuando el documento no existe
+    function getEmployeeByLookup() {
+      let lookupPath = /databases/$(database)/documents/empleados_uid_lookup/$(request.auth.uid);
+      return exists(lookupPath) &&
+             get(lookupPath).data.empleadoId is string
+        ? get(/databases/$(database)/documents/empleados/$(get(lookupPath).data.empleadoId))
+        : null;
+    }
+    
     // Función helper para obtener el documento del empleado autenticado
     // Intenta múltiples estrategias para encontrar el documento
-    // IMPORTANTE: Esta función intenta buscar el documento por UID como ID primero,
-    // ya que los documentos pueden tener cualquier ID (no necesariamente username)
+    // IMPORTANTE: Primero intenta empleados_uid_lookup (documentos con ID auto-generado), luego UID y username
     function getAuthenticatedEmployee() {
-      // Estrategia 1: Buscar por UID (ID del documento) - PRIORITARIO
-      // Los documentos pueden tener ID = UID o cualquier otro ID
+      // Estrategia 0: Lookup por UID (documentos con ID distinto a username/UID)
+      let empByLookup = getEmployeeByLookup();
+      let empByLookupValid = (empByLookup != null &&
+                              'permisos' in empByLookup.data &&
+                              'firebaseAuthUID' in empByLookup.data &&
+                              empByLookup.data.firebaseAuthUID == request.auth.uid);
+      // Estrategia 1: Buscar por UID (ID del documento)
       let empByUid = getEmployeeByUid();
       let empByUidWithMatchingUid = (empByUid != null &&
                                      'firebaseAuthUID' in empByUid.data &&
@@ -160,12 +170,13 @@ service cloud.firestore {
                                  'username' in empByUsername.data &&
                                  empByUsername.data.username == username);
       
-      // Retornar el primer documento válido encontrado, priorizando los que tienen firebaseAuthUID coincidente
-      return empByUidWithMatchingUid != null ? empByUidWithMatchingUid
-        : (empByUid != null ? empByUid
-          : (empByUsernameWithMatchingUid != null ? empByUsernameWithMatchingUid
-            : (empByUsernameValid ? empByUsername
-              : (empByUidUsername != null ? empByUidUsername : null))));
+      // Retornar el primer documento válido encontrado (lookup primero para IDs auto-generados)
+      return empByLookupValid ? empByLookup
+        : (empByUidWithMatchingUid != null ? empByUidWithMatchingUid
+          : (empByUid != null ? empByUid
+            : (empByUsernameWithMatchingUid != null ? empByUsernameWithMatchingUid
+              : (empByUsernameValid ? empByUsername
+                : (empByUidUsername != null ? empByUidUsername : null)))))
     }
     
     // Función helper para verificar si el usuario tiene un permiso específico
@@ -206,10 +217,23 @@ service cloud.firestore {
          getEmployeeByUsername() != null &&
          'permisos' in getEmployeeByUsername().data &&
          permission in getEmployeeByUsername().data.permisos &&
-         getEmployeeByUsername().data.permisos[permission] == true)
+         getEmployeeByUsername().data.permisos[permission] == true) ||
+        // Estrategia 4: Lookup empleados_uid_lookup (documentos con ID auto-generado)
+        hasPermissionByLookup(permission)
       );
     }
     
+    // Permiso usando solo empleados_uid_lookup (para usuarios cuyo doc tiene ID distinto a username/UID)
+    function hasPermissionByLookup(permission) {
+      let lookupPath = /databases/$(database)/documents/empleados_uid_lookup/$(request.auth.uid);
+      return exists(lookupPath) &&
+             'empleadoId' in get(lookupPath).data &&
+             get(lookupPath).data.empleadoId is string &&
+             exists(/databases/$(database)/documents/empleados/$(get(lookupPath).data.empleadoId)) &&
+             'permisos' in get(/databases/$(database)/documents/empleados/$(get(lookupPath).data.empleadoId)).data &&
+             permission in get(/databases/$(database)/documents/empleados/$(get(lookupPath).data.empleadoId)).data.permisos &&
+             get(/databases/$(database)/documents/empleados/$(get(lookupPath).data.empleadoId)).data.permisos[permission] == true;
+    }
     
     // ============================================
     // COLECCIÓN: EMPLEADOS
@@ -229,23 +253,34 @@ service cloud.firestore {
                       isValidEmployeeData() &&
                       (hasPermission('empleados') || 
                        hasPermissionFallback('empleados') ||
-                       // Fallback: Si el usuario está autenticado, permitir (el cliente debe verificar permisos)
+                       hasPermissionByLookup('empleados') ||
                        (isAuthenticated() && request.auth.uid != null));
       
-      // ACTUALIZACIÓN: Requiere autenticación, permiso de empleados y permite actualizaciones parciales
-      allow update: if isSecureSystem() && 
-                      isValidEmployeeUpdate() &&
-                      (hasPermission('empleados') || 
-                       hasPermissionFallback('empleados') ||
-                       // Fallback: Si el usuario está autenticado, permitir (el cliente debe verificar permisos)
-                       (isAuthenticated() && request.auth.uid != null));
+      // ACTUALIZACIÓN: si tiene permiso por lookup, permitir (aunque falle validación estricta de otros campos)
+      allow update: if isSecureSystem() && (
+                      (isValidEmployeeUpdate() &&
+                       (hasPermission('empleados') || hasPermissionFallback('empleados') || hasPermissionByLookup('empleados') || (isAuthenticated() && request.auth.uid != null))) ||
+                      hasPermissionByLookup('empleados')
+                    );
       
-      // ELIMINACIÓN: Requiere autenticación y permiso de empleados
       allow delete: if isSecureSystem() && 
                      (hasPermission('empleados') || 
                       hasPermissionFallback('empleados') ||
-                      // Fallback: Si el usuario está autenticado, permitir (el cliente debe verificar permisos)
+                      hasPermissionByLookup('empleados') ||
                       (isAuthenticated() && request.auth.uid != null));
+    }
+    
+    // Lookup UID -> empleadoId: permite que las reglas encuentren al empleado aunque el doc no tenga ID = username/UID
+    // Solo el propio usuario puede crear/actualizar su entrada (empleadoId debe apuntar a un doc con su firebaseAuthUID)
+    match /empleados_uid_lookup/{uid} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() &&
+        uid == request.auth.uid &&
+        request.resource.data.keys().hasOnly(['empleadoId']) &&
+        request.resource.data.empleadoId is string &&
+        exists(/databases/$(database)/documents/empleados/$(request.resource.data.empleadoId)) &&
+        get(/databases/$(database)/documents/empleados/$(request.resource.data.empleadoId)).data.firebaseAuthUID == request.auth.uid;
+      allow delete: if isAuthenticated() && uid == request.auth.uid;
     }
     
     // Compatibilidad con colección anterior

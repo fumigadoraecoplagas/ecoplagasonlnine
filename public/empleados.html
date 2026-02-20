@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -521,6 +521,11 @@
                         <button id="btnLimpiarEmpleadosInvalidos" class="btn btn-danger w-100 mobile-action-btn" onclick="verificarEmpleadosInvalidos()" style="padding: 10px; font-size: 0.9rem;">
                             <i class="fas fa-trash-alt me-2"></i>Limpiar Inválidos
                             </button>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <button type="button" id="btnRepararAcceso" class="btn btn-outline-secondary btn-sm w-100" onclick="window.actualizarLookupUsuarioActual && window.actualizarLookupUsuarioActual();" title="Si no puedes guardar empleados por error de permisos, haz clic aquí (solo una vez). Repara la vinculación entre tu usuario y tu documento de empleado.">
+                            <i class="fas fa-toolbox me-1"></i>Reparar mi acceso a empleados
+                        </button>
                     </div>
                         </div>
                     </div>
@@ -1582,6 +1587,21 @@
                 
                 console.log(`✅ Cargados ${empleados.length} empleados`);
                 
+                // Asegurar lookup del usuario actual (para reglas cuando el doc tiene ID auto-generado)
+                try {
+                    const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+                    const auth = getAuth();
+                    const uid = auth.currentUser?.uid;
+                    const miUsername = window.authManager?.currentUser?.username;
+                    if (uid && empleados.length) {
+                        const miEmpleado = empleados.find(e => e.firebaseAuthUID === uid || e.username === miUsername);
+                        if (miEmpleado && miEmpleado.id !== miEmpleado.username) {
+                            await setDoc(doc(db, 'empleados_uid_lookup', uid), { empleadoId: miEmpleado.id });
+                            console.log('Lookup usuario actual listo (empleados_uid_lookup)');
+                        }
+                    }
+                } catch (eLookup) { console.warn('Lookup al cargar:', eLookup?.message || eLookup); }
+                
                 // Cargar datos de actividad
                 await cargarDatosActividad();
                 
@@ -2174,17 +2194,10 @@
             document.getElementById('notas').value = empleado.notas || '';
             
             // Permisos
-            console.log('🔍 Debug llenarFormulario:', {
-                empleado: empleado.primerNombre + ' ' + empleado.primerApellido,
-                permisos: empleado.permisos,
-                registro_horas: empleado.permisos?.registro_horas
-            });
-            
             document.getElementById('permisoCalendario').checked = empleado.permisos?.calendario || false;
             document.getElementById('permisoEmpleados').checked = empleado.permisos?.empleados || false;
             
             const permisoRegistroHoras = empleado.permisos?.registro_horas || false;
-            console.log('🔍 Asignando permisoRegistroHoras:', permisoRegistroHoras);
             document.getElementById('permisoRegistroHoras').checked = permisoRegistroHoras;
             document.getElementById('permisoEdicionHoras').checked = empleado.permisos?.edicion_horas || false;
             document.getElementById('permisoReportesGerenciales').checked = empleado.permisos?.reportes_gerenciales || false;
@@ -2193,11 +2206,6 @@
             document.getElementById('permisoTickets').checked = empleado.permisos?.tickets || false;
             document.getElementById('permisoRecursosHumanos').checked = empleado.permisos?.recursos_humanos || false;
             
-            // Verificar que se asignó correctamente
-            setTimeout(() => {
-                const checkboxValue = document.getElementById('permisoRegistroHoras').checked;
-                console.log('🔍 Checkbox permisoRegistroHoras después de asignar:', checkboxValue);
-            }, 50);
         }
 
         // Guardar empleado
@@ -2321,195 +2329,16 @@
                 }
             }
 
-            // ========== LOGS DETALLADOS DE DIAGNÓSTICO ==========
-            console.group('🔍 [GUARDAR EMPLEADO] Diagnóstico Completo');
-            
-            // 1. Información del usuario autenticado
-            const currentUser = window.authManager?.currentUser;
-            console.log('1️⃣ USUARIO AUTENTICADO:', {
-                existe: !!currentUser,
-                id: currentUser?.id,
-                username: currentUser?.username,
-                nombre: currentUser?.nombre,
-                email: currentUser?.email,
-                uid: currentUser?.uid,
-                firebaseUID: currentUser?.firebaseUID,
-                firebaseAuthUID: currentUser?.firebaseAuthUID,
-                permisos: currentUser?.permisos,
-                tienePermisoEmpleados: currentUser?.permisos?.empleados || false
-            });
-            
-            // 2. Obtener UID de Firebase Auth directamente
-            let firebaseAuthUID = null;
-            let firebaseAuthEmail = null;
-            try {
-                const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
-                const auth = getAuth();
-                if (auth.currentUser) {
-                    firebaseAuthUID = auth.currentUser.uid;
-                    firebaseAuthEmail = auth.currentUser.email;
-                    console.log('2️⃣ FIREBASE AUTH DIRECTAMENTE:', {
-                        uid: firebaseAuthUID,
-                        email: firebaseAuthEmail,
-                        emailVerified: auth.currentUser.emailVerified,
-                        tokenDisponible: !!auth.currentUser.accessToken
-                    });
-                    
-                    // Intentar obtener el token para ver su contenido
-                    try {
-                        const token = await auth.currentUser.getIdTokenResult();
-                        console.log('3️⃣ TOKEN DE FIREBASE AUTH:', {
-                            email: token.claims.email || 'NO DISPONIBLE',
-                            firebase: token.claims.firebase || 'NO DISPONIBLE',
-                            identities: token.claims.firebase?.identities || 'NO DISPONIBLE',
-                            emailEnToken: token.claims.email || token.claims.firebase?.identities?.email?.[0] || 'NO DISPONIBLE'
-                        });
-                    } catch (tokenError) {
-                        console.warn('⚠️ No se pudo obtener el token:', tokenError);
-                    }
-                } else {
-                    console.warn('⚠️ auth.currentUser es null');
-                }
-            } catch (authError) {
-                console.error('❌ Error obteniendo Firebase Auth:', authError);
-            }
-            
-            // 3. Información del documento a crear/actualizar
             const docId = currentEmpleadoId || empleadoData.username;
-            console.log('4️⃣ DOCUMENTO A CREAR/ACTUALIZAR:', {
-                esNuevo: !currentEmpleadoId,
-                docId: docId,
-                username: empleadoData.username,
-                primerNombre: empleadoData.primerNombre,
-                primerApellido: empleadoData.primerApellido,
-                tienePermisos: !!empleadoData.permisos,
-                permisosEmpleados: empleadoData.permisos?.empleados || false
-            });
-            
-            // 4. Verificar si el documento existe
-            try {
-                const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-                const db = getFirestore();
-                const docRef = doc(db, 'empleados', docId);
-                const docSnap = await getDoc(docRef);
-                console.log('5️⃣ ESTADO DEL DOCUMENTO EN FIRESTORE:', {
-                    existe: docSnap.exists(),
-                    docId: docId,
-                    datos: docSnap.exists() ? docSnap.data() : 'NO EXISTE'
-                });
-            } catch (docError) {
-                console.warn('⚠️ No se pudo verificar el documento:', docError);
+            if (currentEmpleadoId) {
+                console.log('Guardando empleado (update):', docId);
+            } else {
+                console.log('Guardando empleado (create):', empleadoData.username);
             }
-            
-            // 5. Verificar documento del usuario autenticado
-            try {
-                const { getFirestore, doc, getDoc, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-                const db = getFirestore();
-                
-                // Intentar por username
-                if (currentUser?.username) {
-                    const userDocRef = doc(db, 'empleados', currentUser.username);
-                    const userDocSnap = await getDoc(userDocRef);
-                    console.log('6️⃣ DOCUMENTO DEL USUARIO AUTENTICADO (por username):', {
-                        username: currentUser.username,
-                        existe: userDocSnap.exists(),
-                        idBuscado: currentUser.username,
-                        idEncontrado: userDocSnap.exists() ? userDocSnap.id : 'NO EXISTE',
-                        datos: userDocSnap.exists() ? {
-                            id: userDocSnap.id,
-                            username: userDocSnap.data().username,
-                            firebaseAuthUID: userDocSnap.data().firebaseAuthUID || 'NO',
-                            permisos: userDocSnap.data().permisos,
-                            tienePermisoEmpleados: userDocSnap.data().permisos?.empleados || false
-                        } : 'NO EXISTE'
-                    });
-                    
-                    // Si no existe por username, buscar en TODOS los documentos
-                    if (!userDocSnap.exists()) {
-                        console.log('🔍 Documento no encontrado por username, buscando en TODOS los documentos...');
-                        try {
-                            const empleadosSnapshot = await getDocs(collection(db, 'empleados'));
-                            let documentosCoincidentes = [];
-                            
-                            empleadosSnapshot.forEach(doc => {
-                                const emp = { id: doc.id, ...doc.data() };
-                                // Buscar por username
-                                if (emp.username === currentUser.username) {
-                                    documentosCoincidentes.push({ tipo: 'username', documento: emp });
-                                }
-                                // Buscar por firebaseAuthUID
-                                if (firebaseAuthUID && emp.firebaseAuthUID === firebaseAuthUID) {
-                                    documentosCoincidentes.push({ tipo: 'firebaseAuthUID', documento: emp });
-                                }
-                                // Buscar por nombre
-                                if (emp.primerNombre === 'Pablo' && emp.primerApellido === 'Paniagua') {
-                                    documentosCoincidentes.push({ tipo: 'nombre', documento: emp });
-                                }
-                            });
-                            
-                            if (documentosCoincidentes.length > 0) {
-                                console.log('✅ DOCUMENTOS ENCONTRADOS (con ID diferente):', documentosCoincidentes);
-                                documentosCoincidentes.forEach((item, index) => {
-                                    console.log(`\n📄 Documento ${index + 1} (encontrado por ${item.tipo}):`);
-                                    console.log('   - ID del documento:', item.documento.id);
-                                    console.log('   - Username:', item.documento.username);
-                                    console.log('   - firebaseAuthUID:', item.documento.firebaseAuthUID || 'NO');
-                                    console.log('   - Permisos:', item.documento.permisos);
-                                    console.log('   - ¿Tiene permiso empleados?', item.documento.permisos?.empleados || false);
-                                    console.log('   ⚠️ PROBLEMA: El ID del documento ("' + item.documento.id + '") NO coincide con el username ("' + currentUser.username + '")');
-                                    console.log('   💡 SOLUCIÓN: El documento debe tener ID = username para que las reglas funcionen');
-                                });
-                            } else {
-                                console.error('❌ No se encontró ningún documento que coincida');
-                            }
-                        } catch (searchError) {
-                            console.error('❌ Error buscando en todos los documentos:', searchError);
-                        }
-                    }
-                }
-                
-                // Intentar por UID
-                if (firebaseAuthUID) {
-                    const uidDocRef = doc(db, 'empleados', firebaseAuthUID);
-                    const uidDocSnap = await getDoc(uidDocRef);
-                    console.log('7️⃣ DOCUMENTO DEL USUARIO AUTENTICADO (por UID):', {
-                        uid: firebaseAuthUID,
-                        existe: uidDocSnap.exists(),
-                        idBuscado: firebaseAuthUID,
-                        idEncontrado: uidDocSnap.exists() ? uidDocSnap.id : 'NO EXISTE',
-                        datos: uidDocSnap.exists() ? {
-                            id: uidDocSnap.id,
-                            username: uidDocSnap.data().username,
-                            firebaseAuthUID: uidDocSnap.data().firebaseAuthUID || 'NO',
-                            permisos: uidDocSnap.data().permisos,
-                            tienePermisoEmpleados: uidDocSnap.data().permisos?.empleados || false
-                        } : 'NO EXISTE'
-                    });
-                }
-            } catch (userDocError) {
-                console.error('❌ Error verificando documento del usuario:', userDocError);
-                console.error('   Error completo:', userDocError);
-            }
-            
-            // 6. Resumen de verificación de permisos
-            const tienePermiso = window.authManager?.hasPermission('empleados');
-            console.log('8️⃣ VERIFICACIÓN DE PERMISOS:', {
-                tienePermiso: tienePermiso,
-                metodo: 'window.authManager.hasPermission("empleados")',
-                authManagerExiste: !!window.authManager,
-                currentUserExiste: !!window.authManager?.currentUser
-            });
-            
-            console.log('9️⃣ OPERACIÓN A REALIZAR:', {
-                tipo: currentEmpleadoId ? 'UPDATE' : 'CREATE',
-                docId: docId,
-                coleccion: 'empleados'
-            });
-            
-            console.groupEnd();
-            // ========== FIN DE LOGS DETALLADOS ==========
 
             try {
+                const { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+                const db = getFirestore();
                 if (currentEmpleadoId) {
                     // Para empleados existentes, actualizar todos los campos EXCEPTO contraseña
                     // IMPORTANTE: La contraseña NO se puede modificar desde esta página una vez creada
@@ -2519,11 +2348,11 @@
                     
                     if (empleadoDocSnap.exists()) {
                         const datosActuales = empleadoDocSnap.data();
-                        // Preservar password y passwordPlain del documento existente
-                        empleadoData.password = datosActuales.password;
-                        empleadoData.passwordPlain = datosActuales.passwordPlain;
-                        empleadoData.passwordEncrypted = datosActuales.passwordEncrypted;
-                        empleadoData.passwordMigrationDate = datosActuales.passwordMigrationDate;
+                        // Preservar password y passwordPlain del documento existente (solo si existen; Firestore no acepta undefined)
+                        if (datosActuales.password !== undefined) empleadoData.password = datosActuales.password;
+                        if (datosActuales.passwordPlain !== undefined) empleadoData.passwordPlain = datosActuales.passwordPlain;
+                        if (datosActuales.passwordEncrypted !== undefined) empleadoData.passwordEncrypted = datosActuales.passwordEncrypted;
+                        if (datosActuales.passwordMigrationDate !== undefined) empleadoData.passwordMigrationDate = datosActuales.passwordMigrationDate;
                         // No incluir passwordChangedDate ya que no se está cambiando
                     }
                     
@@ -2531,10 +2360,33 @@
                     if (window.csrfProtection) {
                         window.csrfProtection.addTokenToData(empleadoData);
                     }
-                    console.log('🔄 Intentando actualizar empleado...', { docId: currentEmpleadoId });
-                    await updateDoc(empleadoDocRef, empleadoData);
-                    console.log('✅ Empleado actualizado (contraseña preservada, no modificada)');
-                    
+                    // Firestore no acepta undefined: eliminar cualquier campo con valor undefined
+                    const updateDataClean = Object.fromEntries(
+                        Object.entries(empleadoData).filter(([, v]) => v !== undefined)
+                    );
+                    // Asegurar que el usuario actual tenga entrada en empleados_uid_lookup (para reglas cuando el doc tiene ID auto-generado)
+                    try {
+                        const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+                        const auth = getAuth();
+                        const miUid = auth.currentUser?.uid;
+                        const miUsername = window.authManager?.currentUser?.username;
+                        if (miUid && empleados && empleados.length) {
+                            const miEmpleado = empleados.find(e => e.firebaseAuthUID === miUid || e.username === miUsername);
+                            if (miEmpleado && miEmpleado.id !== miEmpleado.username) {
+                                await setDoc(doc(db, 'empleados_uid_lookup', miUid), { empleadoId: miEmpleado.id });
+                            }
+                        }
+                    } catch (eLookup) {
+                        console.error('Lookup antes de guardar falló:', eLookup?.code, eLookup?.message);
+                    }
+                    await updateDoc(empleadoDocRef, updateDataClean);
+                    console.log('Empleado actualizado:', currentEmpleadoId);
+                    // Mantener lookup UID -> empleadoId para que las reglas encuentren al empleado (documentos con ID auto-generado)
+                    if (empleadoData.firebaseAuthUID) {
+                        try {
+                            await setDoc(doc(db, 'empleados_uid_lookup', empleadoData.firebaseAuthUID), { empleadoId: currentEmpleadoId });
+                        } catch (e) { console.warn('Lookup UID no actualizado:', e); }
+                    }
                     // Para empleados existentes, verificar si mostrar el botón
                     const empleadoActualizado = empleados.find(e => e.id === currentEmpleadoId);
                     const btnCrearFirebaseAuth = document.getElementById('btnCrearFirebaseAuth');
@@ -2669,222 +2521,13 @@
                 }
                 
             } catch (error) {
-                console.group('❌ [ERROR GUARDANDO EMPLEADO] Diagnóstico Completo del Error');
-                console.error('Código del error:', error.code);
-                console.error('Mensaje del error:', error.message);
-                console.error('Stack trace:', error.stack);
-                console.error('Error completo:', error);
-                
-                // Si es un error de permisos, mostrar información de diagnóstico MUY detallada
+                console.error('Error guardando empleado:', error.code, error.message);
                 if (error.code === 'permission-denied' || error.message?.includes('permission')) {
-                    console.group('🔍 Diagnóstico Detallado de Permisos');
-                    
-                    // 1. Información del usuario autenticado
-                    const currentUser = window.authManager?.currentUser;
-                    console.log('1️⃣ USUARIO AUTENTICADO (window.authManager.currentUser):', {
-                        existe: !!currentUser,
-                        completo: currentUser,
-                        id: currentUser?.id,
-                        username: currentUser?.username,
-                        nombre: currentUser?.nombre,
-                        email: currentUser?.email,
-                        uid: currentUser?.uid,
-                        firebaseUID: currentUser?.firebaseUID,
-                        firebaseAuthUID: currentUser?.firebaseAuthUID,
-                        permisos: currentUser?.permisos,
-                        tienePermisoEmpleados: currentUser?.permisos?.empleados || false
-                    });
-                    
-                    // 2. Firebase Auth directamente
-                    try {
-                        const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
-                        const auth = getAuth();
-                        if (auth.currentUser) {
-                            console.log('2️⃣ FIREBASE AUTH (auth.currentUser):', {
-                                uid: auth.currentUser.uid,
-                                email: auth.currentUser.email,
-                                emailVerified: auth.currentUser.emailVerified,
-                                displayName: auth.currentUser.displayName,
-                                providerData: auth.currentUser.providerData
-                            });
-                            
-                            // Obtener token completo
-                            try {
-                                const token = await auth.currentUser.getIdTokenResult();
-                                console.log('3️⃣ TOKEN DE FIREBASE AUTH (getIdTokenResult):', {
-                                    email: token.claims.email || 'NO DISPONIBLE',
-                                    firebase: token.claims.firebase || 'NO DISPONIBLE',
-                                    identities: token.claims.firebase?.identities || 'NO DISPONIBLE',
-                                    emailEnIdentities: token.claims.firebase?.identities?.email?.[0] || 'NO DISPONIBLE',
-                                    todasLasClaims: token.claims
-                                });
-                                
-                                // Extraer username del email si está disponible
-                                const emailDelToken = token.claims.email || token.claims.firebase?.identities?.email?.[0] || '';
-                                const usernameDelToken = emailDelToken ? emailDelToken.replace('rh+', '').replace('@ecoplagascr.com', '') : '';
-                                console.log('4️⃣ USERNAME EXTRAÍDO DEL TOKEN:', {
-                                    emailDelToken: emailDelToken,
-                                    usernameDelToken: usernameDelToken,
-                                    usernameCoincide: usernameDelToken === currentUser?.username
-                                });
-                            } catch (tokenError) {
-                                console.error('❌ Error obteniendo token:', tokenError);
-                            }
-                        } else {
-                            console.error('❌ auth.currentUser es NULL');
-                        }
-                    } catch (authError) {
-                        console.error('❌ Error obteniendo Firebase Auth:', authError);
-                    }
-                    
-                    // 3. Verificar documento en Firestore
-                    try {
-                        const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-                        const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
-                        const db = getFirestore();
-                        const authInstance = getAuth();
-                        
-                        // Por username
-                        if (currentUser?.username) {
-                            const userDocRef = doc(db, 'empleados', currentUser.username);
-                            const userDocSnap = await getDoc(userDocRef);
-                            console.log('5️⃣ DOCUMENTO EN FIRESTORE (por username):', {
-                                username: currentUser.username,
-                                existe: userDocSnap.exists(),
-                                id: userDocSnap.exists() ? userDocSnap.id : 'NO EXISTE',
-                                datos: userDocSnap.exists() ? {
-                                    username: userDocSnap.data().username,
-                                    firebaseAuthUID: userDocSnap.data().firebaseAuthUID || 'NO',
-                                    firebaseAuthEmail: userDocSnap.data().firebaseAuthEmail || 'NO',
-                                    permisos: userDocSnap.data().permisos,
-                                    tienePermisoEmpleados: userDocSnap.data().permisos?.empleados || false,
-                                    todosLosDatos: userDocSnap.data()
-                                } : 'NO EXISTE'
-                            });
-                            
-                            if (!userDocSnap.exists()) {
-                                console.error('❌ PROBLEMA CRÍTICO: El documento de pablo.paniagua NO EXISTE en Firestore');
-                                console.error('   Las reglas de Firestore no pueden verificar los permisos si el documento no existe');
-                                console.error('   SOLUCIÓN: El documento debe existir con ID = "pablo.paniagua" y tener permisos.empleados = true');
-                            }
-                        }
-                        
-                        // Por UID
-                        if (authInstance?.currentUser?.uid) {
-                            const uidDocRef = doc(db, 'empleados', authInstance.currentUser.uid);
-                            const uidDocSnap = await getDoc(uidDocRef);
-                            console.log('6️⃣ DOCUMENTO EN FIRESTORE (por UID):', {
-                                uid: authInstance.currentUser.uid,
-                                existe: uidDocSnap.exists(),
-                                id: uidDocSnap.exists() ? uidDocSnap.id : 'NO EXISTE',
-                                datos: uidDocSnap.exists() ? {
-                                    username: uidDocSnap.data().username,
-                                    firebaseAuthUID: uidDocSnap.data().firebaseAuthUID || 'NO',
-                                    permisos: uidDocSnap.data().permisos,
-                                    tienePermisoEmpleados: uidDocSnap.data().permisos?.empleados || false
-                                } : 'NO EXISTE'
-                            });
-                        }
-                    } catch (docError) {
-                        console.error('❌ Error verificando documento:', docError);
-                    }
-                    
-                    // 4. Verificar permiso usando el método del authManager
-                    const tienePermiso = window.authManager?.hasPermission('empleados');
-                    console.log('7️⃣ VERIFICACIÓN DE PERMISOS:', {
-                        tienePermiso: tienePermiso,
-                        metodo: 'window.authManager.hasPermission("empleados")',
-                        authManagerExiste: !!window.authManager,
-                        currentUserExiste: !!window.authManager?.currentUser
-                    });
-                    
-                    // 5. Análisis del problema
-                    console.group('8️⃣ ANÁLISIS DEL PROBLEMA:');
-                    const problemas = [];
-                    
-                    if (!currentUser) {
-                        problemas.push('❌ No hay usuario autenticado en window.authManager.currentUser');
-                    }
-                    if (!currentUser?.username) {
-                        problemas.push('❌ El usuario no tiene username');
-                    }
-                    if (!currentUser?.permisos?.empleados) {
-                        problemas.push('❌ El usuario no tiene el permiso "empleados: true" en window.authManager.currentUser.permisos');
-                    }
-                    // Verificar Firebase Auth
-                    let authInstance = null;
-                    try {
-                        const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
-                        authInstance = getAuth();
-                    } catch (e) {
-                        console.warn('No se pudo obtener auth:', e);
-                    }
-                    
-                    if (!authInstance?.currentUser) {
-                        problemas.push('❌ No hay usuario autenticado en Firebase Auth (auth.currentUser)');
-                    }
-                    if (!authInstance?.currentUser?.email) {
-                        problemas.push('⚠️ El usuario de Firebase Auth no tiene email (esto puede causar problemas en las reglas)');
-                    }
-                    
-                    // Verificar si el documento existe en Firestore
-                    try {
-                        const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
-                        const db = getFirestore();
-                        
-                        if (currentUser?.username) {
-                            const userDocRef = doc(db, 'empleados', currentUser.username);
-                            const userDocSnap = await getDoc(userDocRef);
-                            if (!userDocSnap.exists()) {
-                                problemas.push(`❌ PROBLEMA CRÍTICO: El documento "${currentUser.username}" NO EXISTE en Firestore`);
-                                problemas.push(`   Las reglas de Firestore no pueden verificar permisos si el documento no existe`);
-                                problemas.push(`   SOLUCIÓN: Ejecuta window.corregirPabloPaniagua() para crear/corregir el documento`);
-                                
-                                // Ofrecer crear el documento automáticamente
-                                console.warn('💡 SOLUCIÓN AUTOMÁTICA DISPONIBLE:');
-                                console.warn('   Ejecuta en la consola: window.corregirPabloPaniagua()');
-                                console.warn('   Esto creará/corregirá el documento automáticamente');
-                            }
-                        }
-                        
-                        if (authInstance?.currentUser?.uid) {
-                            const uidDocRef = doc(db, 'empleados', authInstance.currentUser.uid);
-                            const uidDocSnap = await getDoc(uidDocRef);
-                            if (!uidDocSnap.exists() && !currentUser?.username) {
-                                problemas.push(`❌ PROBLEMA CRÍTICO: El documento con ID = UID ("${authInstance.currentUser.uid}") NO EXISTE en Firestore`);
-                            }
-                        }
-                    } catch (docCheckError) {
-                        console.warn('No se pudo verificar documento:', docCheckError);
-                    }
-                    
-                    if (problemas.length > 0) {
-                        console.error('PROBLEMAS ENCONTRADOS:');
-                        problemas.forEach((p, i) => console.error(`${i + 1}. ${p}`));
-                    } else {
-                        console.log('✅ No se encontraron problemas obvios en el cliente');
-                        console.warn('⚠️ El problema puede estar en las reglas de Firestore');
-                        console.warn('   Las reglas intentan encontrar el documento del usuario autenticado');
-                        console.warn('   Si el email no está disponible, las reglas pueden fallar');
-                    }
-                    console.groupEnd();
-                    
-                    console.groupEnd();
-                    
-                    alert('❌ Error de permisos al guardar empleado.\n\n' +
-                          'Revisa la consola para ver el diagnóstico completo.\n\n' +
-                          'Posibles causas:\n' +
-                          '1. Tu documento en Firestore no tiene el ID = tu username\n' +
-                          '2. Tu documento no tiene el permiso "empleados: true"\n' +
-                          '3. Tu documento no tiene firebaseAuthUID configurado\n' +
-                          '4. El email no está disponible en el token de Firebase Auth\n\n' +
-                          'Ejecuta: window.diagnosticarPermisosEmpleados() para más detalles.');
+                    console.error('Solución: ejecuta en consola window.actualizarLookupUsuarioActual() o usa el botón "Reparar mi acceso a empleados".');
+                    alert('❌ Error de permisos al guardar.\n\nPrueba: botón "Reparar mi acceso a empleados" en esta página, o en consola (F12): window.actualizarLookupUsuarioActual()');
                 } else {
-                    console.error('Error no relacionado con permisos:', error);
-                    alert('Error guardando empleado. Inténtalo de nuevo.\n\nRevisa la consola para más detalles.');
+                    alert('Error guardando empleado. ' + (error.message || ''));
                 }
-                
-                console.groupEnd();
             }
         }
         
@@ -3623,9 +3266,109 @@
                 }
             }
             
-            console.groupEnd();
+console.groupEnd();
         };
-        
+
+        /**
+         * Corrige el documento del usuario actual en empleados: crea un documento con ID = username
+         * si no existe, copiando los datos del documento que tenga ese username o firebaseAuthUID.
+         * Las reglas de Firestore buscan el empleado por ID = username o ID = request.auth.uid;
+         * si tu documento tiene otro ID (ej. 19Q0flM7CvPcw7gvCUsc), las reglas no lo encuentran y deniegan update.
+         * Ejecutar en consola (estando logueado): window.corregirDocumentoUsuarioActual()
+         */
+        window.corregirDocumentoUsuarioActual = async function() {
+            try {
+                const { getFirestore, doc, getDoc, collection, getDocs, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+                const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+                const db = getFirestore();
+                const auth = getAuth();
+                const uid = auth.currentUser?.uid;
+                if (!uid) {
+                    alert('No hay usuario autenticado.');
+                    return;
+                }
+                const email = auth.currentUser?.email || '';
+                const username = email ? email.replace(/^rh\+/, '').replace(/@ecoplagascr\.com$/i, '').trim().toLowerCase() : '';
+                if (!username) {
+                    alert('No se pudo obtener el username del usuario actual (revisa el email en Firebase Auth).');
+                    return;
+                }
+                const docRefPorUsername = doc(db, 'empleados', username);
+                const snap = await getDoc(docRefPorUsername);
+                if (snap.exists()) {
+                    console.log('✅ Ya existe documento con ID =', username);
+                    alert('Tu documento ya tiene el ID correcto (' + username + '). No es necesario corregir.');
+                    return;
+                }
+                const snapshot = await getDocs(collection(db, 'empleados'));
+                let encontrado = null;
+                snapshot.forEach(d => {
+                    const data = d.data();
+                    if ((data.username && data.username.toLowerCase() === username) ||
+                        (data.firebaseAuthUID === uid)) {
+                        encontrado = { id: d.id, ...data };
+                    }
+                });
+                if (!encontrado) {
+                    alert('No se encontró ningún documento de empleado con tu usuario o UID. Contacta al administrador.');
+                    return;
+                }
+                const nuevoDoc = { ...encontrado };
+                delete nuevoDoc.id;
+                nuevoDoc.username = username;
+                nuevoDoc.firebaseAuthUID = uid;
+                if (nuevoDoc.permisos && typeof nuevoDoc.permisos === 'object') {
+                    nuevoDoc.permisos = { ...nuevoDoc.permisos };
+                }
+                await setDoc(docRefPorUsername, nuevoDoc);
+                console.log('✅ Documento creado con ID =', username);
+                alert('Listo. Se creó el documento con ID "' + username + '". Recarga la página y vuelve a intentar guardar.');
+            } catch (e) {
+                console.error(e);
+                alert('Error: ' + (e.message || e));
+            }
+        };
+
+        /**
+         * CÓMO LIDIAMOS CON LAS DOS ESTRUCTURAS DE ID EN EMPLEADOS:
+         * - IDs auto-generados (ej. 19Q0flM7CvPcw7gvCUsc): documentos antiguos o creados sin usar username como ID.
+         * - IDs = username (ej. fernando.solis): documentos que las reglas encuentran por empleados/<username>.
+         * Las reglas solo pueden buscar por path empleados/<username> o empleados/<uid>. Para los que tienen
+         * ID auto-generado, usamos la colección empleados_uid_lookup: empleados_uid_lookup/<firebaseUid> = { empleadoId }.
+         * Esta función crea/actualiza solo TU entrada en empleados_uid_lookup (no duplica documentos).
+         */
+        window.actualizarLookupUsuarioActual = async function() {
+            try {
+                const { getFirestore, doc, collection, getDocs, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+                const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+                const db = getFirestore();
+                const auth = getAuth();
+                const uid = auth.currentUser?.uid;
+                if (!uid) {
+                    alert('No hay usuario autenticado.');
+                    return;
+                }
+                const snapshot = await getDocs(collection(db, 'empleados'));
+                let empleadoEncontrado = null;
+                snapshot.forEach(d => {
+                    const data = d.data();
+                    if (data.firebaseAuthUID === uid) {
+                        empleadoEncontrado = { id: d.id, ...data };
+                    }
+                });
+                if (!empleadoEncontrado) {
+                    alert('No se encontró tu documento de empleado (firebaseAuthUID). Prueba con window.corregirDocumentoUsuarioActual()');
+                    return;
+                }
+                await setDoc(doc(db, 'empleados_uid_lookup', uid), { empleadoId: empleadoEncontrado.id });
+                console.log('✅ Lookup creado: empleados_uid_lookup/' + uid + ' -> ' + empleadoEncontrado.id);
+                alert('Listo. Las reglas ya pueden reconocer tus permisos. Vuelve a intentar guardar el empleado.');
+            } catch (e) {
+                console.error(e);
+                alert('Error: ' + (e.message || e));
+            }
+        };
+
         // Función para migrar el documento de pablo.paniagua al ID correcto
         window.migrarPabloPaniaguaAlIdCorrecto = async function() {
             console.group('🔄 Migrando documento de Pablo Paniagua al ID correcto');
